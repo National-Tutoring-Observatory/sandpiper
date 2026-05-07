@@ -15,6 +15,7 @@ export default async function annotateRunSessions({
 }) {
   const run = await RunService.findById(runId);
   if (!run) throw new Error(`Run not found: ${runId}`);
+  if (!run.createdBy) throw new Error(`Run ${runId} has no createdBy`);
   const project = await ProjectService.findById(run.project as string);
   if (!project) throw new Error(`Project not found: ${run.project}`);
 

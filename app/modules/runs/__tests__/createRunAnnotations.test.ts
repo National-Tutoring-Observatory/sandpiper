@@ -34,9 +34,9 @@ describe("createRunAnnotations", () => {
       isExporting: false,
     });
 
-    await expect(createRunAnnotations(run)).rejects.toThrow(
-      `Project not found: ${invalidProjectId}`,
-    );
+    await expect(
+      createRunAnnotations(run, undefined, "user-123"),
+    ).rejects.toThrow(`Project not found: ${invalidProjectId}`);
   });
 
   it("throws error if prompt version not found", async () => {
@@ -65,9 +65,9 @@ describe("createRunAnnotations", () => {
       isExporting: false,
     });
 
-    await expect(createRunAnnotations(run)).rejects.toThrow(
-      "Prompt version not found",
-    );
+    await expect(
+      createRunAnnotations(run, undefined, "user-123"),
+    ).rejects.toThrow("Prompt version not found");
   });
 
   it("returns early if run is already running", async () => {
@@ -96,7 +96,9 @@ describe("createRunAnnotations", () => {
       isExporting: false,
     });
 
-    await expect(createRunAnnotations(run)).resolves.toBeUndefined();
+    await expect(
+      createRunAnnotations(run, undefined, "user-123"),
+    ).resolves.toBeUndefined();
   });
 
   it("successfully processes a run with valid data", async () => {
@@ -142,6 +144,8 @@ describe("createRunAnnotations", () => {
 
     vi.doMock("~/modules/queues/helpers/taskSequencer");
 
-    await expect(createRunAnnotations(run)).resolves.toBeUndefined();
+    await expect(
+      createRunAnnotations(run, undefined, "user-123"),
+    ).resolves.toBeUndefined();
   });
 });
