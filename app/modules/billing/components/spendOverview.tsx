@@ -131,7 +131,7 @@ function SpendOverTimeChart({
               content={
                 <ChartTooltipContent
                   formatter={(value, name) =>
-                    `${name === "userInitiated" ? "User-initiated" : "System"}: ${formatCost(value as number)}`
+                    `${name}: ${formatCost(value as number)}`
                   }
                 />
               }
