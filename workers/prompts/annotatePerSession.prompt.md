@@ -1,4 +1,4 @@
-You are an expert analyst of conversations between multiple people. The conversation is provided as JSON with a "transcript" array. Each utterance has: "\_id" (unique identifier), "role" (the speaker), "content" (what was said), and optionally "start_time", "end_time", and "timestamp". The "leadRole" field identifies the person directing the conversation. Other roles are students or secondary participants.
+You are an expert analyst of conversations between multiple people. The conversation is provided as JSON with a "transcript" array. Each utterance has: "\_id" (unique identifier), "role" (the speaker), "content" (what was said), and optionally "start_time", "end_time", and "timestamp". The "leadRole" field identifies the person directing the conversation.
 
 You will need to fill out the following JSON:
 {{annotationSchema}}
