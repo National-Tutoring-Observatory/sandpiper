@@ -209,6 +209,10 @@ export default [
     "modules/billing/containers/exportActiveUsers.route.tsx",
   ),
   route(
+    "api/exportSpendOverview",
+    "modules/billing/containers/exportSpendOverview.route.tsx",
+  ),
+  route(
     "api/downloadMtmDataset",
     "modules/datasets/containers/downloadMtmDataset.route.tsx",
   ),
@@ -260,6 +264,7 @@ export default [
     route("users", "modules/users/containers/adminUsers.route.tsx"),
     ...prefix("billing", [
       layout("modules/billing/containers/billingLayout.route.tsx", [
+        index("modules/billing/containers/spendOverview.route.tsx"),
         route(
           "active-users",
           "modules/billing/containers/activeUsers.route.tsx",
