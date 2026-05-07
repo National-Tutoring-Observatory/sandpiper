@@ -8,6 +8,8 @@ import {
 import { Download } from "lucide-react";
 import triggerDownload from "~/modules/app/helpers/triggerDownload";
 import type { AdminSpendOverview } from "../services/getAdminSpendOverview.server";
+import SpendByModelChart from "./spendByModelChart";
+import SpendBySourceChart from "./spendBySourceChart";
 import SpendOverTimeChart from "./spendOverTimeChart";
 import SpendSummaryCards from "./spendSummaryCards";
 import TopTeamsChart from "./topTeamsChart";
@@ -63,6 +65,11 @@ export default function SpendOverview({
 
       <SpendSummaryCards totals={data.categoryTotals} />
       <SpendOverTimeChart data={data.overTime} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SpendByModelChart data={data.byModel} />
+        <SpendBySourceChart data={data.bySource} />
+      </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
         <TopTeamsChart data={data.topTeams} />

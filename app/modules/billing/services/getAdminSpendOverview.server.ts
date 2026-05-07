@@ -1,8 +1,10 @@
 import mongoose from "mongoose";
+import { findModelByCode } from "~/modules/llm/modelRegistry";
 import { TeamService } from "~/modules/teams/team";
 import { UserService } from "~/modules/users/user";
 import { BillingLedgerEntryModel } from "../billingLedgerEntry";
 import { USER_INITIATED_SOURCE_LIST } from "../helpers/costCategories";
+import { groupCostsBySource } from "../helpers/sourceLabels";
 
 export interface SpendByCategory {
   userInitiated: number;
@@ -13,6 +15,14 @@ export interface SpendByCategory {
 export interface AdminSpendOverview {
   categoryTotals: SpendByCategory;
   overTime: Array<{ period: string; userInitiated: number; system: number }>;
+  byModel: Array<{
+    model: string;
+    modelName: string;
+    totalCost: number;
+    totalInputTokens: number;
+    totalOutputTokens: number;
+  }>;
+  bySource: Array<{ label: string; totalCost: number }>;
   topTeams: Array<
     {
       teamId: string;
@@ -49,57 +59,91 @@ export default async function getAdminSpendOverview(
     createdAt: { $gte: since },
   };
 
-  const [categoryTotalsRaw, overTimeRaw, topTeamsRaw, topUsersRaw] =
-    await Promise.all([
-      BillingLedgerEntryModel.aggregate<SpendByCategory>([
-        { $match: matchStage },
-        { $group: { _id: null, ...categoryGroupFields } },
-      ]),
+  const [
+    categoryTotalsRaw,
+    overTimeRaw,
+    byModelRaw,
+    bySourceRaw,
+    topTeamsRaw,
+    topUsersRaw,
+  ] = await Promise.all([
+    BillingLedgerEntryModel.aggregate<SpendByCategory>([
+      { $match: matchStage },
+      { $group: { _id: null, ...categoryGroupFields } },
+    ]),
 
-      BillingLedgerEntryModel.aggregate<{
-        _id: string;
-        userInitiated: number;
-        system: number;
-      }>([
-        { $match: matchStage },
-        {
-          $group: {
-            _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
-            userInitiated: {
-              $sum: { $cond: [userInitiatedCond, "$amount", 0] },
-            },
-            system: {
-              $sum: { $cond: [userInitiatedCond, 0, "$amount"] },
-            },
+    BillingLedgerEntryModel.aggregate<{
+      _id: string;
+      userInitiated: number;
+      system: number;
+    }>([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } },
+          userInitiated: {
+            $sum: { $cond: [userInitiatedCond, "$amount", 0] },
+          },
+          system: {
+            $sum: { $cond: [userInitiatedCond, 0, "$amount"] },
           },
         },
-        { $sort: { _id: 1 } },
-      ]),
+      },
+      { $sort: { _id: 1 } },
+    ]),
 
-      BillingLedgerEntryModel.aggregate<{
-        _id: mongoose.Types.ObjectId;
-        userInitiated: number;
-        system: number;
-        totalCost: number;
-      }>([
-        { $match: matchStage },
-        { $group: { _id: "$team", ...categoryGroupFields } },
-        { $sort: { totalCost: -1 } },
-        { $limit: 10 },
-      ]),
+    BillingLedgerEntryModel.aggregate<{
+      _id: string;
+      totalCost: number;
+      totalInputTokens: number;
+      totalOutputTokens: number;
+    }>([
+      { $match: matchStage },
+      {
+        $group: {
+          _id: "$model",
+          totalCost: { $sum: "$amount" },
+          totalInputTokens: { $sum: "$inputTokens" },
+          totalOutputTokens: { $sum: "$outputTokens" },
+        },
+      },
+      { $match: { _id: { $ne: null } } },
+      { $sort: { totalCost: -1 } },
+    ]),
 
-      BillingLedgerEntryModel.aggregate<{
-        _id: mongoose.Types.ObjectId;
-        userInitiated: number;
-        system: number;
-        totalCost: number;
-      }>([
-        { $match: { ...matchStage, user: { $exists: true, $ne: null } } },
-        { $group: { _id: "$user", ...categoryGroupFields } },
-        { $sort: { totalCost: -1 } },
-        { $limit: 10 },
-      ]),
-    ]);
+    BillingLedgerEntryModel.aggregate<{
+      _id: string;
+      totalCost: number;
+    }>([
+      { $match: matchStage },
+      { $group: { _id: "$source", totalCost: { $sum: "$amount" } } },
+      { $sort: { totalCost: -1 } },
+    ]),
+
+    BillingLedgerEntryModel.aggregate<{
+      _id: mongoose.Types.ObjectId;
+      userInitiated: number;
+      system: number;
+      totalCost: number;
+    }>([
+      { $match: matchStage },
+      { $group: { _id: "$team", ...categoryGroupFields } },
+      { $sort: { totalCost: -1 } },
+      { $limit: 10 },
+    ]),
+
+    BillingLedgerEntryModel.aggregate<{
+      _id: mongoose.Types.ObjectId;
+      userInitiated: number;
+      system: number;
+      totalCost: number;
+    }>([
+      { $match: { ...matchStage, user: { $exists: true, $ne: null } } },
+      { $group: { _id: "$user", ...categoryGroupFields } },
+      { $sort: { totalCost: -1 } },
+      { $limit: 10 },
+    ]),
+  ]);
 
   const categoryTotals: SpendByCategory = categoryTotalsRaw[0] ?? {
     userInitiated: 0,
@@ -112,6 +156,19 @@ export default async function getAdminSpendOverview(
     userInitiated: row.userInitiated,
     system: row.system,
   }));
+
+  const byModel = byModelRaw.map((row) => ({
+    model: row._id,
+    modelName:
+      findModelByCode(row._id, { includeDeprecated: true })?.name ?? row._id,
+    totalCost: row.totalCost,
+    totalInputTokens: row.totalInputTokens,
+    totalOutputTokens: row.totalOutputTokens,
+  }));
+
+  const bySource = groupCostsBySource(
+    bySourceRaw.map((row) => ({ source: row._id, totalCost: row.totalCost })),
+  );
 
   const teamIds = topTeamsRaw.map((r) => r._id.toString());
   const userIds = topUsersRaw.map((r) => r._id.toString());
@@ -152,5 +209,5 @@ export default async function getAdminSpendOverview(
     };
   });
 
-  return { categoryTotals, overTime, topTeams, topUsers };
+  return { categoryTotals, overTime, byModel, bySource, topTeams, topUsers };
 }

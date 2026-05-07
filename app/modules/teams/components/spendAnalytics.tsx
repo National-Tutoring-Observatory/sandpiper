@@ -25,6 +25,8 @@ import type {
   CostOverTime,
   SpendGranularity,
 } from "~/modules/billing/billingAnalytics.types";
+import SpendByModelChart from "~/modules/billing/components/spendByModelChart";
+import SpendBySourceChart from "~/modules/billing/components/spendBySourceChart";
 import formatCost from "~/modules/billing/helpers/formatCost";
 
 interface SpendAnalyticsProps {
@@ -42,103 +44,6 @@ const costChartConfig = {
   },
 } satisfies ChartConfig;
 
-const formatTokens = (value: number) => value.toLocaleString();
-
-function EmptyState() {
-  return (
-    <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
-      No spend data yet
-    </div>
-  );
-}
-
-function SpendByModelChart({
-  data,
-}: {
-  data: Array<CostByModel & { modelName: string }>;
-}) {
-  if (data.length === 0) return <EmptyState />;
-
-  return (
-    <ChartContainer config={costChartConfig} className="h-72 w-full">
-      <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-        <CartesianGrid horizontal={false} />
-        <YAxis
-          dataKey="modelName"
-          type="category"
-          tickLine={false}
-          axisLine={false}
-          width={140}
-          tick={{ fontSize: 12 }}
-        />
-        <XAxis type="number" tickFormatter={formatCost} />
-        <ChartTooltip
-          content={
-            <ChartTooltipContent
-              formatter={(_value, _name, item) => (
-                <div className="grid gap-1">
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Cost</span>
-                    <span className="font-mono font-medium">
-                      {formatCost(item.payload.totalCost)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Input tokens</span>
-                    <span className="font-mono font-medium">
-                      {formatTokens(item.payload.totalInputTokens)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between gap-4">
-                    <span className="text-muted-foreground">Output tokens</span>
-                    <span className="font-mono font-medium">
-                      {formatTokens(item.payload.totalOutputTokens)}
-                    </span>
-                  </div>
-                </div>
-              )}
-            />
-          }
-        />
-        <Bar dataKey="totalCost" fill="var(--color-totalCost)" radius={4} />
-      </BarChart>
-    </ChartContainer>
-  );
-}
-
-function SpendBySourceChart({
-  data,
-}: {
-  data: Array<{ label: string; totalCost: number }>;
-}) {
-  if (data.length === 0) return <EmptyState />;
-
-  return (
-    <ChartContainer config={costChartConfig} className="h-72 w-full">
-      <BarChart data={data} layout="vertical" margin={{ left: 20 }}>
-        <CartesianGrid horizontal={false} />
-        <YAxis
-          dataKey="label"
-          type="category"
-          tickLine={false}
-          axisLine={false}
-          width={140}
-          tick={{ fontSize: 12 }}
-        />
-        <XAxis type="number" tickFormatter={formatCost} />
-        <ChartTooltip
-          content={
-            <ChartTooltipContent
-              formatter={(value) => formatCost(value as number)}
-            />
-          }
-        />
-        <Bar dataKey="totalCost" fill="var(--color-totalCost)" radius={4} />
-      </BarChart>
-    </ChartContainer>
-  );
-}
-
 function SpendOverTimeChart({
   data,
   granularity,
@@ -148,7 +53,13 @@ function SpendOverTimeChart({
   granularity: SpendGranularity;
   onGranularityChanged: (value: SpendGranularity) => void;
 }) {
-  if (data.length === 0) return <EmptyState />;
+  if (data.length === 0) {
+    return (
+      <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
+        No spend data yet
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
