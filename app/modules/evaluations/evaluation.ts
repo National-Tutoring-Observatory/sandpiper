@@ -104,6 +104,7 @@ export class EvaluationService {
     runSetId: string;
     promptId: string;
     promptVersion: number;
+    userId: string;
   }): Promise<void> {
     await createAdjudicationRun(params);
   }

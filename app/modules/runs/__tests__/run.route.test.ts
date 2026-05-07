@@ -97,6 +97,7 @@ describe("run.route loader", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const cookieHeader = await loginUser(user._id);
@@ -142,6 +143,7 @@ describe("run.route loader", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const cookieHeader = await loginUser(user._id);
@@ -188,6 +190,7 @@ describe("run.route loader", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const cookieHeader = await loginUser(otherUser._id);
@@ -231,6 +234,7 @@ describe("run.route loader", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const runSetInProjectB = await RunSetService.create({
@@ -283,6 +287,7 @@ describe("run.route action", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     await expectAuthRequired(() =>
@@ -320,6 +325,7 @@ describe("run.route action", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const otherUser = await UserService.create({
@@ -366,6 +372,7 @@ describe("run.route action", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const runSet = await RunSetService.create({
@@ -416,6 +423,7 @@ describe("run.route action", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const cookieHeader = await loginUser(user._id);
@@ -464,6 +472,7 @@ describe("run.route action", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const cookieHeader = await loginUser(user._id);
@@ -517,6 +526,7 @@ describe("run.route action - IDOR protection", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const attacker = await UserService.create({
@@ -576,6 +586,7 @@ describe("run.route action - IDOR protection", () => {
       promptVersion: 1,
       modelCode: "gpt-4",
       shouldRunVerification: false,
+      createdBy: new Types.ObjectId().toString(),
     });
 
     const attacker = await UserService.create({

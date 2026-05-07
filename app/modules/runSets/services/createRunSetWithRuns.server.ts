@@ -11,6 +11,7 @@ export interface CreateRunSetWithRunsPayload {
   definitions: RunDefinition[];
   annotationType: RunAnnotationType;
   shouldRunVerification?: boolean;
+  userId: string;
 }
 
 export default async function createRunSetWithRuns(
@@ -44,11 +45,12 @@ export default async function createRunSetWithRuns(
         promptVersion: definition.prompt.version,
         modelCode: definition.modelCode,
         shouldRunVerification: !!payload.shouldRunVerification,
+        createdBy: payload.userId,
       });
 
       generatedRunIds.push(newRun._id);
 
-      await RunService.start(newRun);
+      await RunService.start(newRun, undefined, payload.userId);
     } catch (error) {
       runErrors.push(
         `Error starting run for prompt ${definition.prompt.promptId} and model ${definition.modelCode}: ${error}`,

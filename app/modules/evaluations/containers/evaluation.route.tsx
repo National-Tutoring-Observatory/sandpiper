@@ -113,6 +113,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         runSetId: params.runSetId,
         promptId,
         promptVersion,
+        userId: user._id,
       });
 
       return data({

@@ -136,6 +136,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         definitions,
         annotationType: annotationType as RunAnnotationType,
         shouldRunVerification: !!payload.shouldRunVerification,
+        userId: user._id,
       });
 
       trackServerEvent({ name: "run_set_created", userId: user._id });

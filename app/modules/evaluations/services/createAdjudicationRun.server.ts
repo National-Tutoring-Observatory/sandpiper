@@ -12,6 +12,7 @@ interface CreateAdjudicationRunParams {
   runSetId: string;
   promptId: string;
   promptVersion: number;
+  userId: string;
 }
 
 export default async function createAdjudicationRun(
@@ -46,6 +47,7 @@ export default async function createAdjudicationRun(
     promptVersion,
     modelCode,
     shouldRunVerification: false,
+    createdBy: params.userId,
     isAdjudication: true,
     adjudication: {
       sourceRuns: selectedRunIds,
@@ -63,5 +65,5 @@ export default async function createAdjudicationRun(
     });
   }
 
-  RunService.start(run, evaluationId);
+  RunService.start(run, evaluationId, params.userId);
 }

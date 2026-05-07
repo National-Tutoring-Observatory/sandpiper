@@ -25,7 +25,7 @@ describe("RunService.start", () => {
       stoppedAt: new Date(),
     });
 
-    await RunService.start(run);
+    await RunService.start(run, undefined, "user-123");
 
     const updated = await RunService.findById(run._id);
     expect(updated!.isRunning).toBe(false);
@@ -43,7 +43,7 @@ describe("RunService.start", () => {
       hasErrored: false,
     });
 
-    await RunService.start(run);
+    await RunService.start(run, undefined, "user-123");
 
     const updated = await RunService.findById(run._id);
     expect(updated!.isRunning).toBe(false);
@@ -61,12 +61,12 @@ describe("RunService.start", () => {
       hasErrored: false,
     });
 
-    await RunService.start(run);
+    await RunService.start(run, undefined, "user-123");
 
     expect(createRunAnnotations).toHaveBeenCalledWith(
       run,
       undefined,
-      undefined,
+      "user-123",
     );
   });
 });

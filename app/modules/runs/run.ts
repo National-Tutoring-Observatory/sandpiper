@@ -96,7 +96,7 @@ export class RunService {
       shouldRunVerification: !!props.shouldRunVerification,
       isAdjudication: !!props.isAdjudication,
       adjudication: props.adjudication,
-      ...(props.createdBy && { createdBy: props.createdBy }),
+      createdBy: props.createdBy,
     });
     return this.toRun(doc);
   }
@@ -108,8 +108,8 @@ export class RunService {
 
   static async start(
     run: Run,
-    evaluationId?: string,
-    userId?: string,
+    evaluationId: string | undefined,
+    userId: string,
   ): Promise<void> {
     await this.updateById(run._id, {
       isRunning: false,

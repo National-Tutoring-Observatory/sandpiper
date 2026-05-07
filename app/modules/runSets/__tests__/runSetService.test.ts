@@ -42,11 +42,13 @@ describe("RunSetService", () => {
   let project: Project;
   let session1: Session;
   let session2: Session;
+  let testUserId: string;
 
   beforeEach(async () => {
     await clearDocumentDB();
 
     const user = await UserService.create({ username: "test_user", teams: [] });
+    testUserId = user._id;
     const team = await TeamService.create({ name: "Test Team" });
     await UserService.updateById(user._id, {
       teams: [{ team: team._id, role: "ADMIN" }],
@@ -99,6 +101,7 @@ describe("RunSetService", () => {
         sessions: [session1._id, session2._id],
         definitions: [buildDefinition(prompt1._id, "Prompt 1", 1, testModel1)],
         annotationType: "PER_UTTERANCE",
+        userId: testUserId,
       });
 
       expect(result).toHaveProperty("runSet");
@@ -117,6 +120,7 @@ describe("RunSetService", () => {
         sessions: [session1._id, session2._id],
         definitions: [buildDefinition(prompt1._id, "Prompt 1", 1, testModel1)],
         annotationType: "PER_UTTERANCE",
+        userId: testUserId,
       });
 
       expect(result.runSet.runs).toHaveLength(1);
@@ -154,6 +158,7 @@ describe("RunSetService", () => {
       const result = await RunSetService.createRunsForRunSet({
         runSetId: "000000000000000000000000",
         definitions: [buildDefinition(prompt1._id, "Prompt 1", 1, testModel1)],
+        userId: testUserId,
       });
 
       expect(result.runSet).toBeNull();
@@ -165,6 +170,7 @@ describe("RunSetService", () => {
       const result = await RunSetService.createRunsForRunSet({
         runSetId,
         definitions: [buildDefinition(prompt1._id, "Prompt 1", 1, testModel1)],
+        userId: testUserId,
       });
 
       expect(result.runSet).not.toBeNull();
@@ -179,6 +185,7 @@ describe("RunSetService", () => {
       const result = await RunSetService.createRunsForRunSet({
         runSetId,
         definitions: [buildDefinition(prompt1._id, "Prompt 1", 1, testModel1)],
+        userId: testUserId,
       });
 
       expect(result.createdRunIds).toHaveLength(1);
@@ -194,6 +201,7 @@ describe("RunSetService", () => {
         promptVersion: 1,
         modelCode: testModel1,
         shouldRunVerification: false,
+        createdBy: testUserId,
       });
 
       await RunSetService.updateById(runSetId, {
@@ -203,6 +211,7 @@ describe("RunSetService", () => {
       const result = await RunSetService.createRunsForRunSet({
         runSetId,
         definitions: [buildDefinition(prompt1._id, "Prompt 1", 1, testModel1)],
+        userId: testUserId,
       });
 
       expect(result.runSet).not.toBeNull();
@@ -219,6 +228,7 @@ describe("RunSetService", () => {
         promptVersion: 1,
         modelCode: testModel1,
         shouldRunVerification: false,
+        createdBy: testUserId,
       });
 
       await RunSetService.updateById(runSetId, {
@@ -231,6 +241,7 @@ describe("RunSetService", () => {
           buildDefinition(prompt1._id, "Prompt 1", 1, testModel1),
           buildDefinition(prompt1._id, "Prompt 1", 1, testModel2),
         ],
+        userId: testUserId,
       });
 
       expect(result.runSet).not.toBeNull();
@@ -248,6 +259,7 @@ describe("RunSetService", () => {
           buildDefinition(prompt1._id, "Prompt 1", 1, testModel1),
           buildDefinition(prompt1._id, "Prompt 1", 1, testModel2),
         ],
+        userId: testUserId,
       });
 
       expect(result.createdRunIds).toHaveLength(2);

@@ -114,6 +114,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         runSetId: params.runSetId,
         definitions,
         shouldRunVerification: !!payload.shouldRunVerification,
+        userId: user._id,
       });
 
       if (!result.runSet) {

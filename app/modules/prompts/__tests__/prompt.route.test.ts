@@ -349,6 +349,7 @@ describe("prompt.route action", () => {
         modelCode: "openai.gpt-5-mini",
         sessions: [],
         shouldRunVerification: false,
+        createdBy: user._id,
       });
 
       const cookieHeader = await loginUser(user._id);

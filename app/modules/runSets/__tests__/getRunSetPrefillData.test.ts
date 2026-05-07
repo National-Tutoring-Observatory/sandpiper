@@ -100,6 +100,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
 
       const result = await RunSetService.getPrefillDataFromRun(
@@ -150,6 +151,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
 
       const result = await RunSetService.getPrefillDataFromRun(
@@ -182,6 +184,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: true,
+        createdBy: new Types.ObjectId().toString(),
       });
 
       const result = await RunSetService.getPrefillDataFromRun(
@@ -203,6 +206,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       await RunService.updateById(run._id, { prompt: deletedId });
 
@@ -277,6 +281,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       const runSet = await RunSetService.create({
         name: "Test RunSet",
@@ -314,6 +319,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       const run2 = await RunService.create({
         project: projectId,
@@ -324,6 +330,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       const runSet = await RunSetService.create({
         name: "Dedup RunSet",
@@ -351,6 +358,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       const deletedId = new Types.ObjectId().toString();
       await RunService.updateById(run._id, { prompt: deletedId });
@@ -381,6 +389,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       const humanRun = await RunService.createFromData({
         project: projectId,
@@ -467,6 +476,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       const runWith = await RunService.create({
         project: projectId,
@@ -477,6 +487,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: true,
+        createdBy: new Types.ObjectId().toString(),
       });
       const runSet = await RunSetService.create({
         name: "Mixed Verification RunSet",
@@ -503,6 +514,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       const runSet = await RunSetService.create({
         name: "No Verification RunSet",
@@ -529,6 +541,7 @@ describe("getRunSetPrefillData", () => {
         promptVersion: 1,
         modelCode: testModel,
         shouldRunVerification: false,
+        createdBy: new Types.ObjectId().toString(),
       });
       await RunService.updateById(run._id, {
         snapshot: {
