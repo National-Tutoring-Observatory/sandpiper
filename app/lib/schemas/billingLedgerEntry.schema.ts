@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 const billingLedgerEntrySchema = new mongoose.Schema({
   team: { type: mongoose.Types.ObjectId, ref: "Team", required: true },
+  user: { type: mongoose.Types.ObjectId, ref: "User" },
   direction: {
     type: String,
     enum: ["credit", "debit"],
@@ -26,6 +27,7 @@ const billingLedgerEntrySchema = new mongoose.Schema({
 });
 
 billingLedgerEntrySchema.index({ team: 1, createdAt: -1 });
+billingLedgerEntrySchema.index({ user: 1, createdAt: -1 });
 billingLedgerEntrySchema.index({ team: 1, direction: 1, createdAt: -1 });
 billingLedgerEntrySchema.index({ team: 1, source: 1, createdAt: -1 });
 

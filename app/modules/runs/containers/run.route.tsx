@@ -121,7 +121,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       return {};
     }
     case "RE_RUN": {
-      await RunService.start(run);
+      await RunService.start(run, undefined, user._id);
       return {};
     }
     case "EXPORT_RUN": {

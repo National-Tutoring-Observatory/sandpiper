@@ -16,10 +16,12 @@ export default async function getAttributeMappingFromFile({
   file,
   team,
   projectId,
+  userId,
 }: {
   file: File;
   team: string;
   projectId?: string;
+  userId?: string;
 }): Promise<Record<string, string>> {
   const fileContents = await file.text();
 
@@ -57,6 +59,7 @@ export default async function getAttributeMappingFromFile({
     const llm = new LLM({
       model: getDefaultModelCode(),
       team,
+      userId,
       source: "attribute-mapping",
       sourceId: projectId,
       billingEventId: `attribute-mapping:${projectId ?? "no-project"}`,

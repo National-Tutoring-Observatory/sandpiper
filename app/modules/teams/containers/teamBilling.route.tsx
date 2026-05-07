@@ -27,6 +27,7 @@ import addCredits from "~/modules/billing/services/addCredits.server";
 import getBillingReportingSummary from "~/modules/billing/services/getBillingReportingSummary.server";
 import getBillingSpendAnalytics from "~/modules/billing/services/getBillingSpendAnalytics.server";
 import { StripeService } from "~/modules/billing/stripe";
+import { TeamBillingService } from "~/modules/billing/teamBilling";
 import { TeamBillingPlanService } from "~/modules/billing/teamBillingPlan";
 import addDialog, { closeDialog } from "~/modules/dialogs/addDialog";
 import { findModelByCode } from "~/modules/llm/modelRegistry";
@@ -68,6 +69,24 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     sortableFields: ["createdAt", "amount"],
   });
 
+  const userCostsQueryParams = getQueryParamsFromRequest(
+    request,
+    {
+      searchValue: "",
+      currentPage: 1,
+      sort: "-totalBilledCosts",
+      filters: {},
+    },
+    { paramPrefix: "userCosts" },
+  );
+
+  const userCostsQuery = buildQueryFromParams({
+    match: {},
+    queryParams: userCostsQueryParams,
+    searchableFields: [],
+    sortableFields: ["totalBilledCosts", "runCosts", "nonRunCosts"],
+  });
+
   const canAssignPlan = BillingAuthorization.canAssignPlan(user);
 
   const [
@@ -76,6 +95,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     billingUserInfo,
     billingPlans,
     pendingPlanChange,
+    userCosts,
   ] = await Promise.all([
     getBillingReportingSummary(params.id),
     BillingLedgerEntryService.paginate({
@@ -94,6 +114,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       : Promise.resolve(null),
     canAssignPlan ? BillingPlanService.find() : Promise.resolve([]),
     TeamBillingPlanService.getPendingPlanChange(params.id),
+    TeamBillingService.paginateUserCosts(params.id, userCostsQuery),
   ]);
 
   const { balanceSummary, closedPeriods } = billingReportingSummary;
@@ -117,6 +138,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
       closedPeriods,
       spendAnalytics: emptySpendAnalytics,
       isBillingEnabled: billingEnabled,
+      userCosts,
     };
   }
 
@@ -165,6 +187,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     closedPeriods,
     spendAnalytics,
     isBillingEnabled: billingEnabled,
+    userCosts,
   };
 }
 
@@ -350,6 +373,7 @@ export default function TeamBillingRoute() {
     closedPeriods,
     spendAnalytics,
     isBillingEnabled: billingEnabled,
+    userCosts,
   } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
   const { revalidate } = useRevalidator();
@@ -369,6 +393,22 @@ export default function TeamBillingRoute() {
       filters: {},
     },
     { paramPrefix: "credits" },
+  );
+
+  const {
+    currentPage: userCostsCurrentPage,
+    setCurrentPage: setUserCostsCurrentPage,
+    sortValue: userCostsSortValue,
+    setSortValue: setUserCostsSortValue,
+    isSyncing: isUserCostsSyncing,
+  } = useSearchQueryParams(
+    {
+      searchValue: "",
+      currentPage: 1,
+      sortValue: "-totalBilledCosts",
+      filters: {},
+    },
+    { paramPrefix: "userCosts" },
   );
 
   const spendGranularity = (searchParams.get("spendGranularity") ??
@@ -511,6 +551,12 @@ export default function TeamBillingRoute() {
       onTopUpClicked={openTopUpDialog}
       onAssignPlanClicked={openAssignPlanDialog}
       onSetBillingUserClicked={openSetBillingUserDialog}
+      userCosts={userCosts}
+      userCostsCurrentPage={userCostsCurrentPage}
+      userCostsSortValue={userCostsSortValue}
+      isUserCostsSyncing={isUserCostsSyncing}
+      onUserCostsPaginationChanged={setUserCostsCurrentPage}
+      onUserCostsSortValueChanged={setUserCostsSortValue}
     />
   );
 }

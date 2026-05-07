@@ -16,8 +16,16 @@ import updateRunSession from "../helpers/updateRunSession";
 const adjudicatePerSessionPrompt = getPromptText("adjudicatePerSession");
 
 export default async function adjudicatePerSession(job: Job) {
-  const { runId, sessionId, inputFile, outputFolder, prompt, model, team } =
-    job.data;
+  const {
+    runId,
+    sessionId,
+    inputFile,
+    outputFolder,
+    prompt,
+    model,
+    team,
+    userId,
+  } = job.data;
 
   const currentRun = await RunService.findById(runId);
 
@@ -83,6 +91,7 @@ export default async function adjudicatePerSession(job: Job) {
       const llm = new LLM({
         model,
         team,
+        userId,
         schema: responseSchema,
         source: "adjudication:per-session",
         sourceId: sessionId,

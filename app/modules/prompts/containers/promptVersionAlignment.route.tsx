@@ -30,6 +30,7 @@ export async function action({ request }: Route.ActionArgs) {
           annotationSchema,
           team,
           promptId,
+          userId: user._id,
         });
         return response;
       } catch (error) {
@@ -47,6 +48,7 @@ export async function action({ request }: Route.ActionArgs) {
           promptId,
           alignmentScore,
           reasoning,
+          userId: user._id,
         });
         return response;
       } catch (error) {

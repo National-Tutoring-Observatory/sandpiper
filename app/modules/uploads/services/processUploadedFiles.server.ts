@@ -8,10 +8,12 @@ export default async function processUploadedFiles({
   projectId,
   files,
   team,
+  userId,
 }: {
   projectId: string;
   files: File[];
   team: string;
+  userId?: string;
 }) {
   const splitFiles = await splitMultipleSessionsIntoFiles({ files });
 
@@ -23,6 +25,7 @@ export default async function processUploadedFiles({
     file: splitFiles[0],
     team,
     projectId,
+    userId,
   });
 
   uploadFiles({ files: splitFiles, entityId: projectId })

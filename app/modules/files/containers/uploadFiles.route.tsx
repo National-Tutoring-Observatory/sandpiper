@@ -117,6 +117,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       projectId: params.projectId,
       files: uploadedFiles,
       team: project.team as string,
+      userId: user._id,
     });
   } catch (error) {
     const errorMessage =

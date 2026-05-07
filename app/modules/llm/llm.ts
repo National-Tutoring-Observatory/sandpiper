@@ -25,6 +25,7 @@ interface LLMOptions {
   sourceId?: string;
   billingEventId: string;
   team?: string;
+  userId?: string;
   schema?: object;
   retries?: number;
   timeout?: number;
@@ -108,6 +109,7 @@ class LLM {
       });
       await applyBillingDebit({
         teamId: this.options.team,
+        userId: this.options.userId,
         model: this.options.model,
         source: this.options.source,
         sourceId: this.options.sourceId,

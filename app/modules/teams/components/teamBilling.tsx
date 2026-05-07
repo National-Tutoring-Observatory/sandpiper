@@ -14,6 +14,8 @@ import type {
   CostOverTime,
   SpendGranularity,
 } from "~/modules/billing/billingAnalytics.types";
+import UserSpend from "~/modules/billing/components/userSpend";
+import type { UserCostRow } from "~/modules/billing/services/getUserCosts.server";
 import type { Team } from "~/modules/teams/teams.types";
 import type { User } from "~/modules/users/users.types";
 import BillingOverview from "./billingOverview";
@@ -60,6 +62,16 @@ interface TeamBillingProps {
   onTopUpClicked: () => void;
   onAssignPlanClicked: () => void;
   onSetBillingUserClicked: () => void;
+  userCosts: {
+    data: UserCostRow[];
+    count: number;
+    totalPages: number;
+  };
+  userCostsCurrentPage: number;
+  userCostsSortValue: string;
+  isUserCostsSyncing: boolean;
+  onUserCostsPaginationChanged: (page: number) => void;
+  onUserCostsSortValueChanged: (sort: string) => void;
 }
 
 export default function TeamBilling({
@@ -83,6 +95,12 @@ export default function TeamBilling({
   onTopUpClicked,
   onAssignPlanClicked,
   onSetBillingUserClicked,
+  userCosts,
+  userCostsCurrentPage,
+  userCostsSortValue,
+  isUserCostsSyncing,
+  onUserCostsPaginationChanged,
+  onUserCostsSortValueChanged,
 }: TeamBillingProps) {
   const user = useContext(AuthenticationContext) as User | null;
   const canAssignPlan = BillingAuthorization.canAssignPlan(user);
@@ -129,6 +147,16 @@ export default function TeamBilling({
         overTime={spendAnalytics.overTime}
         granularity={spendGranularity}
         onGranularityChanged={onSpendGranularityChanged}
+      />
+
+      <UserSpend
+        rows={userCosts.data}
+        totalPages={userCosts.totalPages}
+        currentPage={userCostsCurrentPage}
+        sortValue={userCostsSortValue}
+        isSyncing={isUserCostsSyncing}
+        onPaginationChanged={onUserCostsPaginationChanged}
+        onSortValueChanged={onUserCostsSortValueChanged}
       />
 
       <BillingPeriodHistory periods={closedPeriods} />

@@ -33,6 +33,7 @@ export interface BillingPeriod {
 export interface BillingLedgerEntry {
   _id: string;
   team: string;
+  user?: string;
   direction: "credit" | "debit";
   amount: number;
   currency: string;

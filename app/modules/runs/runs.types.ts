@@ -62,6 +62,7 @@ export interface CreateRunProps {
   promptVersion: number;
   modelCode: string;
   shouldRunVerification: boolean;
+  createdBy?: string;
   isAdjudication?: boolean;
   adjudication?: {
     sourceRuns: string[];

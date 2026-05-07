@@ -140,9 +140,10 @@ export async function action({ request, params }: Route.ActionArgs) {
         promptVersion: Number(promptVersion),
         modelCode: model,
         shouldRunVerification: !!payload.shouldRunVerification,
+        createdBy: user._id,
       });
 
-      await RunService.start(run);
+      await RunService.start(run, undefined, user._id);
       trackServerEvent({ name: "run_created", userId: user._id });
       await createGeneralJob("TRACK_FIRST_RUN", { userId: user._id });
 

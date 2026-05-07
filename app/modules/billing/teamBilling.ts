@@ -18,6 +18,7 @@ import {
 import getBillingReportingSummary, {
   type BillingReportingSummary,
 } from "./services/getBillingReportingSummary.server";
+import { paginateUserCosts } from "./services/getUserCosts.server";
 import { TeamBillingBalanceService } from "./teamBillingBalance";
 import { TeamBillingPlanService } from "./teamBillingPlan";
 
@@ -134,6 +135,7 @@ export class TeamBillingService {
 
   static async applyDebit(input: {
     teamId: string;
+    userId?: string;
     model: string;
     source: string;
     sourceId?: string;
@@ -156,6 +158,14 @@ export class TeamBillingService {
 
   static activeTeamsToCSV(rows: ActiveTeamRow[]) {
     return activeTeamsToCSV(rows);
+  }
+
+  static async paginateUserCosts(
+    teamId: string,
+    query: Query,
+    pageSize?: number,
+  ) {
+    return paginateUserCosts(teamId, query, pageSize);
   }
 
   static async applyStripeTopUp({

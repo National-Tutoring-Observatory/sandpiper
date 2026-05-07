@@ -8,6 +8,7 @@ export default async function checkPromptAndAnnotationSchemaAlignment({
   promptId,
   alignmentScore,
   reasoning,
+  userId,
 }: {
   userPrompt: string;
   annotationSchema: AnnotationSchemaItem[];
@@ -15,6 +16,7 @@ export default async function checkPromptAndAnnotationSchemaAlignment({
   promptId: string;
   alignmentScore: number;
   reasoning: string;
+  userId?: string;
 }) {
   const annotationSchemaArray = [];
 
@@ -60,6 +62,7 @@ export default async function checkPromptAndAnnotationSchemaAlignment({
   const llm = new LLM({
     model: "anthropic.claude-4.6-sonnet",
     team,
+    userId,
     source: "prompt-alignment",
     sourceId: promptId,
     billingEventId: `prompt-alignment:suggest:${promptId}`,

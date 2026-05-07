@@ -9,6 +9,7 @@ import { SessionService } from "~/modules/sessions/session";
 export default async function createRunAnnotations(
   run: Run,
   evaluationId?: string,
+  userId?: string,
 ) {
   const project = await ProjectService.findById(run.project as string);
   if (!project) throw new Error(`Project not found: ${run.project}`);
@@ -48,6 +49,7 @@ export default async function createRunAnnotations(
   taskSequencer.addTask("START", {
     projectId: run.project,
     runId: run._id,
+    userId,
   });
 
   for (const session of run.sessions) {
@@ -76,6 +78,7 @@ export default async function createRunAnnotations(
         },
         model: getRunModelCode(run),
         team: project.team,
+        userId,
         currentSessionIndex,
         shouldRunVerification: !!run.shouldRunVerification,
         isAdjudication: !!run.isAdjudication,
@@ -89,6 +92,7 @@ export default async function createRunAnnotations(
     projectId: run.project,
     runId: run._id,
     evaluationId,
+    userId,
   });
 
   taskSequencer.run();
