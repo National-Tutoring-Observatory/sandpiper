@@ -25,6 +25,7 @@ import type {
   CostOverTime,
   SpendGranularity,
 } from "~/modules/billing/billingAnalytics.types";
+import formatCost from "~/modules/billing/helpers/formatCost";
 
 interface SpendAnalyticsProps {
   byModel: Array<CostByModel & { modelName: string }>;
@@ -40,12 +41,6 @@ const costChartConfig = {
     color: "var(--chart-1)",
   },
 } satisfies ChartConfig;
-
-function formatCost(value: number) {
-  if (value === 0) return "$0.00";
-  if (Math.abs(value) < 0.01) return `$${value.toPrecision(2)}`;
-  return `$${value.toFixed(2)}`;
-}
 
 const formatTokens = (value: number) => value.toLocaleString();
 

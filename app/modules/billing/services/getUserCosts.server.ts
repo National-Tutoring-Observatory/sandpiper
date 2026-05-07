@@ -4,8 +4,7 @@ import type { Query } from "~/modules/app/helpers/buildQueryFromParams";
 import { TeamService } from "~/modules/teams/team";
 import { UserService } from "~/modules/users/user";
 import { BillingLedgerEntryModel } from "../billingLedgerEntry";
-
-const RUN_SOURCE_PATTERN = /^(annotation|verification|adjudication):/;
+import { USER_INITIATED_SOURCE_LIST } from "../helpers/costCategories";
 
 export interface UserCostRow {
   userId: string;
@@ -92,9 +91,7 @@ export async function paginateUserCosts(
           runCosts: {
             $sum: {
               $cond: [
-                {
-                  $regexMatch: { input: "$source", regex: RUN_SOURCE_PATTERN },
-                },
+                { $in: ["$source", USER_INITIATED_SOURCE_LIST] },
                 "$amount",
                 0,
               ],
@@ -103,9 +100,7 @@ export async function paginateUserCosts(
           nonRunCosts: {
             $sum: {
               $cond: [
-                {
-                  $regexMatch: { input: "$source", regex: RUN_SOURCE_PATTERN },
-                },
+                { $in: ["$source", USER_INITIATED_SOURCE_LIST] },
                 0,
                 "$amount",
               ],

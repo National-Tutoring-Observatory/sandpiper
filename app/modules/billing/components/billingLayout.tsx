@@ -3,14 +3,25 @@ import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 
-const TABS = [{ key: "active-users", label: "Active Teams" }];
+const TABS = [
+  { key: "spend-overview", path: "/admin/billing", label: "Spend Overview" },
+  {
+    key: "active-users",
+    path: "/admin/billing/active-users",
+    label: "Active Teams",
+  },
+];
 
 export default function BillingLayout() {
   const location = useLocation();
   const navigate = useNavigate();
 
   const currentValue =
-    TABS.find((t) => location.pathname.includes(t.key))?.key ?? TABS[0].key;
+    TABS.find(
+      (t) =>
+        t.path === location.pathname ||
+        (t.key !== "spend-overview" && location.pathname.includes(t.key)),
+    )?.key ?? TABS[0].key;
 
   return (
     <div className="max-w-7xl p-8">
@@ -25,9 +36,8 @@ export default function BillingLayout() {
           variant="outline"
           value={currentValue}
           onValueChange={(value) => {
-            if (value) {
-              navigate(`/admin/billing/${value}`);
-            }
+            const tab = TABS.find((t) => t.key === value);
+            if (tab) navigate(tab.path);
           }}
           aria-label="Billing section"
         >

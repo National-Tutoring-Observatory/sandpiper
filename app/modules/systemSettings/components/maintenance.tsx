@@ -52,7 +52,7 @@ export default function Maintenance({
               className={
                 maintenanceMode
                   ? "bg-destructive/10 text-destructive border-destructive/20"
-                  : "bg-chart-2/10 text-chart-2 border-chart-2/20"
+                  : "bg-chart-3/10 text-chart-3 border-chart-3/20"
               }
             >
               {maintenanceMode ? "Active" : "Inactive"}

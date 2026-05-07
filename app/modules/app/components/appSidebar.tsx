@@ -212,7 +212,7 @@ export default function AppSidebar() {
               <Role roles={["SUPER_ADMIN"]}>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
-                    <NavLink to={"/admin/billing/active-users"}>
+                    <NavLink to={"/admin/billing"}>
                       {({ isActive }) => (
                         <>
                           <CircleDollarSign />

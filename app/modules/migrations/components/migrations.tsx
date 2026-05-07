@@ -37,7 +37,7 @@ type MigrationWithStatus = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  completed: "bg-chart-2/10 text-chart-2 border-chart-2/20",
+  completed: "bg-chart-3/10 text-chart-3 border-chart-3/20",
   running: "bg-chart-1/10 text-chart-1 border-chart-1/20",
   pending: "bg-chart-3/10 text-chart-3 border-chart-3/20",
 };
@@ -88,7 +88,7 @@ export default function Migrations({
                             <div
                               className={
                                 migration.lastRun.result.success
-                                  ? "text-chart-2"
+                                  ? "text-chart-3"
                                   : "text-destructive"
                               }
                             >
