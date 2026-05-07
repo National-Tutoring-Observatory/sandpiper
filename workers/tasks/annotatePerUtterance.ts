@@ -33,6 +33,8 @@ export default async function annotatePerUtterance(job: Job) {
     return { status: "STOPPED" };
   }
 
+  const resolvedUserId = userId || currentRun?.createdBy;
+
   try {
     await updateRunSession({
       runId,
@@ -75,7 +77,7 @@ export default async function annotatePerUtterance(job: Job) {
     const llm = new LLM({
       model,
       team,
-      userId,
+      userId: resolvedUserId,
       schema: responseSchema,
       source: "annotation:per-utterance",
       sourceId: runId,

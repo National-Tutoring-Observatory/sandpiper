@@ -28,6 +28,7 @@ export default async function adjudicatePerSession(job: Job) {
   } = job.data;
 
   const currentRun = await RunService.findById(runId);
+  const resolvedUserId = userId || currentRun?.createdBy;
 
   try {
     await updateRunSession({
@@ -91,7 +92,7 @@ export default async function adjudicatePerSession(job: Job) {
       const llm = new LLM({
         model,
         team,
-        userId,
+        userId: resolvedUserId,
         schema: responseSchema,
         source: "adjudication:per-session",
         sourceId: sessionId,

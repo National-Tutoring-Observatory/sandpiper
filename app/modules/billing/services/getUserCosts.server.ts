@@ -78,6 +78,7 @@ export async function paginateUserCosts(
     team: teamObjectId,
     direction: "debit" as const,
     user: { $exists: true, $ne: null },
+    ...query.match,
   };
 
   const [aggregated, countResult] = await Promise.all([

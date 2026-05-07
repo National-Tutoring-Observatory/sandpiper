@@ -8,8 +8,8 @@ import { SessionService } from "~/modules/sessions/session";
 
 export default async function createRunAnnotations(
   run: Run,
-  evaluationId?: string,
-  userId?: string,
+  evaluationId: string | undefined,
+  userId: string,
 ) {
   const project = await ProjectService.findById(run.project as string);
   if (!project) throw new Error(`Project not found: ${run.project}`);
