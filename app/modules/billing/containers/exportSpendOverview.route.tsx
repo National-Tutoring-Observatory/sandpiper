@@ -74,7 +74,6 @@ export async function loader({ request }: Route.LoaderArgs) {
       Date: new Date(entry.createdAt).toISOString(),
       Team: sanitize(teamMap.get(teamId) || teamId),
       User: sanitize(userInfo?.name || "--"),
-      "User Email": sanitize(userInfo?.email || "--"),
       Source: String(entry.source),
       Category: isUserInitiatedSource(String(entry.source))
         ? "User-initiated"

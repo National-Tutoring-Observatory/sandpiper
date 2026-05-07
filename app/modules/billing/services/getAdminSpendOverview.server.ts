@@ -23,7 +23,6 @@ export interface AdminSpendOverview {
     {
       userId: string;
       userName: string;
-      userEmail: string;
     } & SpendByCategory
   >;
 }
@@ -147,7 +146,6 @@ export default async function getAdminSpendOverview(
     return {
       userId: id,
       userName: user?.name || user?.username || "--",
-      userEmail: user?.email || "--",
       userInitiated: row.userInitiated,
       system: row.system,
       totalCost: row.totalCost,

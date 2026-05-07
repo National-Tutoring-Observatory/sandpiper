@@ -47,15 +47,7 @@ export default function TopUsersChart({
               tick={{ fontSize: 12 }}
             />
             <XAxis type="number" tickFormatter={formatCost} />
-            <ChartTooltip
-              content={
-                <StackedCategoryTooltip
-                  extra={(row) => [
-                    { label: "Email", value: String(row.userEmail ?? "--") },
-                  ]}
-                />
-              }
-            />
+            <ChartTooltip content={<StackedCategoryTooltip />} />
             <Bar dataKey="totalCost" fill="var(--color-totalCost)" radius={4} />
           </BarChart>
         </ChartContainer>

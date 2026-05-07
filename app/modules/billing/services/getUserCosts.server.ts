@@ -9,7 +9,6 @@ import { USER_INITIATED_SOURCE_LIST } from "../helpers/costCategories";
 export interface UserCostRow {
   userId: string;
   userName: string;
-  userEmail: string;
   teamId: string;
   teamName: string;
   runCosts: number;
@@ -47,7 +46,6 @@ async function resolveRows(
     return {
       userId,
       userName: user?.name || user?.username || "--",
-      userEmail: user?.email || "--",
       teamId,
       teamName: team?.name || "Unknown",
       runCosts: row.runCosts,
