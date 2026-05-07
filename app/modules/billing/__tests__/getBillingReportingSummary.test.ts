@@ -37,6 +37,7 @@ describe("getBillingReportingSummary", () => {
 
     await TeamBillingService.applyDebit({
       teamId,
+      userId,
       model: "claude-opus",
       source: "annotation:per-session",
       sourceId: "session-1",
@@ -73,6 +74,7 @@ describe("getBillingReportingSummary", () => {
 
     await TeamBillingService.applyDebit({
       teamId,
+      userId,
       model: "claude-opus",
       source: "annotation:per-session",
       sourceId: "session-jan",
@@ -86,6 +88,7 @@ describe("getBillingReportingSummary", () => {
 
     await TeamBillingService.applyDebit({
       teamId,
+      userId,
       model: "claude-opus",
       source: "annotation:per-session",
       sourceId: "session-feb",

@@ -20,7 +20,11 @@ describe("getAttributeMappingFromFile", () => {
       { role: "Tutor", content: "Hi", session_id: "s1", sequence_id: 1 },
     ]);
 
-    const mapping = await getAttributeMappingFromFile({ file, team: "t1" });
+    const mapping = await getAttributeMappingFromFile({
+      file,
+      team: "t1",
+      userId: "u1",
+    });
 
     expect(mapping.role).toBe("role");
     expect(mapping.content).toBe("content");
@@ -33,7 +37,11 @@ describe("getAttributeMappingFromFile", () => {
       { speaker: "Tutor", text: "Hi", session_id: "s1", sequence_id: 1 },
     ]);
 
-    const mapping = await getAttributeMappingFromFile({ file, team: "t1" });
+    const mapping = await getAttributeMappingFromFile({
+      file,
+      team: "t1",
+      userId: "u1",
+    });
 
     expect(mapping.role).toBe("speaker");
     expect(mapping.content).toBe("text");
@@ -44,7 +52,11 @@ describe("getAttributeMappingFromFile", () => {
       { role: "Tutor", content: "Hi", sessionId: "s1", sequence_id: 1 },
     ]);
 
-    const mapping = await getAttributeMappingFromFile({ file, team: "t1" });
+    const mapping = await getAttributeMappingFromFile({
+      file,
+      team: "t1",
+      userId: "u1",
+    });
 
     expect(mapping.session_id).toBe("sessionId");
   });
@@ -54,7 +66,11 @@ describe("getAttributeMappingFromFile", () => {
       { role: "Tutor", content: "Hi", sessionID: "s1", sequence_id: 1 },
     ]);
 
-    const mapping = await getAttributeMappingFromFile({ file, team: "t1" });
+    const mapping = await getAttributeMappingFromFile({
+      file,
+      team: "t1",
+      userId: "u1",
+    });
 
     expect(mapping.session_id).toBe("sessionID");
   });
@@ -64,7 +80,11 @@ describe("getAttributeMappingFromFile", () => {
       { role: "Tutor", content: "Hi", session_id: "s1", sequenceId: 1 },
     ]);
 
-    const mapping = await getAttributeMappingFromFile({ file, team: "t1" });
+    const mapping = await getAttributeMappingFromFile({
+      file,
+      team: "t1",
+      userId: "u1",
+    });
 
     expect(mapping.sequence_id).toBe("sequenceId");
   });
@@ -74,7 +94,11 @@ describe("getAttributeMappingFromFile", () => {
       { role: "Tutor", content: "Hi", session_id: "s1", sequenceID: 1 },
     ]);
 
-    const mapping = await getAttributeMappingFromFile({ file, team: "t1" });
+    const mapping = await getAttributeMappingFromFile({
+      file,
+      team: "t1",
+      userId: "u1",
+    });
 
     expect(mapping.sequence_id).toBe("sequenceID");
   });
@@ -84,7 +108,11 @@ describe("getAttributeMappingFromFile", () => {
       { role: "Tutor", content: "Hi", session_id: "s1", sequence_id: 1 },
     ]);
 
-    const mapping = await getAttributeMappingFromFile({ file, team: "t1" });
+    const mapping = await getAttributeMappingFromFile({
+      file,
+      team: "t1",
+      userId: "u1",
+    });
 
     expect(mapping.leadRole).toBe("Tutor");
   });

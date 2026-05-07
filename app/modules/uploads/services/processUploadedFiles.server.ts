@@ -13,7 +13,7 @@ export default async function processUploadedFiles({
   projectId: string;
   files: File[];
   team: string;
-  userId?: string;
+  userId: string;
 }) {
   const splitFiles = await splitMultipleSessionsIntoFiles({ files });
 

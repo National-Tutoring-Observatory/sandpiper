@@ -70,29 +70,6 @@ describe("getUserCosts", () => {
     expect(rowB.totalBilledCosts).toBe(9);
   });
 
-  it("excludes entries without a user", async () => {
-    await applyDebit(userA, "annotation:per-session", 10, "with-user");
-    await TeamBillingService.applyDebit({
-      teamId,
-      model: "claude-sonnet",
-      source: "annotation:per-session",
-      inputTokens: 100,
-      outputTokens: 50,
-      rawAmount: 5,
-      providerCost: 4,
-      idempotencyKey: "no-user",
-    });
-
-    const result = await paginateUserCosts(teamId, {
-      match: {},
-      sort: "-totalBilledCosts",
-      page: 1,
-    });
-
-    expect(result.data).toHaveLength(1);
-    expect(result.data[0].userId).toBe(userA);
-  });
-
   it("returns empty when no debits exist", async () => {
     const result = await paginateUserCosts(teamId, {
       match: {},

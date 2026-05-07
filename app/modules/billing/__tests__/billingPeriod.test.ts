@@ -43,6 +43,7 @@ describe("BillingPeriodService", () => {
     const idempotencyKey = `test-debit:${forTeam}:${createdAt.toISOString()}:${cost}`;
     await TeamBillingService.applyDebit({
       teamId: forTeam,
+      userId,
       model: "claude-opus",
       source: "annotation:per-session",
       sourceId: idempotencyKey,
@@ -128,6 +129,7 @@ describe("BillingPeriodService", () => {
       });
       await TeamBillingService.applyDebit({
         teamId,
+        userId,
         model: "claude-opus",
         source: "annotation:per-session",
         sourceId: "test-locks-debit",
@@ -259,6 +261,7 @@ describe("BillingPeriodService", () => {
 
       await TeamBillingService.applyDebit({
         teamId,
+        userId,
         model: "claude-opus",
         source: "annotation:per-session",
         sourceId: "test-locked-markup",
@@ -366,6 +369,7 @@ describe("BillingPeriodService", () => {
       });
       await TeamBillingService.applyDebit({
         teamId: otherTeamId,
+        userId,
         model: "claude-opus",
         source: "annotation:per-session",
         sourceId: "test-other-team-debit",

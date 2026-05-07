@@ -25,7 +25,7 @@ interface LLMOptions {
   sourceId?: string;
   billingEventId: string;
   team?: string;
-  userId?: string;
+  userId: string;
   schema?: object;
   retries?: number;
   timeout?: number;

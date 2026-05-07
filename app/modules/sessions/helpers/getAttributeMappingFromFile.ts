@@ -21,7 +21,7 @@ export default async function getAttributeMappingFromFile({
   file: File;
   team: string;
   projectId?: string;
-  userId?: string;
+  userId: string;
 }): Promise<Record<string, string>> {
   const fileContents = await file.text();
 

@@ -141,6 +141,7 @@ describe("Billing", () => {
 
       await TeamBillingService.applyDebit({
         teamId,
+        userId,
         model: "claude-opus",
         source: "annotation:per-session",
         sourceId: "session:test-summary-balance",

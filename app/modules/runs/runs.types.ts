@@ -31,6 +31,7 @@ export interface Run {
   finishedAt: Date | string;
   isExporting: boolean;
   shouldRunVerification: boolean;
+  createdBy: string;
 }
 
 export interface RunSession {

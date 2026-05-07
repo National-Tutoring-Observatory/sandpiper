@@ -68,6 +68,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: SOURCE,
         model: MODEL,
+        userId: "user-123",
         billingEventId: makeBillingEventId("zero-usage"),
       });
       expect(llm.getUsage()).toEqual(ZERO_USAGE);
@@ -82,6 +83,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: SOURCE,
         model: MODEL,
+        userId: "user-123",
         billingEventId: makeBillingEventId("accumulated-usage"),
       });
       llm.addUserMessage("test", {});
@@ -99,6 +101,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: SOURCE,
         model: MODEL,
+        userId: "user-123",
         billingEventId: makeBillingEventId("usage-copy"),
       });
       llm.addUserMessage("test", {});
@@ -121,6 +124,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: SOURCE,
         model: MODEL,
+        userId: "user-123",
         billingEventId: makeBillingEventId("content-only"),
       });
       llm.addUserMessage("test", {});
@@ -140,6 +144,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: "annotation:per-session",
         model: MODEL,
+        userId: "user-123",
         sourceId: "session-123",
         billingEventId: "event-123",
         team: "team-456",
@@ -194,6 +199,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: SOURCE,
         model: MODEL,
+        userId: "user-123",
         retries: 3,
         billingEventId: makeBillingEventId("orchestrator-attempts"),
         team: "team-1",
@@ -221,6 +227,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: SOURCE,
         model: MODEL,
+        userId: "user-123",
         billingEventId: makeBillingEventId("ledger-write-fails"),
         team: "team-1",
       });
@@ -256,6 +263,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: SOURCE,
         model: MODEL,
+        userId: "user-123",
         billingEventId: makeBillingEventId("orchestrator-usage"),
       });
       llm.setOrchestratorMessage("Check this", {});
@@ -302,6 +310,7 @@ describe("LLM", () => {
       const llm = new LLM({
         source: SOURCE,
         model: MODEL,
+        userId: "user-123",
         billingEventId: makeBillingEventId("retry-usage"),
         retries: 3,
       });

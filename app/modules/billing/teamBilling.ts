@@ -135,7 +135,7 @@ export class TeamBillingService {
 
   static async applyDebit(input: {
     teamId: string;
-    userId?: string;
+    userId: string;
     model: string;
     source: string;
     sourceId?: string;

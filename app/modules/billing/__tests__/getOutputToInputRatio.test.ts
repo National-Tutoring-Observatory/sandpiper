@@ -9,6 +9,7 @@ describe("getOutputToInputRatio", () => {
   });
 
   const teamId = new Types.ObjectId().toString();
+  const userId = new Types.ObjectId().toString();
 
   it("returns null when no annotation ledger entries exist", async () => {
     const result = await TeamBillingService.getOutputToInputRatio(teamId);
@@ -18,6 +19,7 @@ describe("getOutputToInputRatio", () => {
   it("returns null when only non-annotation debit entries exist", async () => {
     await TeamBillingService.applyDebit({
       teamId,
+      userId,
       model: "claude-opus",
       source: "billing:check",
       sourceId: "billing-check-1",
@@ -37,6 +39,7 @@ describe("getOutputToInputRatio", () => {
 
     await TeamBillingService.applyDebit({
       teamId: otherTeamId,
+      userId,
       model: "claude-opus",
       source: "annotation:per-session",
       sourceId: "session-other-team",
@@ -54,6 +57,7 @@ describe("getOutputToInputRatio", () => {
   it("computes weighted output/input ratio from annotation ledger entries", async () => {
     await TeamBillingService.applyDebit({
       teamId,
+      userId,
       model: "claude-opus",
       source: "annotation:per-session",
       sourceId: "session-1",
@@ -66,6 +70,7 @@ describe("getOutputToInputRatio", () => {
 
     await TeamBillingService.applyDebit({
       teamId,
+      userId,
       model: "claude-opus",
       source: "annotation:per-utterance",
       sourceId: "session-2",
@@ -83,6 +88,7 @@ describe("getOutputToInputRatio", () => {
   it("excludes non-annotation entries from the ratio", async () => {
     await TeamBillingService.applyDebit({
       teamId,
+      userId,
       model: "claude-opus",
       source: "annotation:per-session",
       sourceId: "session-annotation",
@@ -95,6 +101,7 @@ describe("getOutputToInputRatio", () => {
 
     await TeamBillingService.applyDebit({
       teamId,
+      userId,
       model: "claude-opus",
       source: "billing:check",
       sourceId: "billing-check-2",

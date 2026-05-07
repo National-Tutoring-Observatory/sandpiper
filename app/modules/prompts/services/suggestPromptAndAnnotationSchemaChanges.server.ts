@@ -16,7 +16,7 @@ export default async function checkPromptAndAnnotationSchemaAlignment({
   promptId: string;
   alignmentScore: number;
   reasoning: string;
-  userId?: string;
+  userId: string;
 }) {
   const annotationSchemaArray = [];
 

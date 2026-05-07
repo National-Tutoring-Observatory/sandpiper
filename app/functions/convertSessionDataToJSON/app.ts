@@ -14,6 +14,7 @@ interface LambdaBody {
   inputFile: string;
   outputFolder: string;
   team: string;
+  userId: string;
   sessionId: string;
   billingEventId: string;
 }
@@ -24,7 +25,8 @@ interface LambdaEvent {
 
 export const handler = async (event: LambdaEvent) => {
   const { body } = event;
-  const { inputFile, outputFolder, team, sessionId, billingEventId } = body;
+  const { inputFile, outputFolder, team, userId, sessionId, billingEventId } =
+    body;
 
   const storage = getStorageAdapter();
 
@@ -40,6 +42,7 @@ export const handler = async (event: LambdaEvent) => {
     retries: 3,
     model: getDefaultModelCode(),
     team,
+    userId,
     source: "file-conversion",
     sourceId: sessionId,
     billingEventId,

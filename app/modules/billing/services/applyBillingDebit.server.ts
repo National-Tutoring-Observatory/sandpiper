@@ -10,7 +10,7 @@ import { TeamBillingPlanService } from "../teamBillingPlan";
 
 interface ApplyBillingDebitInput {
   teamId: string;
-  userId?: string;
+  userId: string;
   model: string;
   source: string;
   sourceId?: string;
@@ -52,7 +52,7 @@ export default async function applyBillingDebit({
         [
           {
             team: teamId,
-            ...(userId && { user: userId }),
+            user: userId,
             direction: "debit",
             amount: billedAmount,
             currency: "USD",

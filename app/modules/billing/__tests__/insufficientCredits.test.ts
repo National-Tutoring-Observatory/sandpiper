@@ -46,6 +46,7 @@ describe("Balance check logic", () => {
     if (costAmount > 0) {
       await TeamBillingService.applyDebit({
         teamId,
+        userId,
         model: "claude-opus",
         source: "annotation:per-session",
         sourceId: `session:${costAmount}`,

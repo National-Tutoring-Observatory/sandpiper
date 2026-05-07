@@ -12,6 +12,7 @@ interface LambdaBody {
   prompt: { prompt: string; annotationSchema: unknown };
   model: string;
   team: string;
+  userId: string;
   sessionId: string;
   billingEventId: string;
 }
@@ -24,6 +25,7 @@ export const handler = async (event: { body: LambdaBody }) => {
     prompt,
     model,
     team,
+    userId,
     sessionId,
     billingEventId,
   } = body;
@@ -44,6 +46,7 @@ export const handler = async (event: { body: LambdaBody }) => {
   const llm = new LLM({
     model,
     team,
+    userId,
     source: "annotation:per-utterance",
     sourceId: sessionId,
     billingEventId,

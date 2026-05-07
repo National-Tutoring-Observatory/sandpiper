@@ -33,6 +33,7 @@ function mockRun(fields: Array<{ fieldKey: string; isSystem?: boolean }>): Run {
     hasExportedCSV: false,
     hasExportedJSONL: false,
     shouldRunVerification: false,
+    createdBy: "user-123",
   } as Run;
 }
 
