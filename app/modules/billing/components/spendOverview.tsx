@@ -1,3 +1,4 @@
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -67,8 +68,22 @@ export default function SpendOverview({
       <SpendOverTimeChart data={data.overTime} />
 
       <div className="grid gap-6 lg:grid-cols-2">
-        <SpendByModelChart data={data.byModel} />
-        <SpendBySourceChart data={data.bySource} />
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Spend by model</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SpendByModelChart data={data.byModel} />
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Spend by activity</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SpendBySourceChart data={data.bySource} />
+          </CardContent>
+        </Card>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-2">
