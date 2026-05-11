@@ -2,7 +2,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BookCheck, BookOpen, ExternalLink, Save } from "lucide-react";
+import {
+  BookCheck,
+  BookOpen,
+  ExternalLink,
+  Save,
+  UnfoldVertical,
+} from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
 import type { AnnotationSchemaItem, PromptVersion } from "../prompts.types";
@@ -11,15 +17,20 @@ import AnnotationSchemaBuilder from "./annotationSchemaBuilder";
 export default function PromptEditor({
   promptVersion,
   codebook,
+  systemPrompt,
   isLoading,
   isProduction,
+  isSystemPromptVisible,
   onSavePromptVersion,
   onMakePromptVersionProduction,
+  onToggleSystemPromptClicked,
 }: {
   promptVersion: PromptVersion;
   codebook: { _id: string; name: string; version: number } | null;
+  systemPrompt: string;
   isLoading: boolean;
   isProduction: boolean;
+  isSystemPromptVisible: boolean;
   onSavePromptVersion: ({
     name,
     userPrompt,
@@ -30,6 +41,7 @@ export default function PromptEditor({
     annotationSchema: AnnotationSchemaItem[];
   }) => void;
   onMakePromptVersionProduction: () => void;
+  onToggleSystemPromptClicked: () => void;
 }) {
   const [hasChanges, setHasChanges] = useState(!!promptVersion.userPrompt);
   const [name, setName] = useState(promptVersion.name);
@@ -116,18 +128,50 @@ export default function PromptEditor({
             onChange={onNameChanged}
           />
         </div>
+        {isSystemPromptVisible && (
+          <div className="grid gap-3">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="system-prompt">System Prompt</Label>
+            </div>
+            <Textarea
+              id="system-prompt"
+              value={systemPrompt}
+              className="h-80 overscroll-none bg-amber-100"
+              disabled={true}
+            />
+          </div>
+        )}
         <div className="grid gap-3">
           <div className="flex items-center justify-between">
             <Label htmlFor="prompt">Prompt</Label>
-            <a
-              href="https://docs.google.com/document/d/1Rf2p3ltWSCk3VTeuTtXTpVu7NkrAi8yNDloYLId-KU8/edit?tab=t.0"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
-            >
-              <ExternalLink className="h-3 w-3" />
-              Prompt writing guide
-            </a>
+            <div className="flex items-center gap-x-4">
+              <Button
+                className="text-muted-foreground hover:text-foreground"
+                variant="link"
+                asChild
+              >
+                <a
+                  href="https://docs.google.com/document/d/1Rf2p3ltWSCk3VTeuTtXTpVu7NkrAi8yNDloYLId-KU8/edit?tab=t.0"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                >
+                  <ExternalLink className="h-3 w-3" />
+                  Prompt writing guide
+                </a>
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-muted-foreground hover:text-foreground text-xs"
+                onClick={onToggleSystemPromptClicked}
+              >
+                <UnfoldVertical className="h-3 w-3 text-xs" size="2" />
+                {isSystemPromptVisible
+                  ? `Hide system prompt`
+                  : `View system prompt`}
+              </Button>
+            </div>
           </div>
           <Textarea
             id="prompt"

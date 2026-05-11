@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   redirect,
   useLoaderData,
@@ -12,6 +13,7 @@ import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "../authorization";
 import PromptEditor from "../components/promptEditor";
 import { SYSTEM_FIELDS } from "../helpers/defaultPrompts";
+import getSystemPromptByAnnotationType from "../helpers/getSystemPromptByAnnotationType";
 import tokenizePromptVersion from "../helpers/tokenizePromptVersion";
 import { PromptService } from "../prompt";
 import type { AnnotationSchemaItem } from "../prompts.types";
@@ -141,6 +143,7 @@ export default function PromptEditorRoute() {
   const data = useLoaderData<typeof loader>();
   const navigation = useNavigation();
   const submit = useSubmit();
+  const [isSystemPromptVisible, setIsSystemPromptVisible] = useState(false);
 
   const { prompt, promptVersion, codebook } = data;
 
@@ -201,17 +204,28 @@ export default function PromptEditorRoute() {
     );
   };
 
+  const onToggleSystemPromptClicked = () => {
+    setIsSystemPromptVisible(!isSystemPromptVisible);
+  };
+
+  const systemPrompt = getSystemPromptByAnnotationType(
+    prompt.data.annotationType,
+  );
+
   return (
     <PromptEditor
       key={`${promptVersion.data._id}-${promptVersion.data.updatedAt}`}
       promptVersion={promptVersion.data}
+      systemPrompt={systemPrompt}
       codebook={codebook}
       isLoading={navigation.state === "loading"}
       onSavePromptVersion={onSavePromptVersion}
       isProduction={
         prompt.data.productionVersion === promptVersion.data.version
       }
+      isSystemPromptVisible={isSystemPromptVisible}
       onMakePromptVersionProduction={onMakePromptVersionProduction}
+      onToggleSystemPromptClicked={onToggleSystemPromptClicked}
     />
   );
 }
