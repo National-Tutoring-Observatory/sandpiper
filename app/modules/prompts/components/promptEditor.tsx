@@ -136,7 +136,7 @@ export default function PromptEditor({
             <Textarea
               id="system-prompt"
               value={systemPrompt}
-              className="h-80 overscroll-none bg-amber-100"
+              className="h-80 overscroll-none bg-amber-100 text-black"
               disabled={true}
             />
           </div>
