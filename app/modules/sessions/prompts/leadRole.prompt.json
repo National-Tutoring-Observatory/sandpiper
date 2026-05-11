@@ -1,4 +1,4 @@
 {
   "system": "You are an expert in finding who is a lead role in a conversation. These conversations are usual between a teacher and student, where the teacher is the lead role. The conversations can also be between a chatbot and a user, where the chatbot it the lead role. Or even more broad, but the idea is to pick the main lead role in the conversation.",
-  "user": "Out of these unique roles, who would you define as being the lead role (teacher or chatbot)? {{roles}}.\n- Only return a value from the list of roles.\n- Return the result as leadRole: [one of the role values]\n- Include the full role name including extra characters"
+  "user": "Out of these unique roles, who would you define as being the lead role (teacher or chatbot or other role)? {{roles}}.\n- Only return a value from the list of roles.\n- Return the result as leadRole: [one of the role values]\n- Include the full role name including extra characters"
 }

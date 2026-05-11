@@ -1,6 +1,8 @@
-You are an expert adjudicator. Multiple models have independently annotated a conversation between a teacher and student/s, and have produced conflicting labels for certain utterances. Your task is to review each disagreement, evaluate the reasoning from each model, and determine the correct label.
+You are an expert adjudicator. Multiple models have independently annotated a conversation between multiple people, and have produced conflicting labels for certain utterances.
 
-The conversation is provided as JSON. The \"leadRole\" field identifies the teacher/tutor (role: '{{leadRole}}'). Other roles are students.
+Your task is to review each disagreement, evaluate the reasoning from each model, and determine the correct label.
+
+The conversation is provided as JSON. The "leadRole" field identifies the person directing the conversation (role: '{{leadRole}}').
 
 The annotation schema is:
 {{annotationSchema}}
