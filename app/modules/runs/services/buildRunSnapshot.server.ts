@@ -1,11 +1,13 @@
+import type { AnnotationTypeOptions } from "~/modules/annotations/helpers/annotationTypes";
+import { findModelByCode } from "~/modules/llm/modelRegistry";
+import getSystemPrompt from "~/modules/prompts/helpers/getSystemPrompt";
 import { PromptService } from "~/modules/prompts/prompt";
 import type { AnnotationSchemaItem } from "~/modules/prompts/prompts.types";
 import { PromptVersionService } from "~/modules/prompts/promptVersion";
 
 /**
- * Snapshot sections that can be added to a run
- * Stores complete frozen state of resources used in the run
- * Extensible for future additions like model settings, files, etc.
+ * Snapshot sections that can be added to a run.
+ * Stores complete frozen state of resources used in the run at creation time.
  */
 export interface RunSnapshot {
   prompt: {
@@ -14,6 +16,9 @@ export interface RunSnapshot {
     annotationSchema: AnnotationSchemaItem[];
     annotationType: string;
     version: number;
+    systemPrompt: string;
+    verifySystemPrompt: string;
+    adjudicateSystemPrompt: string;
   };
   model: {
     code: string;
@@ -25,20 +30,21 @@ export interface RunSnapshot {
 interface BuildPromptSnapshotProps {
   promptId: string;
   promptVersionNumber: number;
+  annotationType: AnnotationTypeOptions;
+  shouldRunVerification: boolean;
+  isAdjudication: boolean;
 }
 
 interface BuildModelSnapshotProps {
   modelCode: string;
 }
 
-/**
- * Builds a prompt snapshot from the database
- * Captures the exact prompt and version state used in the run
- * Stores the complete objects for future-proof reconstruction
- */
 async function buildPromptSnapshot({
   promptId,
   promptVersionNumber,
+  annotationType,
+  shouldRunVerification,
+  isAdjudication,
 }: BuildPromptSnapshotProps) {
   const prompt = await PromptService.findById(promptId);
   const promptVersion = await PromptVersionService.findOne({
@@ -62,17 +68,17 @@ async function buildPromptSnapshot({
     annotationSchema: promptVersion.annotationSchema,
     annotationType: prompt.annotationType,
     version: promptVersion.version,
+    systemPrompt: getSystemPrompt("annotation", annotationType),
+    verifySystemPrompt: shouldRunVerification
+      ? getSystemPrompt("verify", annotationType)
+      : "",
+    adjudicateSystemPrompt: isAdjudication
+      ? getSystemPrompt("adjudicate", annotationType)
+      : "",
   };
 }
 
-/**
- * Builds a model snapshot from the configuration
- * Stores the model code and provider for reproducibility and extensibility
- */
-import { findModelByCode } from "~/modules/llm/modelRegistry";
-
 async function buildModelSnapshot({ modelCode }: BuildModelSnapshotProps) {
-  // Look up the display name for the model
   const modelInfo = findModelByCode(modelCode);
   if (!modelInfo) {
     throw new Error(`Model not found: ${modelCode}`);
@@ -84,21 +90,29 @@ async function buildModelSnapshot({ modelCode }: BuildModelSnapshotProps) {
   };
 }
 
-/**
- * Main snapshot builder that composes all sections
- * Add new snapshot types here as they're needed
- */
 export async function buildRunSnapshot({
   promptId,
   promptVersionNumber,
   modelCode,
+  annotationType,
+  shouldRunVerification,
+  isAdjudication,
 }: {
   promptId: string;
   promptVersionNumber: number;
   modelCode: string;
+  annotationType: AnnotationTypeOptions;
+  shouldRunVerification: boolean;
+  isAdjudication: boolean;
 }): Promise<RunSnapshot> {
   const snapshot: RunSnapshot = {
-    prompt: await buildPromptSnapshot({ promptId, promptVersionNumber }),
+    prompt: await buildPromptSnapshot({
+      promptId,
+      promptVersionNumber,
+      annotationType,
+      shouldRunVerification,
+      isAdjudication,
+    }),
     model: await buildModelSnapshot({ modelCode }),
   };
 

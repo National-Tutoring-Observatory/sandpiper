@@ -81,6 +81,9 @@ export class RunService {
       promptId: props.prompt,
       promptVersionNumber: props.promptVersion,
       modelCode: props.modelCode,
+      annotationType: props.annotationType,
+      shouldRunVerification: !!props.shouldRunVerification,
+      isAdjudication: !!props.isAdjudication,
     });
 
     const doc = await RunModel.create({

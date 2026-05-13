@@ -16,6 +16,9 @@ const defaults: Partial<Run> = {
       annotationSchema: [],
       annotationType: "PER_UTTERANCE",
       version: 1,
+      systemPrompt: "",
+      verifySystemPrompt: "",
+      adjudicateSystemPrompt: "",
     },
     model: {
       code: "test-model",
