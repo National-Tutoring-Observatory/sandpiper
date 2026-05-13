@@ -33,6 +33,7 @@ COPY ./package.json yarn.lock tsconfig.json server.ts sessionStorage.ts sockets.
 COPY ./app /app/app
 COPY ./documentation /app/documentation
 COPY ./public /app/public
+COPY ./workers/prompts /app/workers/prompts
 WORKDIR /app
 RUN node ./app/adapters.js
 EXPOSE 5173
