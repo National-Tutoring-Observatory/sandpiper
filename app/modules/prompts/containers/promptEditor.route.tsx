@@ -13,7 +13,7 @@ import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "../authorization";
 import PromptEditor from "../components/promptEditor";
 import { SYSTEM_FIELDS } from "../helpers/defaultPrompts";
-import getSystemPromptByAnnotationType from "../helpers/getSystemPromptByAnnotationType";
+import getSystemPrompt from "../helpers/getSystemPrompt";
 import tokenizePromptVersion from "../helpers/tokenizePromptVersion";
 import { PromptService } from "../prompt";
 import type { AnnotationSchemaItem } from "../prompts.types";
@@ -208,7 +208,8 @@ export default function PromptEditorRoute() {
     setIsSystemPromptVisible(!isSystemPromptVisible);
   };
 
-  const systemPrompt = getSystemPromptByAnnotationType(
+  const systemPrompt = getSystemPrompt(
+    "annotation",
     prompt.data.annotationType,
   );
 
