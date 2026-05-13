@@ -41,6 +41,9 @@ export default new mongoose.Schema({
       annotationSchema: [mongoose.Schema.Types.Mixed],
       annotationType: { type: String },
       version: { type: Number },
+      systemPrompt: { type: String },
+      verifySystemPrompt: { type: String },
+      adjudicateSystemPrompt: { type: String },
     },
     model: {
       code: { type: String },
