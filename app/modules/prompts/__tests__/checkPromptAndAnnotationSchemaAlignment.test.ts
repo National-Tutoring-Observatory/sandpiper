@@ -46,17 +46,17 @@ const baseArgs = {
 };
 
 describe("checkPromptAndAnnotationSchemaAlignment", () => {
-  it("declares isValidPrompt and injectionReasoning in the JSON schema", async () => {
+  it("declares hasInjectionError and injectionReasoning in the JSON schema", async () => {
     await checkPromptAndAnnotationSchemaAlignment(baseArgs);
 
     const { schema } = mockLLMConstructor.mock.calls[0][0];
-    expect(schema.properties.isValidPrompt).toEqual({ type: "boolean" });
+    expect(schema.properties.hasInjectionError).toEqual({ type: "boolean" });
     expect(schema.properties.injectionReasoning).toEqual({ type: "string" });
     expect(schema.required).toEqual(
       expect.arrayContaining([
         "alignmentScore",
         "reasoning",
-        "isValidPrompt",
+        "hasInjectionError",
         "injectionReasoning",
       ]),
     );
@@ -70,7 +70,7 @@ describe("checkPromptAndAnnotationSchemaAlignment", () => {
     expect(systemText).toMatch(/output format/i);
     expect(systemText).toMatch(/system prompt/i);
     expect(systemText).toMatch(/out[- ]of[- ]scope/i);
-    expect(systemText).toMatch(/isValidPrompt/);
+    expect(systemText).toMatch(/hasInjectionError/);
     expect(systemText).toMatch(/injectionReasoning/);
   });
 
@@ -79,9 +79,9 @@ describe("checkPromptAndAnnotationSchemaAlignment", () => {
 
     const [, vars] = mockAddSystemMessage.mock.calls[0];
     const example = JSON.parse(vars.output);
-    expect(example).toHaveProperty("isValidPrompt");
+    expect(example).toHaveProperty("hasInjectionError");
     expect(example).toHaveProperty("injectionReasoning");
-    expect(typeof example.isValidPrompt).toBe("boolean");
+    expect(typeof example.hasInjectionError).toBe("boolean");
     expect(typeof example.injectionReasoning).toBe("string");
   });
 });
