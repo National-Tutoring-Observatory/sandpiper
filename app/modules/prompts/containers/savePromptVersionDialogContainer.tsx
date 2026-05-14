@@ -76,7 +76,9 @@ export default function SavePromptVersionDialogContainer({
   const isFetchingSuggestions =
     hasRequestedSuggestions && !suggestionsFetcher.data;
   const isMatching = alignmentFetcher.data?.alignmentScore >= 0.8;
-  const isSubmitButtonDisabled = !isMatching || !!error;
+  const hasInjectionError = alignmentFetcher.data?.hasInjectionError === true;
+  const injectionReasoning = alignmentFetcher.data?.injectionReasoning ?? "";
+  const isSubmitButtonDisabled = !isMatching || hasInjectionError || !!error;
   const reasoning = alignmentFetcher.data?.reasoning ?? "";
 
   const suggestedPrompt = suggestionsFetcher.data?.prompt ?? "";
@@ -87,12 +89,14 @@ export default function SavePromptVersionDialogContainer({
     <SavePromptVersionDialog
       error={error}
       reasoning={reasoning}
+      injectionReasoning={injectionReasoning}
       suggestedPrompt={suggestedPrompt}
       suggestedAnnotationSchema={suggestedAnnotationSchema}
       isSubmitButtonDisabled={isSubmitButtonDisabled}
       isFetchingAlignment={isFetchingAlignment}
       isFetchingSuggestions={isFetchingSuggestions}
       isMatching={isMatching}
+      hasInjectionError={hasInjectionError}
       hasRequestedSuggestions={hasRequestedSuggestions}
       onSaveClicked={onSaveClicked}
       onAcceptChangesClicked={onAcceptChangesClicked}

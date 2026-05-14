@@ -16,6 +16,7 @@ import AnnotationSchemaViewer from "./annotationSchemaViewer";
 const SavePromptVersionDialog = ({
   error,
   reasoning,
+  injectionReasoning,
   suggestedPrompt,
   suggestedAnnotationSchema,
   hasRequestedSuggestions,
@@ -23,12 +24,14 @@ const SavePromptVersionDialog = ({
   isFetchingAlignment,
   isFetchingSuggestions,
   isMatching,
+  hasInjectionError,
   onSaveClicked,
   onAcceptChangesClicked,
   onGetSuggestionsClicked,
 }: {
   error: string;
   reasoning: string;
+  injectionReasoning: string;
   suggestedPrompt: string;
   suggestedAnnotationSchema: [];
   hasRequestedSuggestions: boolean;
@@ -36,6 +39,7 @@ const SavePromptVersionDialog = ({
   isFetchingAlignment: boolean;
   isFetchingSuggestions: boolean;
   isMatching: boolean;
+  hasInjectionError: boolean;
   onSaveClicked: () => void;
   onAcceptChangesClicked: (changes: {
     suggestedPrompt: string;
@@ -89,7 +93,8 @@ const SavePromptVersionDialog = ({
           {!error &&
             !isFetchingAlignment &&
             !isFetchingSuggestions &&
-            isMatching && (
+            isMatching &&
+            !hasInjectionError && (
               <Alert>
                 <CircleCheck className="stroke-green-500" />
                 <AlertTitle>Prompt and schema are aligned!</AlertTitle>
@@ -111,11 +116,21 @@ const SavePromptVersionDialog = ({
                 )}
               </Alert>
             )}
+          {!error &&
+            !isFetchingAlignment &&
+            !isFetchingSuggestions &&
+            hasInjectionError && (
+              <Alert className="mt-2">
+                <CircleAlert className="stroke-red-500" />
+                <AlertTitle>Possible prompt injection detected</AlertTitle>
+                <AlertDescription>{injectionReasoning}</AlertDescription>
+              </Alert>
+            )}
         </div>
         {!error &&
           !isFetchingAlignment &&
           !isFetchingSuggestions &&
-          !isMatching &&
+          (!isMatching || hasInjectionError) &&
           hasRequestedSuggestions && (
             <div className="space-y-2">
               <p>
@@ -149,7 +164,7 @@ const SavePromptVersionDialog = ({
             Cancel
           </Button>
         </DialogClose>
-        {isMatching && (
+        {isMatching && !hasInjectionError && (
           <DialogClose asChild>
             <Button
               type="button"
@@ -166,7 +181,7 @@ const SavePromptVersionDialog = ({
           !isFetchingAlignment &&
           !isFetchingSuggestions &&
           !hasRequestedSuggestions &&
-          !isMatching && (
+          (!isMatching || hasInjectionError) && (
             <Button
               type="button"
               onClick={() => {
@@ -179,7 +194,7 @@ const SavePromptVersionDialog = ({
         {!error &&
           !isFetchingAlignment &&
           !isFetchingSuggestions &&
-          !isMatching &&
+          (!isMatching || hasInjectionError) &&
           hasRequestedSuggestions && (
             <DialogClose asChild>
               <Button
