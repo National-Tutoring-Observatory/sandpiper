@@ -3,8 +3,9 @@ name: Production Release
 # Developer workflow
 #   1. Merge PR
 #   2. Tag main branch with vX.Y.Z
-#   3. CI builds vX.Y.Z
-#   4. Update ECS service vX.Y.Z
+#   3. CI validates staging is running the tagged commit, baked for ≥2h
+#   4. CI re-tags the staging image as vX.Y.Z (no rebuild — digest preserved)
+#   5. ECS service updated to vX.Y.Z
 
 # After PR is merged. Run the following to trigger.
 #   git checkout main
@@ -14,6 +15,13 @@ name: Production Release
 
 # Or create a GitHub Release
 #   - https://github.com/National-Tutoring-Observatory/sandpiper/releases/new
+
+# Promotion model (#180)
+#   This workflow does *not* build from source. It validates that staging
+#   is running the tagged commit, has been stable for ≥2 hours, and then
+#   re-tags the staging image in ECR with the release version. Same
+#   bytes, same digest, new tag. Use the hotfix workflow for emergency
+#   releases that need to bypass these checks.
 
 on:
   push:
@@ -34,6 +42,20 @@ jobs:
     uses: National-Tutoring-Observatory/workflows/.github/workflows/resolve_release.yml@main
     with:
       base-branch: main
+
+  inspect-staging:
+    name: Inspect Staging
+    needs: resolve
+    uses: ./.github/workflows/inspect_staging.yml
+    with:
+      environment: staging
+      aws-region: us-east-1
+      # github.sha on a tag push is the commit the tag points at.
+      # The staging build tags images with the 7-char short SHA;
+      # inspect_staging.yml truncates this internally to match.
+      tag-commit-sha: ${{ github.sha }}
+      bake-hours: 1
+
   preflight-production:
     name: Production Preflight
     needs: resolve
@@ -43,71 +65,76 @@ jobs:
       aws-region: us-east-1
     secrets:
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
-  build-web:
-    name: Build Web Image
+
+  promote-web:
+    name: Promote Web Image
     needs:
       - resolve
+      - inspect-staging
       - preflight-production
-    uses: ./.github/workflows/ecs_build_image.yml
+    uses: ./.github/workflows/ecs_promote_image.yml
     with:
       environment: production
       aws-region: us-east-1
-      dockerfile: Dockerfile
-      image-suffix: ""
-      output-name: web_image
-      tag: ${{ needs.resolve.outputs.version }}
+      source-tag: ${{ needs.inspect-staging.outputs.sha }}
+      target-tag: ${{ needs.resolve.outputs.version }}
     secrets:
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
-      BULLMQ_PRO_TOKEN: ${{ secrets.BULLMQ_PRO_TOKEN }}
-  build-worker:
-    name: Build Worker Image
+
+  promote-worker:
+    name: Promote Worker Image
     needs:
       - resolve
+      - inspect-staging
       - preflight-production
-    uses: ./.github/workflows/ecs_build_image.yml
+    uses: ./.github/workflows/ecs_promote_image.yml
     with:
       environment: production
       aws-region: us-east-1
-      dockerfile: workers/Dockerfile
-      image-suffix: "-worker"
-      output-name: worker_image
-      tag: ${{ needs.resolve.outputs.version }}
+      source-tag: ${{ needs.inspect-staging.outputs.sha }}-worker
+      target-tag: ${{ needs.resolve.outputs.version }}-worker
     secrets:
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
-      BULLMQ_PRO_TOKEN: ${{ secrets.BULLMQ_PRO_TOKEN }}
+
   deploy-web:
     name: Deploy Web Service
-    needs: build-web
+    needs: promote-web
     uses: National-Tutoring-Observatory/workflows/.github/workflows/ecs_deploy_service.yml@main
     with:
       environment: production
       aws-region: us-east-1
-      image: ${{ needs.build-web.outputs.image }}
+      image: ${{ needs.promote-web.outputs.image }}
       service: web
     secrets:
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+
   deploy-worker:
     name: Deploy Worker Service
-    needs: build-worker
+    needs: promote-worker
     uses: National-Tutoring-Observatory/workflows/.github/workflows/ecs_deploy_service.yml@main
     with:
       environment: production
       aws-region: us-east-1
-      image: ${{ needs.build-worker.outputs.image }}
+      image: ${{ needs.promote-worker.outputs.image }}
       service: worker
     secrets:
       AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+
   production-summary:
     name: Production Deployment Summary
     needs:
-      - build-web
-      - build-worker
+      - resolve
+      - inspect-staging
+      - promote-web
+      - promote-worker
       - deploy-web
       - deploy-worker
     if: success() || failure()
     uses: National-Tutoring-Observatory/workflows/.github/workflows/deployment_summary.yml@main
     with:
       environment: production
-      web-image: ${{ needs.build-web.outputs.image }}
-      worker-image: ${{ needs.build-worker.outputs.image }}
+      web-image: ${{ needs.promote-web.outputs.image }}
+      worker-image: ${{ needs.promote-worker.outputs.image }}
       app-url: https://app.nationaltutoringobservatory.org/
+      originating-sha: ${{ needs.inspect-staging.outputs.sha }}
+      bake-duration-minutes: ${{ needs.inspect-staging.outputs.bake-duration-minutes }}
