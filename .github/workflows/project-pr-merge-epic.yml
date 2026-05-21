@@ -1,0 +1,79 @@
+name: "Strategy Board: PR merge → advance epic"
+
+on:
+  pull_request:
+    types: [closed]
+
+env:
+  PROJECT_NUMBER: 54
+  ORG: National-Tutoring-Observatory
+
+jobs:
+  advance-epic-on-merge:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Check linked issues and advance epics
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          PR_BODY="${{ github.event.pull_request.body }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+
+          # Extract issue references from PR body (e.g., #123, closes #123, fixes #123)
+          ISSUE_NUMBERS=$(echo "$PR_BODY" | grep -oP '(?:closes|fixes|resolves|ref|relates to)?\s*#(\d+)' | grep -oP '\d+' || true)
+
+          if [ -z "$ISSUE_NUMBERS" ]; then
+            echo "No linked issues found in PR body, skipping"
+            exit 0
+          fi
+
+          for ISSUE_NUM in $ISSUE_NUMBERS; do
+            ISSUE_URL="https://github.com/$REPO/issues/$ISSUE_NUM"
+
+            # Check if this issue is an epic on the strategy board
+            RESULT=$(gh api graphql -f query='
+              query($url: URI!) {
+                resource(url: $url) {
+                  ... on Issue {
+                    labels(first: 10) {
+                      nodes { name }
+                    }
+                    projectItems(first: 10) {
+                      nodes {
+                        id
+                        project { number }
+                      }
+                    }
+                  }
+                }
+              }' -f url="$ISSUE_URL" 2>/dev/null || echo '{}')
+
+            IS_EPIC=$(echo "$RESULT" | jq -r '.data.resource.labels.nodes[]?.name' 2>/dev/null | grep -c "epic" || true)
+            ITEM_ID=$(echo "$RESULT" | jq -r '.data.resource.projectItems.nodes[]? | select(.project.number == ${{ env.PROJECT_NUMBER }}) | .id' 2>/dev/null || true)
+
+            if [ "$IS_EPIC" -gt 0 ] && [ -n "$ITEM_ID" ]; then
+              PROJECT_ID=$(gh api graphql -f query='
+                query {
+                  organization(login: "${{ env.ORG }}") {
+                    projectV2(number: ${{ env.PROJECT_NUMBER }}) { id }
+                  }
+                }' --jq '.data.organization.projectV2.id')
+
+              # Set to In Progress (PRs merging means active work)
+              gh api graphql -f query='
+                mutation {
+                  updateProjectV2ItemFieldValue(input: {
+                    projectId: "'"$PROJECT_ID"'"
+                    itemId: "'"$ITEM_ID"'"
+                    fieldId: "PVTSSF_lADOC5cpas4BYaa-zhTgeBA"
+                    value: { singleSelectOptionId: "6263e571" }
+                  }) {
+                    projectV2Item { id }
+                  }
+                }'
+
+              echo "✅ Advanced epic #$ISSUE_NUM to In Progress after PR #$PR_NUMBER merged"
+            fi
+          done

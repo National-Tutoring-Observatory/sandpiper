@@ -1,0 +1,112 @@
+name: "Strategy Board: Status automations"
+
+on:
+  issues:
+    types: [closed, reopened]
+
+env:
+  PROJECT_NUMBER: 54
+  ORG: National-Tutoring-Observatory
+
+jobs:
+  issue-closed-set-shipped:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed'
+    steps:
+      - name: Set status to Shipped
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          ISSUE_URL="${{ github.event.issue.html_url }}"
+
+          # Get project item ID for this issue
+          ITEM_ID=$(gh api graphql -f query='
+            query($url: URI!) {
+              resource(url: $url) {
+                ... on Issue {
+                  projectItems(first: 10) {
+                    nodes {
+                      id
+                      project { number }
+                    }
+                  }
+                }
+              }
+            }' -f url="$ISSUE_URL" --jq '.data.resource.projectItems.nodes[] | select(.project.number == ${{ env.PROJECT_NUMBER }}) | .id')
+
+          if [ -z "$ITEM_ID" ]; then
+            echo "Issue not on strategy board, skipping"
+            exit 0
+          fi
+
+          # Get the Status field ID and Shipped option ID
+          PROJECT_ID=$(gh api graphql -f query='
+            query {
+              organization(login: "${{ env.ORG }}") {
+                projectV2(number: ${{ env.PROJECT_NUMBER }}) { id }
+              }
+            }' --jq '.data.organization.projectV2.id')
+
+          gh api graphql -f query='
+            mutation {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: "'"$PROJECT_ID"'"
+                itemId: "'"$ITEM_ID"'"
+                fieldId: "PVTSSF_lADOC5cpas4BYaa-zhTgeBA"
+                value: { singleSelectOptionId: "1644e36d" }
+              }) {
+                projectV2Item { id }
+              }
+            }'
+
+          echo "✅ Set status to Shipped for issue $ISSUE_URL"
+
+  issue-reopened-set-in-progress:
+    runs-on: ubuntu-latest
+    if: github.event.action == 'reopened'
+    steps:
+      - name: Set status to In Progress
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          ISSUE_URL="${{ github.event.issue.html_url }}"
+
+          ITEM_ID=$(gh api graphql -f query='
+            query($url: URI!) {
+              resource(url: $url) {
+                ... on Issue {
+                  projectItems(first: 10) {
+                    nodes {
+                      id
+                      project { number }
+                    }
+                  }
+                }
+              }
+            }' -f url="$ISSUE_URL" --jq '.data.resource.projectItems.nodes[] | select(.project.number == ${{ env.PROJECT_NUMBER }}) | .id')
+
+          if [ -z "$ITEM_ID" ]; then
+            echo "Issue not on strategy board, skipping"
+            exit 0
+          fi
+
+          PROJECT_ID=$(gh api graphql -f query='
+            query {
+              organization(login: "${{ env.ORG }}") {
+                projectV2(number: ${{ env.PROJECT_NUMBER }}) { id }
+              }
+            }' --jq '.data.organization.projectV2.id')
+
+          gh api graphql -f query='
+            mutation {
+              updateProjectV2ItemFieldValue(input: {
+                projectId: "'"$PROJECT_ID"'"
+                itemId: "'"$ITEM_ID"'"
+                fieldId: "PVTSSF_lADOC5cpas4BYaa-zhTgeBA"
+                value: { singleSelectOptionId: "6263e571" }
+              }) {
+                projectV2Item { id }
+              }
+            }'
+
+          echo "✅ Set status to In Progress for reopened issue $ISSUE_URL"

@@ -1,0 +1,77 @@
+name: "Strategy Board: Stale discovery alert"
+
+on:
+  schedule:
+    - cron: '0 9 * * 1'  # Every Monday at 9am UTC
+  workflow_dispatch:
+
+env:
+  PROJECT_NUMBER: 54
+  ORG: National-Tutoring-Observatory
+
+jobs:
+  check-stale-items:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Flag stale Discovery items
+        env:
+          GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+        run: |
+          FOURTEEN_DAYS_AGO=$(date -d '14 days ago' +%Y-%m-%dT%H:%M:%SZ 2>/dev/null || date -v-14d +%Y-%m-%dT%H:%M:%SZ)
+
+          # Get all items on the board
+          ITEMS=$(gh api graphql -f query='
+            query {
+              organization(login: "${{ env.ORG }}") {
+                projectV2(number: ${{ env.PROJECT_NUMBER }}) {
+                  items(first: 100) {
+                    nodes {
+                      id
+                      updatedAt
+                      content {
+                        ... on Issue {
+                          number
+                          title
+                          url
+                          updatedAt
+                        }
+                      }
+                      fieldValues(first: 20) {
+                        nodes {
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                            field { ... on ProjectV2SingleSelectField { name } }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }')
+
+          # Find items in Discovery status that haven't been updated in 14+ days
+          echo "$ITEMS" | jq -r '
+            .data.organization.projectV2.items.nodes[] |
+            select(
+              .fieldValues.nodes[]? |
+              select(.field?.name == "Status" and .name == "Discovery")
+            ) |
+            select(.content.updatedAt < "'"$FOURTEEN_DAYS_AGO"'") |
+            .content |
+            "\(.number) \(.url) \(.title)"
+          ' | while read -r NUM URL TITLE; do
+            if [ -n "$NUM" ]; then
+              gh issue comment "$URL" --body "⏰ **Stale Discovery Alert**
+
+This item has been in **Discovery** status for 14+ days without updates.
+
+**Action needed:** Move it forward to **Scoping**, add context on blockers, or close if no longer relevant.
+
+_Automated by NTO Product Strategy board_"
+
+              echo "⏰ Flagged stale issue #$NUM: $TITLE"
+            fi
+          done
+
+          echo "✅ Stale discovery check complete"

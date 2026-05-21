@@ -1,0 +1,24 @@
+name: "Strategy Board: Auto-add labeled issues"
+
+on:
+  issues:
+    types: [labeled]
+
+env:
+  PROJECT_NUMBER: 54
+  ORG: National-Tutoring-Observatory
+
+jobs:
+  add-to-project:
+    runs-on: ubuntu-latest
+    if: >-
+      contains(github.event.label.name, 'outcome') ||
+      contains(github.event.label.name, 'epic') ||
+      contains(github.event.label.name, 'problem-statement') ||
+      contains(github.event.label.name, 'initiative')
+    steps:
+      - uses: actions/add-to-project@v1.0.2
+        with:
+          project-url: https://github.com/orgs/${{ env.ORG }}/projects/${{ env.PROJECT_NUMBER }}
+          github-token: ${{ secrets.PROJECT_TOKEN }}
+          labeled: outcome, epic, problem-statement, initiative
