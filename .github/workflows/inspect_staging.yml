@@ -1,0 +1,283 @@
+name: Inspect Staging
+
+# Reads the current state of the staging web + worker ECS services and
+# decides whether the staging deployment is fit to promote to production.
+#
+# Validates, in order:
+#   1. Both services are stable (one deployment, COMPLETED, runningCount == desiredCount)
+#   2. Web and worker are running the same image SHA tag
+#   3. That SHA tag matches the tagged commit's short SHA
+#   4. The deployment has been running for at least <bake-hours> hours
+#
+# This workflow is only called from the release path. Hotfix releases
+# bypass it entirely by running through a separate workflow that builds
+# from source.
+#
+# Outputs:
+#   - sha:                  the validated 7-char SHA tag
+#   - web-image-uri:        sandpiper:<sha> with full registry path
+#   - worker-image-uri:     sandpiper:<sha>-worker with full registry path
+#   - bake-duration-minutes the time since the older of the two services last stabilised
+#
+# Auth note: AWS_ROLE_ARN is read directly from the *staging* environment's
+# variables (via `environment: ${{ inputs.environment }}` on the job), so
+# the caller does not need to pass it in. This keeps prod's environment
+# free of any staging-side credentials.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "GitHub environment to source vars from (the *staging* environment)"
+        required: true
+        type: string
+      aws-region:
+        description: "AWS region for the staging cluster"
+        required: false
+        type: string
+        default: us-east-1
+      tag-commit-sha:
+        description: "Short (7-char) SHA of the tagged release commit"
+        required: true
+        type: string
+      bake-hours:
+        description: "Hours the staging deployment must have been stable before promotion"
+        required: false
+        type: number
+        default: 1
+      max-wait-seconds:
+        description: "How long to wait for staging to stabilise before failing"
+        required: false
+        type: number
+        default: 600
+      poll-interval-seconds:
+        description: "How often to poll while waiting for staging to stabilise"
+        required: false
+        type: number
+        default: 15
+    outputs:
+      sha:
+        description: "Validated SHA tag (the bytes that ran in staging)"
+        value: ${{ jobs.inspect.outputs.sha }}
+      web-image-uri:
+        description: "Full ECR URI of the staging web image to be promoted"
+        value: ${{ jobs.inspect.outputs.web-image-uri }}
+      worker-image-uri:
+        description: "Full ECR URI of the staging worker image to be promoted"
+        value: ${{ jobs.inspect.outputs.worker-image-uri }}
+      bake-duration-minutes:
+        description: "How long the staging deployment had been stable at inspect time"
+        value: ${{ jobs.inspect.outputs.bake-duration-minutes }}
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  inspect:
+    name: Inspect Staging
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    outputs:
+      sha: ${{ steps.validate.outputs.sha }}
+      web-image-uri: ${{ steps.validate.outputs.web-image-uri }}
+      worker-image-uri: ${{ steps.validate.outputs.worker-image-uri }}
+      bake-duration-minutes: ${{ steps.validate.outputs.bake-duration-minutes }}
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ vars.AWS_ROLE_ARN }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Wait for staging to stabilise
+        id: wait
+        env:
+          # Web and worker currently share a cluster (ECS_CLUSTER), but they
+          # are exposed as distinct services. Keep the var names aligned with
+          # the repo's existing convention: ECS_SERVICE is the web service,
+          # ECS_WORKER_SERVICE is the worker service.
+          ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ vars.ECS_SERVICE }}
+          ECS_WORKER_SERVICE: ${{ vars.ECS_WORKER_SERVICE }}
+          MAX_WAIT_SECONDS: ${{ inputs.max-wait-seconds }}
+          SLEEP_SECONDS: ${{ inputs.poll-interval-seconds }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          echo "Waiting for staging cluster '$ECS_CLUSTER' to reach a stable state."
+          echo "  web service:    $ECS_SERVICE"
+          echo "  worker service: $ECS_WORKER_SERVICE"
+          echo "  max wait:       ${MAX_WAIT_SECONDS}s"
+          echo "  poll interval:  ${SLEEP_SECONDS}s"
+          echo
+
+          ELAPSED=0
+          while true; do
+            DESCRIBE=$(aws ecs describe-services \
+              --cluster "$ECS_CLUSTER" \
+              --services "$ECS_SERVICE" "$ECS_WORKER_SERVICE")
+
+            # For each of the two services, all of the following must hold:
+            #   - exactly one deployment in the deployments[] array
+            #   - that deployment has rolloutState == COMPLETED
+            #   - runningCount == desiredCount
+            UNSTABLE=$(echo "$DESCRIBE" | jq -r '
+              [.services[] | select(
+                (.deployments | length) != 1
+                or (.deployments[0].rolloutState != "COMPLETED")
+                or (.runningCount != .desiredCount)
+              ) | .serviceName] | join(",")
+            ')
+
+            if [ -z "$UNSTABLE" ]; then
+              echo "Staging is stable. Both services have a single COMPLETED deployment."
+              break
+            fi
+
+            if [ "$ELAPSED" -ge "$MAX_WAIT_SECONDS" ]; then
+              echo "::error::Staging did not stabilise within ${MAX_WAIT_SECONDS}s."
+              echo "::error::Unstable services: $UNSTABLE"
+              echo "::error::Check the ECS console for the '$ECS_CLUSTER' cluster and retry once staging is healthy."
+              exit 1
+            fi
+
+            echo "[${ELAPSED}s] Still waiting on: $UNSTABLE"
+            sleep "$SLEEP_SECONDS"
+            ELAPSED=$((ELAPSED + SLEEP_SECONDS))
+          done
+
+      - name: Validate SHA match and bake time
+        id: validate
+        env:
+          ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+          ECS_SERVICE: ${{ vars.ECS_SERVICE }}
+          ECS_WORKER_SERVICE: ${{ vars.ECS_WORKER_SERVICE }}
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          TAG_COMMIT_SHA: ${{ inputs.tag-commit-sha }}
+          BAKE_HOURS: ${{ inputs.bake-hours }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Resolve the ECR registry account ID via STS (matches the pattern
+          # in ecs_build_image.yml). Both staging and production cicd roles
+          # permit sts:GetCallerIdentity via the STSIdentity SID; neither
+          # permits ecr:DescribeRegistry.
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          REGISTRY_HOST="${ACCOUNT_ID}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com"
+
+          # Pull the primary deployment for each service. We've already gated on
+          # exactly one deployment per service in the previous step.
+          DESCRIBE=$(aws ecs describe-services \
+            --cluster "$ECS_CLUSTER" \
+            --services "$ECS_SERVICE" "$ECS_WORKER_SERVICE")
+
+          WEB_TD=$(echo "$DESCRIBE" | jq -r --arg svc "$ECS_SERVICE" \
+            '.services[] | select(.serviceName == $svc) | .deployments[0].taskDefinition')
+          WORKER_TD=$(echo "$DESCRIBE" | jq -r --arg svc "$ECS_WORKER_SERVICE" \
+            '.services[] | select(.serviceName == $svc) | .deployments[0].taskDefinition')
+
+          WEB_UPDATED=$(echo "$DESCRIBE" | jq -r --arg svc "$ECS_SERVICE" \
+            '.services[] | select(.serviceName == $svc) | .deployments[0].updatedAt')
+          WORKER_UPDATED=$(echo "$DESCRIBE" | jq -r --arg svc "$ECS_WORKER_SERVICE" \
+            '.services[] | select(.serviceName == $svc) | .deployments[0].updatedAt')
+
+          # Each task definition has one container; pull its image URI.
+          # If the repo ever grows multiple containers per task def, this needs revisiting.
+          WEB_IMAGE=$(aws ecs describe-task-definition --task-definition "$WEB_TD" \
+            | jq -r '.taskDefinition.containerDefinitions[0].image')
+          WORKER_IMAGE=$(aws ecs describe-task-definition --task-definition "$WORKER_TD" \
+            | jq -r '.taskDefinition.containerDefinitions[0].image')
+
+          # Image URIs look like: <registry>/<repo>:<tag>
+          # Strip everything up to and including the colon to get the tag.
+          WEB_TAG="${WEB_IMAGE##*:}"
+          WORKER_TAG="${WORKER_IMAGE##*:}"
+
+          echo "Staging web    image: $WEB_IMAGE"
+          echo "Staging worker image: $WORKER_IMAGE"
+
+          # Worker tags follow the convention <sha>-worker. Strip the suffix so
+          # we can compare web and worker SHAs apples-to-apples.
+          if [[ "$WORKER_TAG" != *-worker ]]; then
+            echo "::error::Worker tag '$WORKER_TAG' does not end in '-worker'. Cannot derive SHA."
+            exit 1
+          fi
+          WORKER_SHA="${WORKER_TAG%-worker}"
+          WEB_SHA="$WEB_TAG"
+
+          if [ "$WEB_SHA" != "$WORKER_SHA" ]; then
+            echo "::error::Staging web and worker are running different SHAs."
+            echo "::error::  web:    $WEB_SHA"
+            echo "::error::  worker: $WORKER_SHA"
+            echo "::error::Promotion requires a matched pair. Redeploy staging from a single commit and retry."
+            exit 1
+          fi
+
+          STAGING_SHA="$WEB_SHA"
+
+          # Truncate the tag commit SHA to match the 7-char short SHA that
+          # ecs_build_image.yml uses for staging tags.
+          TAG_SHORT_SHA="${TAG_COMMIT_SHA:0:7}"
+
+          # Strict tag-vs-staging SHA check. The tagged commit must equal what
+          # staging is currently running. If they diverge, the release was
+          # tagged on a commit that staging has not validated.
+          if [ "$STAGING_SHA" != "$TAG_SHORT_SHA" ]; then
+            echo "::error::Staging is running SHA '$STAGING_SHA' but the release tag points at commit '$TAG_SHORT_SHA' (from $TAG_COMMIT_SHA)."
+            echo "::error::Promotion requires the tagged commit to match what staging has validated."
+            echo "::error::Either:"
+            echo "::error::  - re-tag from the commit currently in staging, or"
+            echo "::error::  - merge the tagged commit to main, wait for staging to redeploy, and retry."
+            exit 1
+          fi
+
+          # Bake time is computed from the *older* (more recent) of the two
+          # updatedAt timestamps, so both services have been stable for at
+          # least the reported duration.
+          NOW_EPOCH=$(date -u +%s)
+          WEB_EPOCH=$(date -u -d "$WEB_UPDATED" +%s)
+          WORKER_EPOCH=$(date -u -d "$WORKER_UPDATED" +%s)
+
+          if [ "$WEB_EPOCH" -gt "$WORKER_EPOCH" ]; then
+            STABILISED_EPOCH="$WEB_EPOCH"
+          else
+            STABILISED_EPOCH="$WORKER_EPOCH"
+          fi
+
+          BAKE_SECONDS=$((NOW_EPOCH - STABILISED_EPOCH))
+          BAKE_MINUTES=$((BAKE_SECONDS / 60))
+          # Required bake in seconds, computed via awk to allow fractional hours.
+          REQUIRED_SECONDS=$(awk -v h="$BAKE_HOURS" 'BEGIN { printf "%d", h * 3600 }')
+
+          echo
+          echo "Staging SHA matches tag commit: $STAGING_SHA"
+          echo "Staging has been stable for ${BAKE_MINUTES} minutes (required: ${BAKE_HOURS}h)."
+
+          if [ "$BAKE_SECONDS" -lt "$REQUIRED_SECONDS" ]; then
+            REMAINING_MINUTES=$(( (REQUIRED_SECONDS - BAKE_SECONDS) / 60 + 1 ))
+            echo "::error::Staging has been stable for ${BAKE_MINUTES} minutes; ${BAKE_HOURS}h required."
+            echo "::error::Retry this release in approximately ${REMAINING_MINUTES} minutes,"
+            echo "::error::or if this is an urgent fix, use the hotfix release path instead."
+            exit 1
+          fi
+
+          # Emit outputs for downstream jobs.
+          WEB_IMAGE_URI="${REGISTRY_HOST}/${ECR_REPOSITORY}:${STAGING_SHA}"
+          WORKER_IMAGE_URI="${REGISTRY_HOST}/${ECR_REPOSITORY}:${STAGING_SHA}-worker"
+
+          {
+            echo "sha=${STAGING_SHA}"
+            echo "web-image-uri=${WEB_IMAGE_URI}"
+            echo "worker-image-uri=${WORKER_IMAGE_URI}"
+            echo "bake-duration-minutes=${BAKE_MINUTES}"
+          } >> "$GITHUB_OUTPUT"
+
+          echo
+          echo "Inspection passed. Ready to promote:"
+          echo "  web:    $WEB_IMAGE_URI"
+          echo "  worker: $WORKER_IMAGE_URI"

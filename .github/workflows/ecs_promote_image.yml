@@ -1,0 +1,147 @@
+name: Promote ECR Image
+
+# Re-tags an existing ECR image with a new tag, preserving the image
+# digest. This is the core of the build-once / promote-digest model:
+# the bytes that ran in staging are the bytes that ship to production,
+# just with a release version tag added.
+#
+# Implementation: aws ecr batch-get-image reads the manifest of the
+# source tag, then aws ecr put-image writes that *same manifest* under
+# the target tag. ECR de-duplicates by digest, so no bytes are uploaded.
+#
+# This is intentionally not a docker pull / tag / push — that would
+# rebuild the manifest and change the digest.
+
+on:
+  workflow_call:
+    inputs:
+      environment:
+        description: "GitHub environment to source vars/secrets from (the *production* environment)"
+        required: true
+        type: string
+      aws-region:
+        description: "AWS region for the ECR registry"
+        required: false
+        type: string
+        default: us-east-1
+      source-tag:
+        description: "Existing ECR image tag to promote (e.g. e6d8d50 or e6d8d50-worker)"
+        required: true
+        type: string
+      target-tag:
+        description: "New tag to apply to the same image manifest (e.g. v1.2.3 or v1.2.3-worker)"
+        required: true
+        type: string
+    outputs:
+      image:
+        description: "Full URI of the newly-tagged image (consumed by ecs_deploy_service.yml)"
+        value: ${{ jobs.promote.outputs.image }}
+      digest:
+        description: "Image digest of the promoted manifest (same as the source)"
+        value: ${{ jobs.promote.outputs.digest }}
+    secrets:
+      AWS_ROLE_ARN:
+        description: "OIDC role ARN for the production account/environment"
+        required: true
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  promote:
+    name: Promote ${{ inputs.source-tag }} → ${{ inputs.target-tag }}
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.environment }}
+
+    outputs:
+      image: ${{ steps.promote.outputs.image }}
+      digest: ${{ steps.promote.outputs.digest }}
+
+    steps:
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ inputs.aws-region }}
+
+      - name: Re-tag image
+        id: promote
+        env:
+          ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
+          SOURCE_TAG: ${{ inputs.source-tag }}
+          TARGET_TAG: ${{ inputs.target-tag }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          # Resolve the ECR registry account ID via STS (matches the pattern
+          # in ecs_build_image.yml). The production cicd role permits
+          # sts:GetCallerIdentity via the STSIdentity SID; it does not
+          # permit ecr:DescribeRegistry.
+          ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+          REGISTRY_HOST="${ACCOUNT_ID}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com"
+
+          echo "Promoting ${ECR_REPOSITORY}:${SOURCE_TAG} → ${ECR_REPOSITORY}:${TARGET_TAG}"
+
+          # Read the manifest of the source image. batch-get-image returns the
+          # raw manifest JSON, which we re-submit under the target tag below.
+          MANIFEST=$(aws ecr batch-get-image \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=${SOURCE_TAG}" \
+            --query 'images[0].imageManifest' \
+            --output text)
+
+          if [ -z "$MANIFEST" ] || [ "$MANIFEST" = "None" ]; then
+            echo "::error::Source image ${ECR_REPOSITORY}:${SOURCE_TAG} not found in ECR."
+            exit 1
+          fi
+
+          # Defensive check: ensure target tag does not already exist on a
+          # *different* manifest. Re-running the workflow against the same
+          # source tag is fine (same manifest, idempotent), but re-using a
+          # version tag on a different commit would silently overwrite — and
+          # that's the kind of mistake the audit trail should catch loudly.
+          SOURCE_DIGEST=$(aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=${SOURCE_TAG}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text)
+
+          EXISTING_DIGEST=$(aws ecr describe-images \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-ids "imageTag=${TARGET_TAG}" \
+            --query 'imageDetails[0].imageDigest' \
+            --output text 2>/dev/null || echo "")
+
+          if [ -n "$EXISTING_DIGEST" ] && [ "$EXISTING_DIGEST" != "$SOURCE_DIGEST" ]; then
+            echo "::error::Target tag '${TARGET_TAG}' already exists on a different image."
+            echo "::error::  existing digest: $EXISTING_DIGEST"
+            echo "::error::  source digest:   $SOURCE_DIGEST"
+            echo "::error::Refusing to overwrite. Bump the version number and retry."
+            exit 1
+          fi
+
+          # Apply the new tag. If the tag already exists on the same digest
+          # (re-run of the same release) this is a no-op as far as bytes go,
+          # but ECR will return an ImageAlreadyExistsException — handle that.
+          if ! aws ecr put-image \
+            --repository-name "$ECR_REPOSITORY" \
+            --image-tag "$TARGET_TAG" \
+            --image-manifest "$MANIFEST" 2> put-image.err; then
+            if grep -q "ImageAlreadyExistsException" put-image.err; then
+              echo "Tag '${TARGET_TAG}' already points at digest ${SOURCE_DIGEST}; nothing to do."
+            else
+              cat put-image.err >&2
+              exit 1
+            fi
+          fi
+
+          IMAGE_URI="${REGISTRY_HOST}/${ECR_REPOSITORY}:${TARGET_TAG}"
+          echo "Promoted image: $IMAGE_URI"
+          echo "Digest:         $SOURCE_DIGEST"
+
+          {
+            echo "image=${IMAGE_URI}"
+            echo "digest=${SOURCE_DIGEST}"
+          } >> "$GITHUB_OUTPUT"
