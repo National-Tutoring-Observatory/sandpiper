@@ -2,7 +2,7 @@ name: "Strategy Board: Stale discovery alert"
 
 on:
   schedule:
-    - cron: '0 9 * * 1'  # Every Monday at 9am UTC
+    - cron: "0 9 * * 1" # Every Monday at 9am UTC
   workflow_dispatch:
 
 env:
