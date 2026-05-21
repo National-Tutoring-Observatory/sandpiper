@@ -62,14 +62,17 @@ jobs:
             "\(.number) \(.url) \(.title)"
           ' | while read -r NUM URL TITLE; do
             if [ -n "$NUM" ]; then
-              gh issue comment "$URL" --body "⏰ **Stale Discovery Alert**
+              COMMENT_BODY=$(cat <<'EOFCOMMENT'
+          ⏰ **Stale Discovery Alert**
 
-This item has been in **Discovery** status for 14+ days without updates.
+          This item has been in **Discovery** status for 14+ days without updates.
 
-**Action needed:** Move it forward to **Scoping**, add context on blockers, or close if no longer relevant.
+          **Action needed:** Move it forward to **Scoping**, add context on blockers, or close if no longer relevant.
 
-_Automated by NTO Product Strategy board_"
-
+          _Automated by NTO Product Strategy board_
+          EOFCOMMENT
+              )
+              gh issue comment "$URL" --body "$COMMENT_BODY"
               echo "⏰ Flagged stale issue #$NUM: $TITLE"
             fi
           done
