@@ -16,7 +16,7 @@ services:
       start_period: 30s
 
   mongodb:
-    image: mongo:${MONGO_VERSION:-5.0}
+    image: mongo:${MONGO_VERSION:-8.0}
     container_name: sandpiper-mongodb
     ports:
       - "27017:27017"
@@ -54,7 +54,7 @@ services:
       start_period: 30s
 
   mongodb-init:
-    image: mongo:${MONGO_VERSION:-5.0}
+    image: mongo:${MONGO_VERSION:-8.0}
     container_name: sandpiper-mongodb-init
     depends_on:
       mongodb:
