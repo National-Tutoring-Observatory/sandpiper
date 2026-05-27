@@ -1,5 +1,10 @@
 name: Start MongoDB Replica Set
-description: Start a MongoDB 5 container with replica set support and create a CI user
+description: Start a MongoDB container with replica set support and create a CI user
+
+inputs:
+  mongo-version:
+    description: MongoDB image tag (e.g. 5, 8)
+    default: "5"
 
 runs:
   using: composite
@@ -8,7 +13,7 @@ runs:
       shell: bash
       run: |
         docker run -d --name mongo -p 27017:27017 \
-          mongo:5 mongod --replSet rs0 --bind_ip_all
+          mongo:${{ inputs.mongo-version }} mongod --replSet rs0 --bind_ip_all
         for i in {1..30}; do
           if docker exec mongo mongosh --quiet --eval 'db.runCommand("ping").ok' 2>/dev/null; then
             echo "mongo is up"
