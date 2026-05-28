@@ -7,26 +7,32 @@ name: Production Release
 #   4. CI re-tags the staging image as vX.Y.Z (no rebuild — digest preserved)
 #   5. ECS service updated to vX.Y.Z
 
-# After PR is merged. Run the following to trigger.
-#   git checkout main
-#   git pull
-#   git tag v1.2.3
-#   git push origin v1.2.3
-
-# Or create a GitHub Release
+# After PR is merged. Publish a GitHub Release to trigger.
 #   - https://github.com/National-Tutoring-Observatory/sandpiper/releases/new
+#   Tag the release vX.Y.Z. The patch digit MUST be 0 for a normal release
+#   (e.g. v1.2.0). A non-zero patch digit (v1.2.3) is treated as a hotfix and
+#   is handled by hotfix.yml instead — this workflow will skip it.
 
 # Promotion model (#180)
 #   This workflow does *not* build from source. It validates that staging
 #   is running the tagged commit, has been stable for ≥2 hours, and then
 #   re-tags the staging image in ECR with the release version. Same
-#   bytes, same digest, new tag. Use the hotfix workflow for emergency
-#   releases that need to bypass these checks.
+#   bytes, same digest, new tag. Use the hotfix workflow (#197) for emergency
+#   releases that need to build from source and bypass these checks.
+
+# Routing (#197)
+#   release: published fires for EVERY published release, so the split between
+#   a normal release and a hotfix is enforced as a job-level `if:`, not in the
+#   `on:` block:
+#     - release.yml  claims tags ending in  .0   (vX.Y.0  -> normal release)
+#     - hotfix.yml   claims tags NOT ending in .0 (vX.Y.N  -> hotfix, N > 0)
+#   When a tag isn't ours the `resolve` job is skipped, and because every other
+#   job needs it, the whole run skips as neutral. A v1.2.3 publish leaves this
+#   workflow grey, not red.
 
 on:
-  push:
-    tags:
-      - "v*.*.*"
+  release:
+    types: [published]
 
 permissions:
   id-token: write
@@ -39,6 +45,11 @@ concurrency:
 
 jobs:
   resolve:
+    # Claim only normal-release tags: patch digit 0 (i.e. ending in .0).
+    # endsWith is a string test, so v1.2.0 matches and v1.2.10 (ends ".10")
+    # and v1.2.3 do not. resolve_release.yml still does the real semver
+    # regex downstream — this `if:` is just the router.
+    if: ${{ endsWith(github.event.release.tag_name, '.0') }}
     uses: National-Tutoring-Observatory/workflows/.github/workflows/resolve_release.yml@main
     with:
       base-branch: main
@@ -50,10 +61,10 @@ jobs:
     with:
       environment: staging
       aws-region: us-east-1
-      # github.sha on a tag push is the commit the tag points at.
-      # The staging build tags images with the 7-char short SHA;
-      # inspect_staging.yml truncates this internally to match.
-      tag-commit-sha: ${{ github.sha }}
+      # The release's commit. resolve_release.yml validates the tag points at a
+      # commit reachable from main; staging tags images with the 7-char short
+      # SHA, and inspect_staging.yml truncates this internally to match.
+      tag-commit-sha: ${{ needs.resolve.outputs.sha }}
       bake-hours: 1
 
   preflight-production:
