@@ -36,6 +36,11 @@ on:
         required: false
         type: string
 
+      ref:
+        description: "Git ref to build (branch, tag, or SHA). Defaults to the triggering ref."
+        required: false
+        type: string
+
       build-args:
         description: "Docker build arguments (newline-separated KEY=VALUE pairs)"
         required: false
@@ -69,6 +74,12 @@ jobs:
 
     steps:
       - uses: actions/checkout@v5
+        with:
+          # When ref is empty, checkout uses the triggering ref — unchanged
+          # behaviour for staging. hotfix.yml passes the release's target
+          # branch (target_commitish) so an emergency build ships the branch
+          # selected in the release UI, not the default branch.
+          ref: ${{ inputs.ref }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v6.0.0
