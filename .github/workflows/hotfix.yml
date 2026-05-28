@@ -1,0 +1,156 @@
+name: Hotfix Release
+
+# Emergency release path. Builds from source and deploys fast.
+#
+# Developer workflow
+#   1. Push the fix to a branch (a release branch, a revert, or main)
+#   2. Publish a GitHub Release whose tag patch digit is > 0
+#        e.g. v0.14.1  (v0.14.0 is a normal production release)
+#   3. This workflow builds that branch and deploys it to production
+#
+#   - https://github.com/National-Tutoring-Observatory/sandpiper/releases/new
+#
+# Differences from release.yml (#197)
+#   - Builds containers from source instead of promoting the staging image.
+#     A hotfix may need code that never went through staging.
+#   - Builds from the release's target branch (github.event.release.target_commitish),
+#     NOT main. The base-branch reachability check is intentionally absent so
+#     an emergency fix can ship from any branch.
+#   - No preflight job. release.yml waits for the cluster to stabilise before
+#     promoting; if the cluster is wedged, that wait never ends. hotfix.yml is
+#     the tool that UN-wedges it, so it must not be gated on cluster health.
+#   - Version is extracted inline (no resolve_release.yml call) to stay
+#     self-contained and fast.
+#
+# Routing
+#   release: published fires for EVERY release, so the patch-digit split is
+#   enforced as a job-level `if:`, not in the `on:` block:
+#     - release.yml  claims tags ending in  .0   (vX.Y.0  -> normal release)
+#     - hotfix.yml   claims tags NOT ending in .0 (vX.Y.N  -> hotfix, N > 0)
+#   The job is skipped (neutral, not failed) on tags that aren't ours, so a
+#   normal vX.Y.0 release leaves this workflow grey rather than red.
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  id-token: write
+  contents: read
+  actions: read
+
+concurrency:
+  group: production-hotfix
+  cancel-in-progress: false
+
+jobs:
+  resolve:
+    name: Resolve Hotfix Version
+    # Claim only tags whose patch digit is > 0 (i.e. NOT ending in .0).
+    if: ${{ !endsWith(github.event.release.tag_name, '.0') }}
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      ref: ${{ steps.version.outputs.ref }}
+    steps:
+      - name: Extract version from release tag
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          TAG="${{ github.event.release.tag_name }}"
+          REF="${{ github.event.release.target_commitish }}"
+
+          # Validate format. Digits only, no suffixes. Same shape release.yml
+          # accepts, but here we additionally require the patch digit be > 0.
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Invalid hotfix tag format: $TAG"
+            echo "   Expected vX.Y.Z (digits only)"
+            exit 1
+          fi
+
+          PATCH="${TAG##*.}"
+          if [[ "$PATCH" -eq 0 ]]; then
+            echo "❌ $TAG has patch digit 0 — that's a normal release, not a hotfix."
+            echo "   release.yml handles vX.Y.0 tags."
+            exit 1
+          fi
+
+          VERSION="${TAG#v}"
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+
+          echo "🚑 Hotfix release $VERSION building from '$REF'"
+
+  build-web:
+    name: Build Web Image
+    needs: resolve
+    uses: ./.github/workflows/ecs_build_image.yml
+    with:
+      environment: production
+      aws-region: us-east-1
+      ref: ${{ needs.resolve.outputs.ref }}
+      tag: v${{ needs.resolve.outputs.version }}
+      output-name: web
+    secrets:
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      BULLMQ_PRO_TOKEN: ${{ secrets.BULLMQ_PRO_TOKEN }}
+
+  build-worker:
+    name: Build Worker Image
+    needs: resolve
+    uses: ./.github/workflows/ecs_build_image.yml
+    with:
+      environment: production
+      aws-region: us-east-1
+      ref: ${{ needs.resolve.outputs.ref }}
+      dockerfile: workers/Dockerfile
+      image-suffix: -worker
+      tag: v${{ needs.resolve.outputs.version }}
+      output-name: worker
+    secrets:
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+      BULLMQ_PRO_TOKEN: ${{ secrets.BULLMQ_PRO_TOKEN }}
+
+  deploy-web:
+    name: Deploy Web Service
+    needs: build-web
+    uses: National-Tutoring-Observatory/workflows/.github/workflows/ecs_deploy_service.yml@main
+    with:
+      environment: production
+      aws-region: us-east-1
+      image: ${{ needs.build-web.outputs.image }}
+      service: web
+    secrets:
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+
+  deploy-worker:
+    name: Deploy Worker Service
+    needs: build-worker
+    uses: National-Tutoring-Observatory/workflows/.github/workflows/ecs_deploy_service.yml@main
+    with:
+      environment: production
+      aws-region: us-east-1
+      image: ${{ needs.build-worker.outputs.image }}
+      service: worker
+    secrets:
+      AWS_ROLE_ARN: ${{ vars.AWS_ROLE_ARN }}
+
+  hotfix-summary:
+    name: Hotfix Deployment Summary
+    needs:
+      - resolve
+      - build-web
+      - build-worker
+      - deploy-web
+      - deploy-worker
+    if: success() || failure()
+    uses: National-Tutoring-Observatory/workflows/.github/workflows/deployment_summary.yml@main
+    with:
+      environment: production
+      web-image: ${{ needs.build-web.outputs.image }}
+      worker-image: ${{ needs.build-worker.outputs.image }}
+      app-url: https://app.nationaltutoringobservatory.org/
+      originating-sha: ${{ needs.resolve.outputs.ref }}
