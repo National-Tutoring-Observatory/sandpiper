@@ -20,6 +20,14 @@ export interface SessionFileCache {
   };
 }
 
+export interface BuildEvaluationReportConfig {
+  shouldIncludeUnannotatedSamples: boolean;
+}
+
+const DEFAULT_CONFIG: BuildEvaluationReportConfig = {
+  shouldIncludeUnannotatedSamples: true,
+};
+
 async function downloadSessionFile(
   projectId: string,
   runId: string,
@@ -128,6 +136,7 @@ export default async function buildEvaluationReport(
   runs: Run[],
   cache: SessionFileCache,
   commonSessionIds: string[],
+  config: BuildEvaluationReportConfig = DEFAULT_CONFIG,
 ): Promise<EvaluationReport[]> {
   if (commonSessionIds.length === 0) {
     return evaluation.annotationFields.map((fieldKey) => ({
@@ -174,24 +183,36 @@ export default async function buildEvaluationReport(
       const alignedA = labelsA.slice(0, minLength);
       const alignedB = labelsB.slice(0, minLength);
 
+      let pairedA = alignedA;
+      let pairedB = alignedB;
+      if (!config.shouldIncludeUnannotatedSamples) {
+        pairedA = [];
+        pairedB = [];
+        for (let i = 0; i < alignedA.length; i++) {
+          if (alignedA[i] === "" && alignedB[i] === "") continue;
+          pairedA.push(alignedA[i]);
+          pairedB.push(alignedB[i]);
+        }
+      }
+
       const runNameA = runNameMap.get(runIdA) || runIdA;
       const runNameB = runNameMap.get(runIdB) || runIdB;
-      for (let i = 0; i < minLength; i++) {
-        if (alignedA[i] !== alignedB[i]) {
+      for (let i = 0; i < pairedA.length; i++) {
+        if (pairedA[i] !== pairedB[i]) {
           console.warn(
-            `[${runNameA} vs ${runNameB}] Mismatch at ${i}: "${alignedA[i]}" vs "${alignedB[i]}"`,
+            `[${runNameA} vs ${runNameB}] Mismatch at ${i}: "${pairedA[i]}" vs "${pairedB[i]}"`,
           );
         }
       }
-      const kappa = calculateCohensKappa(alignedA, alignedB);
+      const kappa = calculateCohensKappa(pairedA, pairedB);
 
       let precision: number | undefined;
       let recall: number | undefined;
       let f1: number | undefined;
 
       if (runIdA === evaluation.baseRun || runIdB === evaluation.baseRun) {
-        const goldLabels = runIdA === evaluation.baseRun ? alignedA : alignedB;
-        const predictions = runIdA === evaluation.baseRun ? alignedB : alignedA;
+        const goldLabels = runIdA === evaluation.baseRun ? pairedA : pairedB;
+        const predictions = runIdA === evaluation.baseRun ? pairedB : pairedA;
         const prf1 = calculatePRF1(predictions, goldLabels);
         precision = prf1.precision;
         recall = prf1.recall;
@@ -202,7 +223,7 @@ export default async function buildEvaluationReport(
         runA: runIdA,
         runB: runIdB,
         kappa: Math.round(kappa * 100) / 100,
-        sampleSize: minLength,
+        sampleSize: pairedA.length,
         precision,
         recall,
         f1,

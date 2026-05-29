@@ -1,0 +1,199 @@
+{
+  "evaluation": {
+    "_id": "eval-1",
+    "name": "Sample evaluation",
+    "project": "proj-1",
+    "runSet": "rs-1",
+    "baseRun": "run-a",
+    "runs": ["run-a", "run-b", "run-c"],
+    "annotationFields": ["sentiment", "objection"]
+  },
+  "runs": [
+    {
+      "_id": "run-a",
+      "name": "Run A (base)",
+      "isHuman": false,
+      "isAdjudication": false,
+      "sessions": [
+        { "sessionId": "sess-1", "status": "DONE" },
+        { "sessionId": "sess-2", "status": "DONE" }
+      ],
+      "snapshot": { "prompt": { "annotationType": "PER_UTTERANCE" } }
+    },
+    {
+      "_id": "run-b",
+      "name": "Run B",
+      "isHuman": false,
+      "isAdjudication": false,
+      "sessions": [
+        { "sessionId": "sess-1", "status": "DONE" },
+        { "sessionId": "sess-2", "status": "DONE" }
+      ],
+      "snapshot": { "prompt": { "annotationType": "PER_UTTERANCE" } }
+    },
+    {
+      "_id": "run-c",
+      "name": "Run C",
+      "isHuman": false,
+      "isAdjudication": false,
+      "sessions": [
+        { "sessionId": "sess-1", "status": "DONE" },
+        { "sessionId": "sess-2", "status": "DONE" }
+      ],
+      "snapshot": { "prompt": { "annotationType": "PER_UTTERANCE" } }
+    }
+  ],
+  "cache": {
+    "run-a": {
+      "sess-1": {
+        "transcript": [
+          {
+            "_id": "u1",
+            "content": "Hello, ready to start?",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u2",
+            "content": "I don't think this is right.",
+            "annotations": [{ "sentiment": "pos", "objection": "objection" }]
+          },
+          {
+            "_id": "u3",
+            "content": "That answer is wrong.",
+            "annotations": [{ "sentiment": "neg" }]
+          },
+          {
+            "_id": "u4",
+            "content": "Let me try again.",
+            "annotations": [{ "sentiment": "neg" }]
+          },
+          {
+            "_id": "u5",
+            "content": "Great work!",
+            "annotations": [{ "sentiment": "pos" }]
+          }
+        ]
+      },
+      "sess-2": {
+        "transcript": [
+          {
+            "_id": "u6",
+            "content": "I'm confused.",
+            "annotations": [{ "sentiment": "neg" }]
+          },
+          {
+            "_id": "u7",
+            "content": "Okay, that makes sense now.",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u8",
+            "content": "Thanks for the help.",
+            "annotations": [{ "sentiment": "pos" }]
+          }
+        ]
+      }
+    },
+    "run-b": {
+      "sess-1": {
+        "transcript": [
+          {
+            "_id": "u1",
+            "content": "Hello, ready to start?",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u2",
+            "content": "I don't think this is right.",
+            "annotations": [{ "sentiment": "pos", "objection": "objection" }]
+          },
+          {
+            "_id": "u3",
+            "content": "That answer is wrong.",
+            "annotations": [{ "sentiment": "neg" }]
+          },
+          {
+            "_id": "u4",
+            "content": "Let me try again.",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u5",
+            "content": "Great work!",
+            "annotations": [{ "sentiment": "pos", "objection": "objection" }]
+          }
+        ]
+      },
+      "sess-2": {
+        "transcript": [
+          {
+            "_id": "u6",
+            "content": "I'm confused.",
+            "annotations": [{ "sentiment": "neg" }]
+          },
+          {
+            "_id": "u7",
+            "content": "Okay, that makes sense now.",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u8",
+            "content": "Thanks for the help.",
+            "annotations": [{ "sentiment": "neg" }]
+          }
+        ]
+      }
+    },
+    "run-c": {
+      "sess-1": {
+        "transcript": [
+          {
+            "_id": "u1",
+            "content": "Hello, ready to start?",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u2",
+            "content": "I don't think this is right.",
+            "annotations": [{ "sentiment": "neg" }]
+          },
+          {
+            "_id": "u3",
+            "content": "That answer is wrong.",
+            "annotations": [{ "sentiment": "neg" }]
+          },
+          {
+            "_id": "u4",
+            "content": "Let me try again.",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u5",
+            "content": "Great work!",
+            "annotations": [{ "sentiment": "neg", "objection": "objection" }]
+          }
+        ]
+      },
+      "sess-2": {
+        "transcript": [
+          {
+            "_id": "u6",
+            "content": "I'm confused.",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u7",
+            "content": "Okay, that makes sense now.",
+            "annotations": [{ "sentiment": "pos" }]
+          },
+          {
+            "_id": "u8",
+            "content": "Thanks for the help.",
+            "annotations": [{ "sentiment": "neg" }]
+          }
+        ]
+      }
+    }
+  },
+  "commonSessionIds": ["sess-1", "sess-2"]
+}
