@@ -32,12 +32,12 @@ In the codebook editor:
 3.  **Write Definitions:** For each code, write a clear definition explaining what it means and when it applies.
 4.  **Add Examples:** Provide examples for each code. Each example is tagged with one of four types:
 
-| Example Type | Description                                |
-| ------------ | ------------------------------------------ |
-| **HIT**      | A clear, unambiguous example of the code   |
-| **NEAR_HIT** | A borderline example that still qualifies  |
-| **NEAR_MISS**| A borderline example that does not qualify |
-| **MISS**     | A clear example of what the code is not    |
+| Example Type  | Description                                |
+| ------------- | ------------------------------------------ |
+| **HIT**       | A clear, unambiguous example of the code   |
+| **NEAR_HIT**  | A borderline example that still qualifies  |
+| **NEAR_MISS** | A borderline example that does not qualify |
+| **MISS**      | A clear example of what the code is not    |
 
 5.  **Save the Version:** Click **"Save codebook version"** and confirm in the dialog to persist your changes.
 

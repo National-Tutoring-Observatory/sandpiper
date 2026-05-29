@@ -22,10 +22,10 @@ Sandpiper accepts uploads in two formats: **CSV** and **JSONL**. Both are conver
 
 Files are detected by extension:
 
-| Extension | Format | Notes                                                      |
-| --------- | ------ | ---------------------------------------------------------- |
-| `.csv`    | CSV    | One utterance per row, with a header row                   |
-| `.jsonl` | JSONL  | One JSON object per line, each representing an utterance   |
+| Extension | Format | Notes                                                    |
+| --------- | ------ | -------------------------------------------------------- |
+| `.csv`    | CSV    | One utterance per row, with a header row                 |
+| `.jsonl`  | JSONL  | One JSON object per line, each representing an utterance |
 
 Direct `.json` uploads are not currently supported — use CSV or JSONL.
 
@@ -33,12 +33,12 @@ Direct `.json` uploads are not currently supported — use CSV or JSONL.
 
 Every utterance row or record must include these fields:
 
-| Field         | Type   | Description                                                       |
-| ------------- | ------ | ----------------------------------------------------------------- |
-| `session_id`  | string | Identifier grouping utterances into a session                     |
-| `role`        | string | Speaker role (e.g. `Tutor`, `Student`, `Teacher`)                 |
-| `content`     | string | The actual text spoken in this turn                               |
-| `sequence_id` | string | Sequential position of the utterance within its session           |
+| Field         | Type   | Description                                             |
+| ------------- | ------ | ------------------------------------------------------- |
+| `session_id`  | string | Identifier grouping utterances into a session           |
+| `role`        | string | Speaker role (e.g. `Tutor`, `Student`, `Teacher`)       |
+| `content`     | string | The actual text spoken in this turn                     |
+| `sequence_id` | string | Sequential position of the utterance within its session |
 
 A single file can contain multiple sessions — utterances are grouped by their `session_id` during processing.
 
@@ -46,12 +46,12 @@ A single file can contain multiple sessions — utterances are grouped by their 
 
 Sandpiper accepts common alternate column names and maps them automatically:
 
-| Canonical Field | Accepted Aliases               |
-| --------------- | ------------------------------ |
-| `session_id`    | `sessionId`, `sessionID`       |
-| `role`          | `speaker`                      |
-| `content`       | `text`                         |
-| `sequence_id`   | _(no aliases)_                 |
+| Canonical Field | Accepted Aliases         |
+| --------------- | ------------------------ |
+| `session_id`    | `sessionId`, `sessionID` |
+| `role`          | `speaker`                |
+| `content`       | `text`                   |
+| `sequence_id`   | _(no aliases)_           |
 
 ### CSV Example
 
@@ -165,7 +165,9 @@ Annotations are attached at the session level and describe the entire conversati
 
 ```json
 {
-  "transcript": [/* utterances */],
+  "transcript": [
+    /* utterances */
+  ],
   "annotations": [
     {
       "_id": "0",
