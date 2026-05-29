@@ -2,7 +2,7 @@
 title: "Adjudication"
 tags: ["adjudication", "evaluation", "runs"]
 category: "Analysis"
-isPublished: false
+isPublished: true
 ---
 
 # Adjudication
@@ -23,15 +23,18 @@ Adjudication is initiated from the **Evaluation** tab of a **Run Set**.
 
 1.  **Run an Evaluation:** First, create an evaluation in your run set to compare your runs and identify disagreements.
 2.  **Review Results:** Examine the pairwise agreement matrix to see where runs disagree.
-3.  **Start Adjudication:** Click **"Start Adjudication"** from the evaluation results page.
-4.  **Select Source Runs:** Choose the runs whose disagreements you want to resolve. Typically, you select the top-performing runs or the runs you are most interested in reconciling.
+3.  **Open the Adjudication Dialog:** Click **"Improve via adjudication"** from the evaluation results page.
+4.  **Select Source Runs:** The dialog pre-selects the top 3 non-human runs by Kappa score against your base run. You can check or uncheck runs to customize the selection. A minimum of 2 runs is required.
+5.  **Choose an Adjudicator Model:** Select the LLM model that will resolve disagreements. The default model is pre-loaded, but you can swap in any configured provider model.
+6.  **Start the Run:** Click **"Start adjudication"** to launch the run.
 
 ### How Adjudication Works
 
-1.  **Disagreement Detection:** Sandpiper identifies all utterances or sessions where the selected source runs produced different annotations.
-2.  **LLM Voting:** For each disagreement, the adjudication LLM reviews the source annotations and the original transcript data, then votes on which annotation is correct.
-3.  **Consensus Output:** The adjudication produces a new run with consensus annotations — one label per utterance or session, reflecting the resolved disagreement.
-4.  **Automatic Re-evaluation:** Once adjudication completes, the evaluation is re-run with the adjudication run included, so you can see how the consensus compares to the original runs.
+1.  **Disagreement Detection:** Sandpiper compares annotations across the selected source runs and identifies utterances or sessions where they disagree.
+2.  **Agreement Pass-through:** Where all source runs already agree, the consensus annotation is copied through directly — no LLM call is made for unanimous results.
+3.  **LLM Voting:** For each remaining disagreement, the adjudicator LLM reviews the source annotations alongside the original transcript content, then votes on which annotation is correct.
+4.  **Consensus Output:** A new run is created with one consensus annotation per utterance or session. The run is named after the adjudicator model (e.g. "Adjudication - Claude Sonnet 4.6") and flagged as an adjudication run.
+5.  **Automatic Re-evaluation:** Once the adjudication run finishes successfully, Sandpiper automatically re-runs the evaluation to include it alongside the originals.
 
 ### Interpreting Adjudication Results
 

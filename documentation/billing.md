@@ -2,7 +2,7 @@
 title: "Billing and Credits"
 tags: ["billing", "credits", "teams"]
 category: "Collaboration"
-isPublished: false
+isPublished: true
 ---
 
 # Billing and Credits
@@ -32,22 +32,26 @@ Each team is assigned a **Billing Plan** that determines the markup rate applied
 
 ### Purchasing Credits
 
-1.  **Add Credits:** From the billing page, click **"Add Credits"**.
-2.  **Stripe Checkout:** You will be redirected to Stripe to complete the purchase.
-3.  **Credits Applied:** Once the payment is processed, credits are immediately added to your team's balance.
+1.  **Top Up:** From the billing page, click **"Top up"**.
+2.  **Stripe Checkout:** Confirm the amount, then click **"Continue to checkout"** to be redirected to Stripe.
+3.  **Credits Applied:** Once the payment is processed, credits are immediately added to your team's balance and a confirmation toast appears on return.
+
+> **Admin note:** A separate **"Add credits"** button is available to super admins for manually granting credits to a team without going through Stripe — for example, when issuing research credits or refunds.
 
 ### Understanding Costs
 
 Costs are tracked across several categories:
 
-| Cost Source                    | Description                                   |
-| ------------------------------ | --------------------------------------------- |
-| **Annotation (per session)**   | LLM calls for per-session annotation runs     |
-| **Annotation (per utterance)** | LLM calls for per-utterance annotation runs   |
-| **Verification**               | Self-verification of annotation quality       |
-| **Adjudication**               | LLM calls to resolve annotation disagreements |
-| **File Conversion**            | LLM calls during transcript parsing           |
-| **Codebook Prompt Generation** | LLM calls to generate prompts from codebooks  |
+| Cost Source                    | Description                                               |
+| ------------------------------ | --------------------------------------------------------- |
+| **Annotation (per session)**   | LLM calls for per-session annotation runs                 |
+| **Annotation (per utterance)** | LLM calls for per-utterance annotation runs               |
+| **Verification**               | Self-verification of annotation quality                   |
+| **Adjudication**               | LLM calls to resolve annotation disagreements             |
+| **File Conversion**            | LLM calls during transcript parsing                       |
+| **Attribute Mapping**          | LLM calls to detect column mappings during file upload    |
+| **Codebook Generation**        | LLM calls to generate prompts from codebooks              |
+| **Prompt Alignment**           | LLM calls to align prompt schemas with codebook structure |
 
 ### Cost Estimation
 
@@ -57,7 +61,15 @@ Before starting a run, Sandpiper provides a cost estimate based on:
 - The **input token count** of each session
 - The pricing tiers of the selected **LLM Model**
 
-If your team has insufficient credits, you will see a warning. You can acknowledge the warning and proceed, or purchase additional credits first.
+If your team has insufficient credits, you will see a warning that estimated cost exceeds your remaining balance. You can acknowledge the warning ("I understand and want to proceed") and start the run anyway, or top up credits first. Runs may fail mid-execution if credits are exhausted.
+
+### Spend Analytics and History
+
+The billing page also surfaces:
+
+- **Spend Analytics** — usage broken down by model and over time, with day/week/month granularity
+- **Credit History** — searchable record of all credit transactions, including who added credits and the Stripe session ID for reconciliation
+- **Billing Period History** — closed billing periods showing raw cost, billed amount with markup applied, and closing balance
 
 ## Related Concepts
 

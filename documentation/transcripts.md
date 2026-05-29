@@ -2,25 +2,91 @@
 title: "Transcripts"
 tags: ["transcripts", "run", "run-sets"]
 category: "Data Management"
-isPublished: false
+isPublished: true
 ---
 
-# Transcript Format Specification
+# Transcripts
 
-This document describes the JSON format for tutoring session transcripts used in Sandpiper.
+This guide describes the file formats Sandpiper accepts when you upload tutoring session data, and the internal JSON structure those files are converted into for annotation and analysis.
 
 ## Overview
 
-Transcripts represent conversations between tutors and students. They consist of:
+Transcripts represent conversations between tutors and students. Each transcript consists of:
 
-- **Utterances**: Individual turns in the conversation
-- **Annotations**: Labels or codes applied to utterances or sessions
+- **Utterances** — individual turns in the conversation
+- **Annotations** — labels or codes applied to utterances or to the session as a whole
 
-## JSON Schema
+Sandpiper accepts uploads in two formats: **CSV** and **JSONL**. Both are converted into a canonical JSON structure during ingestion, then used as **Sessions** for annotation runs.
 
-See [`app/lib/schemas/json/transcript.schema.json`](../../app/lib/schemas/json/transcript.schema.json) for the formal JSON Schema definition used for validation in the codebase.
+## Supported Upload Formats
 
-## Format Structure
+Files are detected by extension:
+
+| Extension | Format | Notes                                                    |
+| --------- | ------ | -------------------------------------------------------- |
+| `.csv`    | CSV    | One utterance per row, with a header row                 |
+| `.jsonl`  | JSONL  | One JSON object per line, each representing an utterance |
+
+Direct `.json` uploads are not currently supported — use CSV or JSONL.
+
+### Required Fields
+
+Every utterance row or record must include these fields:
+
+| Field         | Type   | Description                                             |
+| ------------- | ------ | ------------------------------------------------------- |
+| `session_id`  | string | Identifier grouping utterances into a session           |
+| `role`        | string | Speaker role (e.g. `Tutor`, `Student`, `Teacher`)       |
+| `content`     | string | The actual text spoken in this turn                     |
+| `sequence_id` | string | Sequential position of the utterance within its session |
+
+A single file can contain multiple sessions — utterances are grouped by their `session_id` during processing.
+
+### Optional Field Aliases
+
+Sandpiper accepts common alternate column names and maps them automatically:
+
+| Canonical Field | Accepted Aliases         |
+| --------------- | ------------------------ |
+| `session_id`    | `sessionId`, `sessionID` |
+| `role`          | `speaker`                |
+| `content`       | `text`                   |
+| `sequence_id`   | _(no aliases)_           |
+
+### CSV Example
+
+```csv
+session_id,role,content,sequence_id
+session_001,Tutor,Hello! Today we're going to work on fractions.,1
+session_001,Student,Hi! I'm ready to learn.,2
+session_001,Tutor,Great! Let's start with a simple example.,3
+session_002,Tutor,Welcome back! Let's review decimals today.,1
+session_002,Student,Hello! I've been practicing.,2
+```
+
+### JSONL Example
+
+```jsonl
+{"session_id":"session_003","role":"Tutor","content":"Welcome to our algebra lesson!","sequence_id":1}
+{"session_id":"session_003","role":"Student","content":"Hi! I'm excited to learn algebra.","sequence_id":2}
+{"session_id":"session_004","role":"Tutor","content":"Today we're covering geometry basics.","sequence_id":1}
+```
+
+## How Upload Works
+
+1. **File Upload:** Drop a `.csv` or `.jsonl` file into a Project. Sandpiper detects the file type and parses it.
+2. **Attribute Mapping:** Sandpiper inspects the first record to map your columns or fields to its canonical schema. If column names match an accepted alias (e.g. `speaker` for `role`), the mapping is applied automatically. The lead role for the conversation is inferred by an LLM from the unique roles in the file.
+3. **Session Splitting:** Utterances are grouped by `session_id` and split into one session per group.
+4. **Conversion:** Each session is converted into the internal transcript JSON structure (described below), with `_id` assigned, utterances ordered by `sequence_id`, and an empty `annotations` array attached to each utterance.
+5. **Ready for Runs:** Once converted, sessions can be added to Run Sets and annotated by LLMs or human raters.
+
+## Internal Transcript Structure
+
+After conversion, each session is represented as a JSON document. This structure is what annotation runs read from and write to.
+
+The formal schema lives at [`app/lib/schemas/json/transcript.schema.json`](../../app/lib/schemas/json/transcript.schema.json).
+
+### Format
 
 ```json
 {
@@ -41,9 +107,7 @@ See [`app/lib/schemas/json/transcript.schema.json`](../../app/lib/schemas/json/t
 }
 ```
 
-## Field Descriptions
-
-### Root Level
+### Root Fields
 
 | Field         | Type   | Required | Description                                                       |
 | ------------- | ------ | -------- | ----------------------------------------------------------------- |
@@ -64,55 +128,15 @@ See [`app/lib/schemas/json/transcript.schema.json`](../../app/lib/schemas/json/t
 | `sequence_id` | String | No       | Sequential position in conversation                                                                      |
 | `annotations` | Array  | No       | Utterance-level annotations (used with PER_UTTERANCE annotation type)                                    |
 
-### Annotation Object (Utterance-level)
-
-Used when `annotationType` is `PER_UTTERANCE`:
-
-```json
-{
-  "_id": "string",
-  "customField1": "value",
-  "customField2": "value"
-}
-```
-
-| Field           | Type   | Required | Description                                                 |
-| --------------- | ------ | -------- | ----------------------------------------------------------- |
-| `_id`           | String | **Yes**  | Reference to the utterance `_id` this annotation belongs to |
-| _custom fields_ | Any    | No       | Annotation schema fields defined by the prompt              |
-
-The annotation schema is defined in the prompt configuration. Common examples include:
-
-- `given_praise`: Boolean or string indicating if praise was given
-- `identifiedBy`: String identifying who/what created the annotation
-- `code`: String code or category
-- `explanation`: String explanation of the annotation
-
-### Annotation Object (Session-level)
-
-Used when `annotationType` is `PER_SESSION`:
-
-```json
-{
-  "_id": "string",
-  "customField1": "value",
-  "customField2": "value"
-}
-```
-
-Session-level annotations appear in the root `annotations` array and apply to the entire session rather than individual utterances.
-
 ## Annotation Types
 
-Sandpiper supports two annotation granularities:
+Sandpiper supports two annotation granularities. The annotation type is determined by the **Prompt** used in the run, not by the transcript file itself.
 
 ### PER_UTTERANCE
 
 Annotations are attached to individual utterances. Each utterance can have multiple annotations.
 
-**Use case**: Coding individual turns (e.g., identifying praise, questions, feedback)
-
-**Example**:
+**Use case:** Coding individual turns (e.g., identifying praise, questions, feedback).
 
 ```json
 {
@@ -137,13 +161,13 @@ Annotations are attached to individual utterances. Each utterance can have multi
 
 Annotations are attached at the session level and describe the entire conversation.
 
-**Use case**: Overall session coding (e.g., session quality, learning outcomes, engagement level)
-
-**Example**:
+**Use case:** Overall session coding (e.g., session quality, learning outcomes, engagement level).
 
 ```json
 {
-  "transcript": [...],
+  "transcript": [
+    /* utterances */
+  ],
   "annotations": [
     {
       "_id": "0",
@@ -155,144 +179,47 @@ Annotations are attached at the session level and describe the entire conversati
 }
 ```
 
-## Examples
+## Validation and Error Handling
 
-### Minimal Valid Transcript
+The current upload flow validates transcripts at parse time:
 
-```json
-{
-  "transcript": [
-    {
-      "_id": "0",
-      "role": "Tutor",
-      "content": "Hello! Today we're going to work on fractions."
-    },
-    {
-      "_id": "1",
-      "role": "Student",
-      "content": "Hi! I'm ready to learn."
-    }
-  ]
-}
-```
+- **CSV:** Rows missing the `session_id` column are rejected with the error `CSV file is missing required "session_id" column`.
+- **JSONL:** Lines that fail to parse as JSON are rejected with a parsing error indicating the bad line. Records without a `session_id` field are rejected.
+- **Attribute Mapping:** If none of the required fields (`role`, `content`, `sequence_id`) or their aliases are present in the file, the mapping step will fail.
 
-### Complete Example with Timestamps
+A formal JSON Schema (`transcript.schema.json`) defines the internal transcript structure and is available for validating exported or programmatically-generated session JSON, though it is not currently invoked automatically during the standard upload flow.
 
-```json
-{
-  "transcript": [
-    {
-      "_id": "0",
-      "role": "Tutor",
-      "content": "Hello! Today we're going to work on fractions.",
-      "session_id": "session_001",
-      "sequence_id": "1",
-      "start_time": "00:00:00",
-      "end_time": "00:00:05",
-      "annotations": []
-    },
-    {
-      "_id": "1",
-      "role": "Student",
-      "content": "Hi! I'm ready to learn.",
-      "session_id": "session_001",
-      "sequence_id": "2",
-      "start_time": "00:00:05",
-      "end_time": "00:00:08",
-      "annotations": []
-    }
-  ],
-  "leadRole": "Tutor",
-  "annotations": []
-}
-```
+## Recommended Limits
 
-### Example with Utterance Annotations
+Sandpiper does not enforce hard size or count limits, but the following are recommended for predictable performance:
 
-```json
-{
-  "transcript": [
-    {
-      "_id": "2",
-      "role": "Tutor",
-      "content": "Great! Let's start with a simple example.",
-      "session_id": "session_001",
-      "sequence_id": "3",
-      "annotations": [
-        {
-          "_id": "2",
-          "identifiedBy": "AI",
-          "given_praise": "Great!"
-        }
-      ]
-    }
-  ],
-  "leadRole": "Tutor",
-  "annotations": []
-}
-```
+- **File size:** Up to 10MB per file
+- **Utterances per session:** Up to 1,000
 
-## Validation
-
-Transcripts are validated against the JSON Schema at the following points:
-
-1. **File Upload**: When uploading session files to the system
-2. **File Conversion**: When converting files to sessions
-3. **Before Annotation**: Before running annotation jobs
-
-Invalid transcripts will be rejected with a clear error message indicating:
-
-- Which field failed validation
-- What was expected vs. what was found
-- The location in the file (utterance index, field path)
+Files significantly larger than these guidelines may increase processing time, token costs, and the risk of LLM context limits during annotation runs.
 
 ## File Naming
 
-Session files should be named descriptively:
+Use descriptive file names that identify the dataset or session range. The file name (without extension) is used as the session name when only one session is present in the file.
 
-- Format: `{identifier}.json`
-- Example: `session_001.json`, `math_tutoring_20240115.json`
+Examples: `session_001.csv`, `math_tutoring_20240115.jsonl`
 
 ## Character Encoding
 
-All transcript files must be UTF-8 encoded to support international characters.
-
-## Size Limits
-
-- Maximum file size: 10MB per transcript
-- Recommended maximum utterances: 1000 per session
-- Very large sessions may impact processing performance
-
-## Common Validation Errors
-
-### Missing Required Fields
-
-```
-Error: Utterance at index 5 is missing required field '_id'
-```
-
-**Fix**: Ensure every utterance has `_id`, `role`, and `content` fields.
-
-### Invalid JSON
-
-```
-Error: Unable to parse JSON: Unexpected token at line 45
-```
-
-**Fix**: Validate JSON syntax using a JSON validator before upload.
-
-### Incorrect Data Types
-
-```
-Error: Field 'annotations' must be an array, got string
-```
-
-**Fix**: Ensure `annotations` is always an array `[]`, even if empty.
+All upload files should be UTF-8 encoded to support international characters and special punctuation.
 
 ## Best Practices
 
-1. **Unique IDs**: Use sequential numeric strings for utterance IDs ("0", "1", "2", etc.)
-2. **Consistent Roles**: Use consistent role names throughout a project
-3. **Empty Arrays**: Initialize `annotations` as `[]` rather than omitting the field
-4. **Timestamps**: Use consistent timestamp formats within a session
-5. **Content**: Preserve original punctuation and capitalization in utterance content
+1. **Consistent Session IDs:** Use a stable identifier scheme across sessions so re-uploads and updates can be matched.
+2. **Sequential `sequence_id`:** Number utterances starting at `1` and incrementing by `1` within each session.
+3. **Consistent Role Names:** Use the same role labels throughout a project (e.g., always `Tutor` and `Student`, not mixed with `Teacher`/`Pupil`).
+4. **Preserve Original Text:** Keep original punctuation and capitalization in the `content` field — this matters for annotations that look at linguistic features like questioning or praise.
+5. **One Format Per File:** Don't mix CSV and JSONL; pick one and stick with it for the file.
+
+## Related Concepts
+
+- **[Sessions](sessions)** — The unit each transcript becomes after conversion
+- **[Files](files)** — Upload, processing, and file management
+- **[Run Sets](run-sets)** — Group sessions for annotation
+- **[Annotation Type](annotationType)** — PER_UTTERANCE vs PER_SESSION runs
+- **[Schema](schema)** — Annotation field structure used by prompts
