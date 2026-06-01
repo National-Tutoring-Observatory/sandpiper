@@ -1,3 +1,4 @@
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -23,6 +24,7 @@ import {
   Pencil,
   Plus,
   Trash2,
+  TriangleAlert,
   Upload,
 } from "lucide-react";
 import { Outlet } from "react-router";
@@ -186,6 +188,19 @@ export default function RunSetDetail({
             </div>
           </div>
         )}
+      {annotationProgress.erroredRuns > 0 && (
+        <Alert className="mb-6">
+          <TriangleAlert className="h-4 w-4" />
+          <AlertTitle>
+            {annotationProgress.erroredRuns} of {annotationProgress.totalRuns}{" "}
+            run{annotationProgress.totalRuns === 1 ? "" : "s"} failed
+          </AlertTitle>
+          <AlertDescription>
+            Run set data cannot be exported until all runs have succeeded.
+            Re-run the failed runs to continue.
+          </AlertDescription>
+        </Alert>
+      )}
       <Tabs
         value={activeView}
         onValueChange={onActiveViewChange}

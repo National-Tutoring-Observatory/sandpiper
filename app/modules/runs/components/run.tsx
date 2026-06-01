@@ -213,7 +213,15 @@ export default function RunDetail({
             <TriangleAlert className="h-4 w-4" />
             <AlertTitle>All sessions failed</AlertTitle>
             <AlertDescription>
-              This run failed during annotation.
+              <p>This run failed during annotation.</p>
+              <p>
+                Annotated data cannot be exported until this run completes
+                successfully
+                {runSetId
+                  ? ", and run set data cannot be exported until all runs have succeeded"
+                  : ""}
+                .
+              </p>
             </AlertDescription>
           </Alert>
         )}
@@ -226,7 +234,17 @@ export default function RunDetail({
               {run.sessions.length === 1 ? "" : "s"} failed
             </AlertTitle>
             <AlertDescription>
-              This run completed but some sessions failed during annotation.
+              <p>
+                This run completed but some sessions failed during annotation.
+              </p>
+              <p>
+                Annotated data cannot be downloaded until all sessions complete
+                successfully
+                {runSetId
+                  ? ", and run set data cannot be downloaded until all runs have succeeded"
+                  : ""}
+                .
+              </p>
             </AlertDescription>
           </Alert>
         )}
