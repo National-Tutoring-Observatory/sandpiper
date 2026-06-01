@@ -8,14 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import {
-  ArrowUpRight,
-  Check,
-  ChevronsUpDown,
-  LogOut,
-  Settings,
-  Shield,
-} from "lucide-react";
+import { Check, ChevronsUpDown, LogOut, Shield } from "lucide-react";
 import type { NavMode } from "~/modules/app/helpers/getNavMode";
 import type { Team } from "~/modules/teams/teams.types";
 import type { User } from "~/modules/users/users.types";
@@ -138,19 +131,11 @@ export default function SidebarAccountMenu({
             >
               <Shield className="size-4 shrink-0" />
               <span className="flex-1 truncate">Platform Admin</span>
-              {mode === "admin" ? (
-                <Check className="size-4 shrink-0" />
-              ) : (
-                <ArrowUpRight className="text-muted-foreground size-3.5 shrink-0" />
-              )}
+              {mode === "admin" && <Check className="size-4 shrink-0" />}
             </DropdownMenuItem>
           </>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="gap-2 rounded-md" disabled>
-          <Settings className="text-muted-foreground size-4 shrink-0" />
-          <span className="flex-1">Account settings</span>
-        </DropdownMenuItem>
         <DropdownMenuItem onSelect={onLogout} className="gap-2 rounded-md">
           <LogOut className="text-muted-foreground size-4 shrink-0" />
           <span className="flex-1">Sign out</span>
