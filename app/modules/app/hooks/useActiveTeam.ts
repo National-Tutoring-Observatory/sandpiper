@@ -39,10 +39,13 @@ export default function useActiveTeam(): {
   const navigate = useNavigate();
 
   useEffect(() => {
-    teamsFetcher.load("/api/availableTeams");
-    // load once per mount
-     
-  }, []);
+    const path = teamIdFromUrl
+      ? `/api/availableTeams?include=${encodeURIComponent(teamIdFromUrl)}`
+      : "/api/availableTeams";
+    teamsFetcher.load(path);
+    // reload when the URL team changes so super admins viewing a
+    // non-member team still see its metadata
+  }, [teamIdFromUrl]);
 
   useEffect(() => {
     if (teamIdFromUrl) writeStoredTeamId(teamIdFromUrl);
