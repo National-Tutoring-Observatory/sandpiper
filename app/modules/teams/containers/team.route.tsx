@@ -63,12 +63,9 @@ export default function TeamRoute({
     }
   }, [fetcher.state, fetcher.data]);
 
-  const breadcrumbs = [{ text: "Teams", link: `/teams` }, { text: team.name }];
-
   return (
     <TeamComponent
       team={team}
-      breadcrumbs={breadcrumbs}
       onEditTeamButtonClicked={onEditTeamButtonClicked}
     />
   );
