@@ -70,8 +70,8 @@ export default function RunSetOverview({
         <StatItem label="Runs">{runSet.runs?.length || 0}</StatItem>
       </div>
 
-      <div className="grid grid-cols-2 gap-6">
-        <div className="mt-8">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
+        <div className="order-2 mt-8 xl:order-1">
           <div className="text-muted-foreground text-xs">Sessions</div>
           <div className="mt-2">
             <CollectionUI
@@ -105,7 +105,7 @@ export default function RunSetOverview({
           </div>
         </div>
 
-        <div className="mt-8">
+        <div className="order-1 mt-8 xl:order-2">
           <div className="text-muted-foreground text-xs">Runs</div>
           <div className="mt-2">
             <CollectionUI
