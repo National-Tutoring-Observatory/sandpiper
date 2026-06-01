@@ -2,8 +2,6 @@ import { useEffect } from "react";
 import { redirect, useFetcher } from "react-router";
 import { toast } from "sonner";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
-import BillingAuthorization from "~/modules/billing/authorization";
-import isBillingEnabled from "~/modules/billing/helpers/isBillingEnabled.server";
 import addDialog from "~/modules/dialogs/addDialog";
 import TeamAuthorization from "../authorization";
 import EditTeamDialog from "../components/editTeamDialog";
@@ -23,14 +21,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!team) {
     return redirect("/teams");
   }
-  return {
-    team,
-    canViewBilling: BillingAuthorization.canViewBilling(
-      userSession,
-      team,
-      isBillingEnabled(),
-    ),
-  };
+  return { team };
 }
 
 export function HydrateFallback() {
@@ -42,10 +33,9 @@ export default function TeamRoute({
 }: {
   loaderData: {
     team: Team;
-    canViewBilling: boolean;
   };
 }) {
-  const { team, canViewBilling } = loaderData;
+  const { team } = loaderData;
 
   const fetcher = useFetcher();
 
@@ -79,7 +69,6 @@ export default function TeamRoute({
     <TeamComponent
       team={team}
       breadcrumbs={breadcrumbs}
-      canViewBilling={canViewBilling}
       onEditTeamButtonClicked={onEditTeamButtonClicked}
     />
   );
