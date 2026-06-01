@@ -1,10 +1,4 @@
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
@@ -16,32 +10,82 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 import {
+  ArrowLeft,
+  Building2,
   ChartNoAxesGantt,
-  ChevronsUpDown,
   CircleDollarSign,
   ClipboardList,
   Construction,
   Database,
   Flag as FlagIcon,
   Folder,
-  LogOut,
-  Network,
+  Link2,
   Notebook,
+  Shield,
   Users,
+  UsersRound,
 } from "lucide-react";
 import { useContext, useEffect } from "react";
-import { Link, NavLink, useFetcher } from "react-router";
+import {
+  Link,
+  NavLink,
+  useFetcher,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import sandpiperLogo from "~/assets/sandpiper-logo.svg";
+import SidebarAccountMenu from "~/modules/app/components/sidebarAccountMenu";
 import SideBarHelpDropdown from "~/modules/app/components/sidebarHelpDropdown";
+import getNavMode from "~/modules/app/helpers/getNavMode";
+import useActiveTeam from "~/modules/app/hooks/useActiveTeam";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
-import Role from "~/modules/authentication/components/role";
 import FeatureFlag from "~/modules/featureFlags/components/flag";
 import type { User } from "~/modules/users/users.types";
 
+type NavEntry = {
+  to: string;
+  icon: typeof Folder;
+  label: string;
+};
+
+function NavGroup({ label, entries }: { label: string; entries: NavEntry[] }) {
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>{label}</SidebarGroupLabel>
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {entries.map((entry) => (
+            <SidebarMenuItem key={entry.to}>
+              <SidebarMenuButton asChild>
+                <NavLink to={entry.to} end={false}>
+                  {({ isActive }) => (
+                    <>
+                      <entry.icon />
+                      <span className={isActive ? "underline" : ""}>
+                        {entry.label}
+                      </span>
+                    </>
+                  )}
+                </NavLink>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          ))}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
+  );
+}
+
 export default function AppSidebar() {
   const user = useContext(AuthenticationContext) as User;
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { activeTeamId, activeTeam, availableTeams, switchActiveTeam } =
+    useActiveTeam();
   const fetcher = useFetcher();
+  const mode = getNavMode(location.pathname);
 
   useEffect(() => {
     if (fetcher.state === "loading") {
@@ -60,191 +104,144 @@ export default function AppSidebar() {
     );
   };
 
+  const teamRole = activeTeamId
+    ? user.teams.find((t) => t.team === activeTeamId)?.role
+    : undefined;
+  const isSuperAdmin = user.role === "SUPER_ADMIN";
+  const isTeamAdmin = teamRole === "ADMIN";
+  const showTeamGroup = isSuperAdmin || isTeamAdmin;
+  const roleLabel = isSuperAdmin
+    ? "Super admin"
+    : isTeamAdmin
+      ? "Team admin"
+      : "Member";
+
+  const teamSlug = activeTeamId ?? "";
+  const workspaceEntries: NavEntry[] = [
+    { to: `/teams/${teamSlug}/projects`, icon: Folder, label: "Projects" },
+    { to: `/teams/${teamSlug}/prompts`, icon: ClipboardList, label: "Prompts" },
+  ];
+  const teamEntries: NavEntry[] = [
+    { to: `/teams/${teamSlug}/users`, icon: Users, label: "Members" },
+    {
+      to: `/teams/${teamSlug}/invite-links`,
+      icon: Link2,
+      label: "Invite links",
+    },
+    {
+      to: `/teams/${teamSlug}/billing`,
+      icon: CircleDollarSign,
+      label: "Billing",
+    },
+  ];
+  const organizationEntries: NavEntry[] = [
+    { to: "/teams", icon: Building2, label: "Teams" },
+    { to: "/admin/users", icon: UsersRound, label: "Users" },
+    { to: "/admin/billing", icon: CircleDollarSign, label: "Billing" },
+  ];
+  const infrastructureEntries: NavEntry[] = [
+    { to: "/featureFlags", icon: FlagIcon, label: "Feature flags" },
+    { to: "/queues/tasks/active", icon: ChartNoAxesGantt, label: "Queues" },
+    { to: "/migrations", icon: Database, label: "Migrations" },
+    { to: "/admin/maintenance", icon: Construction, label: "Maintenance" },
+  ];
+
+  const exitAdmin = () => {
+    if (activeTeamId) navigate(`/teams/${activeTeamId}/projects`);
+    else navigate("/");
+  };
+
   return (
     <Sidebar
       variant="inset"
       role="navigation"
       aria-label="Application navigation"
     >
-      <SidebarHeader className="p-4">
-        <Link to={"/"}>
-          <img
-            src={sandpiperLogo}
-            alt="Sandpiper"
-            className="mx-auto w-full max-w-28"
-          />
-        </Link>
+      <SidebarHeader className={cn("p-4", mode === "admin" && "p-2")}>
+        {mode === "admin" ? (
+          <div
+            role="region"
+            aria-label="Platform Admin mode"
+            className="border-destructive/25 bg-destructive/[0.07] flex flex-col gap-1.5 rounded-xl border p-2"
+          >
+            <button
+              type="button"
+              onClick={exitAdmin}
+              className="text-destructive hover:bg-destructive/10 flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-xs font-medium"
+            >
+              <ArrowLeft className="size-3.5" />
+              <span className="truncate">
+                Back to {activeTeam?.name ?? "team"}
+              </span>
+            </button>
+            <div className="text-destructive flex items-center gap-2 px-1.5 py-0.5">
+              <Shield className="size-4" />
+              <b className="text-sm font-bold">Platform Admin</b>
+            </div>
+          </div>
+        ) : (
+          <Link to={activeTeamId ? `/teams/${activeTeamId}/projects` : "/"}>
+            <img
+              src={sandpiperLogo}
+              alt="Sandpiper"
+              className="mx-auto w-full max-w-28"
+            />
+          </Link>
+        )}
       </SidebarHeader>
+
       <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Content</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to={"/projects"}>
-                    {({ isActive }) => (
-                      <>
-                        <Folder />
-                        <span className={isActive ? "underline" : ""}>
-                          Projects
-                        </span>
-                      </>
-                    )}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to={"/prompts"}>
-                    {({ isActive }) => (
-                      <>
-                        <ClipboardList />
-                        <span className={isActive ? "underline" : ""}>
-                          Prompts
-                        </span>
-                      </>
-                    )}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <FeatureFlag flag="HAS_CODEBOOKS">
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={"/codebooks"}>
-                      {({ isActive }) => (
-                        <>
-                          <Notebook />
-                          <span className={isActive ? "underline" : ""}>
-                            Codebooks
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </FeatureFlag>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-        <SidebarGroup>
-          <SidebarGroupLabel>Admin</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild>
-                  <NavLink to={"/teams"}>
-                    {({ isActive }) => (
-                      <>
-                        <Network />
-                        <span className={isActive ? "underline" : ""}>
-                          Teams
-                        </span>
-                      </>
-                    )}
-                  </NavLink>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <Role roles={["SUPER_ADMIN"]}>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={"/featureFlags"}>
-                      {({ isActive }) => (
-                        <>
-                          <FlagIcon />
-                          <span className={isActive ? "underline" : ""}>
-                            Feature flags
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Role>
-              <Role roles={["SUPER_ADMIN"]}>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={"/queues/tasks/active"}>
-                      {({ isActive }) => (
-                        <>
-                          <ChartNoAxesGantt />
-                          <span className={isActive ? "underline" : ""}>
-                            Queues
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Role>
-              <Role roles={["SUPER_ADMIN"]}>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={"/migrations"}>
-                      {({ isActive }) => (
-                        <>
-                          <Database />
-                          <span className={isActive ? "underline" : ""}>
-                            Migrations
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Role>
-              <Role roles={["SUPER_ADMIN"]}>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={"/admin/users"}>
-                      {({ isActive }) => (
-                        <>
-                          <Users />
-                          <span className={isActive ? "underline" : ""}>
-                            Users
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Role>
-              <Role roles={["SUPER_ADMIN"]}>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={"/admin/billing"}>
-                      {({ isActive }) => (
-                        <>
-                          <CircleDollarSign />
-                          <span className={isActive ? "underline" : ""}>
-                            Billing
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Role>
-              <Role roles={["SUPER_ADMIN"]}>
-                <SidebarMenuItem>
-                  <SidebarMenuButton asChild>
-                    <NavLink to={"/admin/maintenance"}>
-                      {({ isActive }) => (
-                        <>
-                          <Construction />
-                          <span className={isActive ? "underline" : ""}>
-                            Maintenance
-                          </span>
-                        </>
-                      )}
-                    </NavLink>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              </Role>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
+        {mode === "team" ? (
+          <>
+            <SidebarGroup>
+              <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {workspaceEntries.map((entry) => (
+                    <SidebarMenuItem key={entry.to}>
+                      <SidebarMenuButton asChild>
+                        <NavLink to={entry.to} end={false}>
+                          {({ isActive }) => (
+                            <>
+                              <entry.icon />
+                              <span className={isActive ? "underline" : ""}>
+                                {entry.label}
+                              </span>
+                            </>
+                          )}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  ))}
+                  <FeatureFlag flag="HAS_CODEBOOKS">
+                    <SidebarMenuItem>
+                      <SidebarMenuButton asChild>
+                        <NavLink to="/codebooks">
+                          {({ isActive }) => (
+                            <>
+                              <Notebook />
+                              <span className={isActive ? "underline" : ""}>
+                                Codebooks
+                              </span>
+                            </>
+                          )}
+                        </NavLink>
+                      </SidebarMenuButton>
+                    </SidebarMenuItem>
+                  </FeatureFlag>
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            {showTeamGroup && <NavGroup label="Team" entries={teamEntries} />}
+          </>
+        ) : (
+          <>
+            <NavGroup label="Organization" entries={organizationEntries} />
+            <NavGroup label="Infrastructure" entries={infrastructureEntries} />
+          </>
+        )}
       </SidebarContent>
+
       <SidebarFooter className="p-0 pb-2">
         <SidebarGroup>
           <SidebarGroupContent>
@@ -256,42 +253,22 @@ export default function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
         <SidebarGroup>
-          <SidebarContent>
+          <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <SidebarMenuButton
-                      size="lg"
-                      className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                      aria-label={`User menu for ${user.name || user.username}`}
-                    >
-                      <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-medium">
-                          {user.name || user.username}
-                        </span>
-                        <span className="truncate text-xs">
-                          {user.orcidId || user.githubId}
-                        </span>
-                      </div>
-                      <ChevronsUpDown className="ml-auto size-4" />
-                    </SidebarMenuButton>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                    side={"right"}
-                    align="end"
-                    sideOffset={4}
-                  >
-                    <DropdownMenuItem onClick={onLogoutClicked}>
-                      <LogOut />
-                      Log out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                <SidebarAccountMenu
+                  user={user}
+                  activeTeam={activeTeam}
+                  availableTeams={availableTeams}
+                  mode={mode}
+                  roleLabel={roleLabel}
+                  onSwitchTeam={switchActiveTeam}
+                  onEnterAdmin={() => navigate("/teams")}
+                  onLogout={onLogoutClicked}
+                />
               </SidebarMenuItem>
             </SidebarMenu>
-          </SidebarContent>
+          </SidebarGroupContent>
         </SidebarGroup>
       </SidebarFooter>
     </Sidebar>
