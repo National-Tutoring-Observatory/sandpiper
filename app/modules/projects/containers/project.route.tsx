@@ -187,7 +187,7 @@ export default function ProjectRoute({ loaderData }: Route.ComponentProps) {
   }, [project.isUploadingFiles, project.isConvertingFiles]);
 
   const breadcrumbs = [
-    { text: "Projects", link: "/projects" },
+    { text: "Projects", link: `/teams/${project.team}/projects` },
     { text: project.name, link: `/projects/${project._id}` },
     { text: startCase(get(matches, "2.id", "").toLowerCase()) },
   ];

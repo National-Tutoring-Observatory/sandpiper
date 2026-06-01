@@ -178,7 +178,7 @@ export default function PromptRoute() {
   const breadcrumbs = [
     {
       text: "Prompts",
-      link: "/prompts",
+      link: `/teams/${prompt.team}/prompts`,
     },
     {
       text: prompt.name,
