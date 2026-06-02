@@ -30,6 +30,11 @@
             },
             { "inputCostPer1M": 4.0, "outputCostPer1M": 18.0 }
           ]
+        },
+        {
+          "name": "Gemini 3.5 Flash",
+          "code": "nto.google.gemini-3.5-flash",
+          "pricing": [{ "inputCostPer1M": 1.5, "outputCostPer1M": 9.0 }]
         }
       ]
     },
@@ -50,6 +55,26 @@
           "name": "GPT-5.2",
           "code": "openai.gpt-5.2",
           "pricing": [{ "inputCostPer1M": 1.75, "outputCostPer1M": 14.0 }]
+        },
+        {
+          "name": "GPT-5.4 Nano",
+          "code": "openai.gpt-5.4-nano",
+          "pricing": [{ "inputCostPer1M": 0.2, "outputCostPer1M": 1.25 }]
+        },
+        {
+          "name": "GPT-5.4 Mini",
+          "code": "openai.gpt-5.4-mini",
+          "pricing": [{ "inputCostPer1M": 0.75, "outputCostPer1M": 4.5 }]
+        },
+        {
+          "name": "GPT-5.4",
+          "code": "openai.gpt-5.4",
+          "pricing": [{ "inputCostPer1M": 2.5, "outputCostPer1M": 15.0 }]
+        },
+        {
+          "name": "GPT-5.5",
+          "code": "openai.gpt-5.5",
+          "pricing": [{ "inputCostPer1M": 5.0, "outputCostPer1M": 30.0 }]
         }
       ]
     },
@@ -93,6 +118,30 @@
         {
           "name": "Claude 4.6 Opus",
           "code": "anthropic.claude-4.6-opus",
+          "pricing": [
+            {
+              "upToInputTokens": 200000,
+              "inputCostPer1M": 5.0,
+              "outputCostPer1M": 25.0
+            },
+            { "inputCostPer1M": 10.0, "outputCostPer1M": 37.5 }
+          ]
+        },
+        {
+          "name": "Claude 4.7 Opus",
+          "code": "anthropic.claude-4.7-opus",
+          "pricing": [
+            {
+              "upToInputTokens": 200000,
+              "inputCostPer1M": 5.0,
+              "outputCostPer1M": 25.0
+            },
+            { "inputCostPer1M": 10.0, "outputCostPer1M": 37.5 }
+          ]
+        },
+        {
+          "name": "Claude 4.8 Opus",
+          "code": "claude-opus-4-8",
           "pricing": [
             {
               "upToInputTokens": 200000,
