@@ -44,15 +44,33 @@ export default function Home({
             &nbsp;at Cornell Bowers CIS, with MIT Teaching Systems Lab, Carnegie
             Mellon, and FreshCognate.
           </p>
-          <a
-            href="https://doi.org/10.48550/arXiv.2603.08406"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary mt-2 inline-flex items-center gap-1 text-xs font-semibold"
-          >
-            <ExternalLink className="h-3 w-3" />
-            Read the paper
-          </a>
+          <p className="text-foreground mt-3 text-xs font-semibold">
+            Read our papers
+          </p>
+          <ul className="mt-1 flex flex-col gap-1 text-xs">
+            <li>
+              <a
+                href="https://doi.org/10.48550/arXiv.2603.08406"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary inline-flex items-center gap-1 font-semibold"
+              >
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                Sandpiper (arXiv 2603.08406)
+              </a>
+            </li>
+            <li>
+              <a
+                href="https://arxiv.org/abs/2605.08092"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary inline-flex items-center gap-1 font-semibold"
+              >
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                Million Tutoring Moves (arXiv 2605.08092)
+              </a>
+            </li>
+          </ul>
         </div>
         <div className="border-primary flex w-48 shrink-0 flex-col items-center rounded-lg border-2 bg-gradient-to-br from-[#e8f4f7] to-[#f0f7f4] p-4 text-center">
           <p className="text-primary text-4xl leading-none font-extrabold">
