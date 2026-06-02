@@ -72,6 +72,10 @@ export default function SessionSelector({
     <div>
       <div className="mb-2 flex items-center justify-between">
         <span className="text-sm font-medium">Select All</span>
+        <span className="text-muted-foreground text-sm">
+          <strong className="text-foreground">{selectedSessions.length}</strong>
+          &nbsp;session(s) selected
+        </span>
         <SessionRandomizer
           sampleSize={sampleSize}
           maxSize={sessions.length}
