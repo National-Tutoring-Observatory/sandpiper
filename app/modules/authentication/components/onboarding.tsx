@@ -1,3 +1,4 @@
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -9,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { AlertCircleIcon } from "lucide-react";
 import { useState } from "react";
 import sandpiperLogo from "~/assets/sandpiper-logo.svg";
 
@@ -44,6 +46,7 @@ export default function Onboarding({
   onSubmit,
 }: OnboardingProps) {
   const [institution, setInstitution] = useState("");
+  const [institutionTouched, setInstitutionTouched] = useState(false);
   const [userRole, setUserRole] = useState("");
   const [useCases, setUseCases] = useState<string[]>([]);
   const [scholarshipInterest, setScholarshipInterest] = useState(false);
@@ -55,7 +58,7 @@ export default function Onboarding({
   };
 
   const canSubmit =
-    !!institution && !!userRole && useCases.length > 0 && !isSubmitting;
+    !!institution.trim() && !!userRole && useCases.length > 0 && !isSubmitting;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,10 +87,20 @@ export default function Onboarding({
             <Label htmlFor="institution">Institution</Label>
             <Input
               id="institution"
+              autoFocus
               placeholder="e.g. Cornell University"
               value={institution}
               onChange={(e) => setInstitution(e.target.value)}
+              onBlur={() => setInstitutionTouched(true)}
             />
+            {institutionTouched && !institution.trim() && (
+              <Alert variant="destructive">
+                <AlertCircleIcon />
+                <AlertDescription>
+                  Please enter your university or institution name to continue.
+                </AlertDescription>
+              </Alert>
+            )}
             {errors?.institution && (
               <p className="text-destructive text-sm">{errors.institution}</p>
             )}
