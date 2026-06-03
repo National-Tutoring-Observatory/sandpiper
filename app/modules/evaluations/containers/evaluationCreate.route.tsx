@@ -22,6 +22,7 @@ import {
   projectRunSetUrl,
   projectRunSetsUrl,
   projectUrl,
+  projectsUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { RunService } from "~/modules/runs/run";
@@ -262,7 +263,7 @@ export default function EvaluationCreateRoute({
     selectedAnnotationFields.length === 0;
 
   const breadcrumbs = [
-    { text: "Projects", link: "/" },
+    { text: "Projects", link: projectsUrl(params.teamId) },
     { text: project.name, link: projectUrl(params.teamId, project._id) },
     {
       text: "Run Sets",

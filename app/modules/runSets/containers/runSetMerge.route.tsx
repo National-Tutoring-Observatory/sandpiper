@@ -24,6 +24,7 @@ import {
   projectRunSetUrl,
   projectRunSetsUrl,
   projectUrl,
+  projectsUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { RunSetService } from "~/modules/runSets/runSet";
@@ -209,7 +210,7 @@ export default function RunSetMergeRoute({ params }: Route.ComponentProps) {
   );
 
   const breadcrumbs = [
-    { text: "Projects", link: "/" },
+    { text: "Projects", link: projectsUrl(params.teamId) },
     { text: project.name, link: projectUrl(params.teamId, project._id) },
     {
       text: "Run Sets",

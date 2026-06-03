@@ -22,6 +22,7 @@ import {
   projectRunSetUrl,
   projectRunSetsUrl,
   projectUrl,
+  projectsUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { PromptService } from "~/modules/prompts/prompt";
@@ -271,7 +272,7 @@ export default function EvaluationRoute({ params }: Route.ComponentProps) {
   });
 
   const breadcrumbs = [
-    { text: "Projects", link: "/" },
+    { text: "Projects", link: projectsUrl(params.teamId) },
     { text: project.name, link: projectUrl(params.teamId, project._id) },
     {
       text: "Run Sets",
