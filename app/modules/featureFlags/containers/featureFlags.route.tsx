@@ -66,14 +66,14 @@ export default function FeatureFlagsRoute({
 }: Route.ComponentProps) {
   const { featureFlags } = loaderData;
   const fetcher = useFetcher();
-  const match = useMatch("/featureFlags");
+  const match = useMatch("/admin/featureFlags");
   const matches = useMatches();
 
   const featureFlag = get(matches, "2.data.featureFlag", {}) as FeatureFlag;
   const breadcrumbs = match
     ? [{ text: "Feature flags" }]
     : [
-        { text: "Feature flags", link: "/featureFlags" },
+        { text: "Feature flags", link: "/admin/featureFlags" },
         { text: featureFlag.name },
       ];
 

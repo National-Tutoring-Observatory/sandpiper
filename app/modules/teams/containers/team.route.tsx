@@ -19,7 +19,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const team = await TeamService.findById(params.teamId);
   if (!team) {
-    return redirect("/teams");
+    return redirect("/admin/teams");
   }
   return { team };
 }

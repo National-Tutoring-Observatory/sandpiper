@@ -23,7 +23,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const featureFlag = await FeatureFlagService.findById(params.id);
   if (!featureFlag) {
-    return redirect("/featureFlags");
+    return redirect("/admin/featureFlags");
   }
 
   const users = await UserService.find({
@@ -89,7 +89,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     case "DELETE_FEATURE_FLAG": {
       const featureFlag = await FeatureFlagService.findById(params.id);
       if (!featureFlag) {
-        return redirect("/featureFlags");
+        return redirect("/admin/featureFlags");
       }
 
       await FeatureFlagService.deleteById(params.id);
@@ -144,7 +144,7 @@ export default function FeatureFlagRoute({
         fetcher.data.intent === "DELETE_FEATURE_FLAG"
       ) {
         toast.success("Feature flag deleted");
-        window.location.href = "/featureFlags";
+        window.location.href = "/admin/featureFlags";
       } else if (fetcher.data.errors) {
         toast.error(fetcher.data.errors.general || "An error occurred");
       }
