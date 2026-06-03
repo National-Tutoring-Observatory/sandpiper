@@ -8,13 +8,13 @@ import {
   useParams,
 } from "react-router";
 import { toast } from "sonner";
+import getReferenceId from "~/helpers/getReferenceId";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import PromptAuthorization from "~/modules/prompts/authorization";
 import { usePromptActions } from "~/modules/prompts/hooks/usePromptActions";
 import { RunService } from "~/modules/runs/run";
 import Prompt from "../components/prompt";
-import getPromptTeamId from "../helpers/getPromptTeamId";
 import { promptsUrl } from "../helpers/promptUrls";
 import { PromptService } from "../prompt";
 import { PromptVersionService } from "../promptVersion";
@@ -187,7 +187,7 @@ export default function PromptRoute() {
   const breadcrumbs = [
     {
       text: "Prompts",
-      link: promptsUrl(getPromptTeamId(prompt)),
+      link: promptsUrl(getReferenceId(prompt.team)),
     },
     {
       text: prompt.name,

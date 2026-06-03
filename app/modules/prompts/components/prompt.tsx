@@ -7,10 +7,10 @@ import {
 import map from "lodash/map";
 import { CirclePlus, Pencil, Trash2 } from "lucide-react";
 import { Outlet } from "react-router";
+import getReferenceId from "~/helpers/getReferenceId";
 import { getAnnotationLabel } from "~/modules/annotations/helpers/annotationTypes";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
-import getPromptTeamId from "../helpers/getPromptTeamId";
 import type { Prompt, PromptVersion } from "../prompts.types";
 import PromptVersionItem from "./promptVersionItem";
 
@@ -93,7 +93,7 @@ export default function Prompt({
               <PromptVersionItem
                 key={promptVersion._id}
                 promptId={prompt._id}
-                teamId={getPromptTeamId(prompt)}
+                teamId={getReferenceId(prompt.team)}
                 name={promptVersion.name}
                 version={promptVersion.version}
                 createdAt={promptVersion.createdAt}

@@ -1,3 +1,4 @@
+import getReferenceId from "~/helpers/getReferenceId";
 import type { User } from "~/modules/users/users.types";
 import { userIsSuperAdmin } from "../authorization/helpers/superAdmin";
 import {
@@ -6,16 +7,10 @@ import {
 } from "../authorization/helpers/teamMembership";
 import type { Prompt } from "./prompts.types";
 
-const getTeamId = (prompt: Prompt): string => {
-  return typeof prompt.team === "string" ? prompt.team : prompt.team._id;
-};
+const getTeamId = (prompt: Prompt): string => getReferenceId(prompt.team);
 
-const getPromptCreatorId = (prompt: Prompt): string | null => {
-  if (!prompt.createdBy) return null;
-  return typeof prompt.createdBy === "string"
-    ? prompt.createdBy
-    : prompt.createdBy._id;
-};
+const getPromptCreatorId = (prompt: Prompt): string | null =>
+  prompt.createdBy ? getReferenceId(prompt.createdBy) : null;
 
 const canUserManagePrompt = (user: User | null, prompt: Prompt): boolean => {
   if (!user) {
