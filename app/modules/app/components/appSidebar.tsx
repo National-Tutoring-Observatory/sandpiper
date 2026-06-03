@@ -116,24 +116,35 @@ export default function AppSidebar() {
       ? "Team admin"
       : "Member";
 
-  const teamSlug = activeTeamId ?? "";
-  const workspaceEntries: NavEntry[] = [
-    { to: `/teams/${teamSlug}/projects`, icon: Folder, label: "Projects" },
-    { to: `/teams/${teamSlug}/prompts`, icon: ClipboardList, label: "Prompts" },
-  ];
-  const teamEntries: NavEntry[] = [
-    { to: `/teams/${teamSlug}/users`, icon: Users, label: "Members" },
-    {
-      to: `/teams/${teamSlug}/invite-links`,
-      icon: Link2,
-      label: "Invite links",
-    },
-    {
-      to: `/teams/${teamSlug}/billing`,
-      icon: CircleDollarSign,
-      label: "Billing",
-    },
-  ];
+  const workspaceEntries: NavEntry[] = activeTeamId
+    ? [
+        {
+          to: `/teams/${activeTeamId}/projects`,
+          icon: Folder,
+          label: "Projects",
+        },
+        {
+          to: `/teams/${activeTeamId}/prompts`,
+          icon: ClipboardList,
+          label: "Prompts",
+        },
+      ]
+    : [];
+  const teamEntries: NavEntry[] = activeTeamId
+    ? [
+        { to: `/teams/${activeTeamId}/users`, icon: Users, label: "Members" },
+        {
+          to: `/teams/${activeTeamId}/invite-links`,
+          icon: Link2,
+          label: "Invite links",
+        },
+        {
+          to: `/teams/${activeTeamId}/billing`,
+          icon: CircleDollarSign,
+          label: "Billing",
+        },
+      ]
+    : [];
   const organizationEntries: NavEntry[] = [
     { to: "/teams", icon: Building2, label: "Teams" },
     { to: "/admin/users", icon: UsersRound, label: "Users" },
@@ -193,46 +204,50 @@ export default function AppSidebar() {
       <SidebarContent>
         {mode === "team" ? (
           <>
-            <SidebarGroup>
-              <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-              <SidebarGroupContent>
-                <SidebarMenu>
-                  {workspaceEntries.map((entry) => (
-                    <SidebarMenuItem key={entry.to}>
-                      <SidebarMenuButton asChild>
-                        <NavLink to={entry.to} end={false}>
-                          {({ isActive }) => (
-                            <>
-                              <entry.icon />
-                              <span className={isActive ? "underline" : ""}>
-                                {entry.label}
-                              </span>
-                            </>
-                          )}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-                  <FeatureFlag flag="HAS_CODEBOOKS">
-                    <SidebarMenuItem>
-                      <SidebarMenuButton asChild>
-                        <NavLink to="/codebooks">
-                          {({ isActive }) => (
-                            <>
-                              <Notebook />
-                              <span className={isActive ? "underline" : ""}>
-                                Codebooks
-                              </span>
-                            </>
-                          )}
-                        </NavLink>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  </FeatureFlag>
-                </SidebarMenu>
-              </SidebarGroupContent>
-            </SidebarGroup>
-            {showTeamGroup && <NavGroup label="Team" entries={teamEntries} />}
+            {activeTeamId && (
+              <SidebarGroup>
+                <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+                <SidebarGroupContent>
+                  <SidebarMenu>
+                    {workspaceEntries.map((entry) => (
+                      <SidebarMenuItem key={entry.to}>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={entry.to} end={false}>
+                            {({ isActive }) => (
+                              <>
+                                <entry.icon />
+                                <span className={isActive ? "underline" : ""}>
+                                  {entry.label}
+                                </span>
+                              </>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                    <FeatureFlag flag="HAS_CODEBOOKS">
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <NavLink to="/codebooks">
+                            {({ isActive }) => (
+                              <>
+                                <Notebook />
+                                <span className={isActive ? "underline" : ""}>
+                                  Codebooks
+                                </span>
+                              </>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </FeatureFlag>
+                  </SidebarMenu>
+                </SidebarGroupContent>
+              </SidebarGroup>
+            )}
+            {activeTeamId && showTeamGroup && (
+              <NavGroup label="Team" entries={teamEntries} />
+            )}
           </>
         ) : (
           <>
