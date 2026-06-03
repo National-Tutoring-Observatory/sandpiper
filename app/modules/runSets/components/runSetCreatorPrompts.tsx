@@ -6,10 +6,12 @@ import PromptSelectorContainer from "~/modules/prompts/containers/promptSelector
 import type { PromptReference } from "~/modules/runSets/runSets.types";
 
 export default function RunSetPromptsField({
+  teamId,
   annotationType,
   selectedPrompts,
   onPromptsChanged,
 }: {
+  teamId: string;
   annotationType: string;
   selectedPrompts: PromptReference[];
   onPromptsChanged: (prompts: PromptReference[]) => void;
@@ -61,6 +63,7 @@ export default function RunSetPromptsField({
       <div className="space-y-3">
         <div className="space-y-2">
           <PromptSelectorContainer
+            teamId={teamId}
             annotationType={annotationType}
             selectedPrompt={tempPromptId}
             selectedPromptVersion={tempPromptVersion}

@@ -257,6 +257,7 @@ export default function RunSetCreateRunsRoute({
       <RunSetCreateRunsContainer
         runSet={runSet}
         usedPromptModels={usedPromptModels as PromptModelPair[]}
+        teamId={params.teamId}
         projectId={project._id}
         onSubmit={handleSubmit}
         onCancel={handleCancel}

@@ -1,12 +1,13 @@
 import find from "lodash/find";
 import get from "lodash/get";
 import { useEffect, useState } from "react";
-import { useFetcher, useParams } from "react-router";
+import { useFetcher } from "react-router";
 import type { PromptReference } from "~/modules/runSets/runSets.types";
 import PromptSelector from "../components/promptSelector";
 import type { PromptVersion } from "../prompts.types";
 
 export default function PromptSelectorContainer({
+  teamId,
   annotationType,
   selectedPrompt,
   selectedPromptVersion,
@@ -14,6 +15,7 @@ export default function PromptSelectorContainer({
   onSelectedPromptChanged,
   onSelectedPromptVersionChanged,
 }: {
+  teamId: string;
   annotationType: string;
   selectedPrompt: string | null;
   selectedPromptVersion: number | null;
@@ -31,14 +33,13 @@ export default function PromptSelectorContainer({
     Record<string, PromptVersion[]>
   >({});
 
-  const { teamId } = useParams();
   const promptsFetcher = useFetcher();
   const promptVersionsFetcher = useFetcher();
 
   const buildPromptsListUrl = () => {
     const params = new URLSearchParams();
     params.set("annotationType", annotationType);
-    if (teamId) params.set("team", teamId);
+    params.set("team", teamId);
     return `/api/promptsList?${params.toString()}`;
   };
 

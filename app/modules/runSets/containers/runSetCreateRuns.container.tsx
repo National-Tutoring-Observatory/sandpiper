@@ -15,6 +15,7 @@ import {
 import type { PromptReference, RunSet } from "../runSets.types";
 
 interface RunSetCreateRunsContainerProps {
+  teamId: string;
   projectId: string;
   runSet: RunSet;
   usedPromptModels: PromptModelPair[];
@@ -25,6 +26,7 @@ interface RunSetCreateRunsContainerProps {
 }
 
 export default function RunSetCreateRunsContainer({
+  teamId,
   projectId,
   runSet,
   usedPromptModels,
@@ -113,6 +115,7 @@ export default function RunSetCreateRunsContainer({
           <RunSetCreatorFormAlerts errors={errors} />
 
           <RunSetCreatorPrompts
+            teamId={teamId}
             annotationType={runSet.annotationType}
             selectedPrompts={selectedPrompts}
             onPromptsChanged={handlePromptsChanged}

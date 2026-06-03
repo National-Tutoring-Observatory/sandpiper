@@ -10,6 +10,7 @@ import type { SessionData } from "~/modules/sessions/sessions.types";
 import RunCreator from "../components/runCreator";
 
 interface RunCreatorContainerProps {
+  teamId: string;
   projectId: string;
   onStartRunClicked: (createRun: CreateRun) => void;
   isSubmitting: boolean;
@@ -18,6 +19,7 @@ interface RunCreatorContainerProps {
 }
 
 export default function ProjectRunCreatorContainer({
+  teamId,
   projectId,
   onStartRunClicked,
   isSubmitting,
@@ -119,6 +121,7 @@ export default function ProjectRunCreatorContainer({
 
   return (
     <RunCreator
+      teamId={teamId}
       duplicateWarnings={duplicateWarnings}
       runName={runName}
       selectedAnnotationType={selectedAnnotationType}
