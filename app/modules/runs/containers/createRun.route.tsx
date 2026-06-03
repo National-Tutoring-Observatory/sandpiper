@@ -250,6 +250,7 @@ export default function ProjectCreateRunRoute({
       isSubmitting={isSubmitting}
       initialRun={initialRun}
       duplicateWarnings={duplicateWarnings}
+      teamId={params.teamId}
       projectId={project._id}
     />
   );

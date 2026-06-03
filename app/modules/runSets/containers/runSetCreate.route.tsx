@@ -245,6 +245,7 @@ export default function RunSetCreateRoute({ params }: Route.ComponentProps) {
 
       <RunSetCreatorContainer
         prefillData={prefillData}
+        teamId={params.teamId}
         projectId={project._id}
         onSubmit={handleSubmit}
         isLoading={fetcher.state !== "idle"}

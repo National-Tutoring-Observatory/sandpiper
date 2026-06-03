@@ -25,6 +25,7 @@ import type { SessionData } from "~/modules/sessions/sessions.types";
 import RunValidationAlert from "./runValidationAlert";
 
 export default function RunCreator({
+  teamId,
   duplicateWarnings = [],
   runName,
   selectedAnnotationType,
@@ -47,6 +48,7 @@ export default function RunCreator({
   onShouldRunVerificationChanged,
   onStartRunButtonClicked,
 }: {
+  teamId: string;
   duplicateWarnings?: string[];
   runName: string;
   selectedAnnotationType: AnnotationTypeOptions;
@@ -133,6 +135,7 @@ export default function RunCreator({
         </CardHeader>
         <CardContent>
           <PromptSelectorContainer
+            teamId={teamId}
             annotationType={selectedAnnotationType}
             selectedPrompt={selectedPrompt}
             selectedPromptVersion={selectedPromptVersion}

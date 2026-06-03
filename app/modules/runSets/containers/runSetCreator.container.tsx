@@ -25,12 +25,14 @@ function getDefaultName(prefillData?: PrefillData | null): string {
 }
 
 export default function RunSetCreatorContainer({
+  teamId,
   projectId,
   prefillData,
   onSubmit,
   isLoading,
   errors,
 }: {
+  teamId: string;
   projectId: string;
   prefillData?: PrefillData | null;
   onSubmit: (requestBody: string) => void;
@@ -130,6 +132,7 @@ export default function RunSetCreatorContainer({
           />
 
           <RunSetCreatorPrompts
+            teamId={teamId}
             annotationType={annotationType}
             selectedPrompts={selectedPrompts}
             onPromptsChanged={handlePromptsChanged}

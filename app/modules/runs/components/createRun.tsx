@@ -10,6 +10,7 @@ export default function CreateRunComponent({
   isSubmitting,
   initialRun,
   duplicateWarnings = [],
+  teamId,
   projectId,
 }: {
   breadcrumbs: Breadcrumb[];
@@ -17,6 +18,7 @@ export default function CreateRunComponent({
   isSubmitting: boolean;
   initialRun?: Run | null;
   duplicateWarnings?: string[];
+  teamId: string;
   projectId: string;
 }) {
   return (
@@ -31,6 +33,7 @@ export default function CreateRunComponent({
         isSubmitting={isSubmitting}
         initialRun={initialRun}
         duplicateWarnings={duplicateWarnings}
+        teamId={teamId}
         projectId={projectId}
       />
     </div>
