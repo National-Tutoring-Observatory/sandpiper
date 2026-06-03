@@ -39,13 +39,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return { prompt, promptVersions };
 }
 
-export async function action({ request }: Route.ActionArgs) {
+export async function action({ request, params }: Route.ActionArgs) {
   const { intent, entityId, payload = {} } = await request.json();
 
   const { version } = payload;
 
   const user = await requireAuth({ request });
-  const prompt = await PromptService.findById(entityId);
+  const prompt = await PromptService.findOne({
+    _id: entityId,
+    team: params.teamId,
+  });
   if (!prompt) {
     throw new Error("Prompt not found");
   }

@@ -15,10 +15,10 @@ export async function loader({ request }: Route.LoaderArgs) {
   const userTeamIds = user.teams.map((t) => t.team);
   if (userTeamIds.length === 0) return redirect("/teams");
 
-  const teams = await TeamService.find({
-    match: { _id: { $in: userTeamIds } },
+  const personal = await TeamService.findOne({
+    _id: { $in: userTeamIds },
+    isPersonal: true,
   });
-  const personal = teams.find((t) => t.isPersonal);
   const activeTeamId = personal?._id ?? userTeamIds[0];
 
   return { activeTeamId };

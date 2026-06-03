@@ -18,7 +18,10 @@ import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "~/modules/prompts/authorization";
 import CreatePromptDialog from "~/modules/prompts/components/createPromptDialog";
-import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
+import {
+  PROMPTS_CREATE_PARAM,
+  promptsUrl,
+} from "~/modules/prompts/helpers/promptUrls";
 import { usePromptActions } from "~/modules/prompts/hooks/usePromptActions";
 import { PromptService } from "~/modules/prompts/prompt";
 import { PromptVersionService } from "~/modules/prompts/promptVersion";
@@ -166,18 +169,17 @@ export default function TeamPromptsRoute() {
   };
 
   useEffect(() => {
-    if (searchParams.get("create") !== "1") return;
+    if (searchParams.get(PROMPTS_CREATE_PARAM) !== "1") return;
     onCreatePromptButtonClicked();
     setSearchParams(
       (prev) => {
         const next = new URLSearchParams(prev);
-        next.delete("create");
+        next.delete(PROMPTS_CREATE_PARAM);
         return next;
       },
       { replace: true },
     );
-     
-  }, []);
+  }, [searchParams, setSearchParams]);
 
   const onCreateNewPromptClicked = ({
     name,
