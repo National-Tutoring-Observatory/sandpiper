@@ -7,6 +7,7 @@ import {
 import { Pencil } from "lucide-react";
 import { useContext } from "react";
 import { Outlet } from "react-router";
+import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
 import type { User } from "~/modules/users/users.types";
 import TeamAuthorization from "../authorization";
@@ -25,7 +26,7 @@ export default function Team({ team, onEditTeamButtonClicked }: TeamProps) {
     <div className="max-w-7xl p-8">
       <PageHeader>
         <PageHeaderLeft>
-          <h2 className="text-xl font-semibold">{team.name}</h2>
+          <Breadcrumbs breadcrumbs={[{ text: team.name }]} />
         </PageHeaderLeft>
         <PageHeaderRight>
           {canUpdate && (
