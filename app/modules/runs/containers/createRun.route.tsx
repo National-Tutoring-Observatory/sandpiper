@@ -15,6 +15,10 @@ import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import { TeamBillingService } from "~/modules/billing/teamBilling";
 import { findModelByCode } from "~/modules/llm/modelRegistry";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectRunUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import createGeneralJob from "~/modules/queues/helpers/createGeneralJob";
 import { RunService } from "~/modules/runs/run";
@@ -26,9 +30,12 @@ import type { Route } from "./+types/createRun.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const authenticationTeams = await getSessionUserTeams({ request });
   const teamIds = map(authenticationTeams, "team");
+  if (!teamIds.includes(params.teamId)) {
+    return redirect("/");
+  }
   const project = await ProjectService.findOne({
     _id: params.projectId,
-    team: { $in: teamIds },
+    team: params.teamId,
   });
   if (!project) {
     return redirect("/");
@@ -56,7 +63,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return data({ errors: { project: "Project not found" } }, { status: 404 });
   }
@@ -155,7 +165,9 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function ProjectCreateRunRoute() {
+export default function ProjectCreateRunRoute({
+  params,
+}: Route.ComponentProps) {
   const { project, initialRun, duplicateWarnings } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher();
@@ -204,14 +216,18 @@ export default function ProjectCreateRunRoute() {
     ) {
       toast.success("Run created and started");
       navigate(
-        `/projects/${fetcher.data.data.project}/runs/${fetcher.data.data._id}`,
+        projectRunUrl(
+          params.teamId,
+          fetcher.data.data.project,
+          fetcher.data.data._id,
+        ),
       );
     }
-  }, [fetcher.state, fetcher.data, navigate]);
+  }, [fetcher.state, fetcher.data, navigate, params.teamId]);
 
   const breadcrumbs = [
     { text: "Projects", link: `/` },
-    { text: project!.name, link: `/projects/${project!._id}` },
+    { text: project!.name, link: projectUrl(params.teamId, project!._id) },
     { text: "Create run" },
   ];
 

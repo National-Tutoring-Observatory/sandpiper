@@ -8,15 +8,21 @@ import { FolderOpen, Zap } from "lucide-react";
 import { useEffect } from "react";
 import { Link, useFetcher } from "react-router";
 import getDateString from "~/modules/app/helpers/getDateString";
+import {
+  projectRunSetUrl,
+  projectRunUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import type { RunSet } from "~/modules/runSets/runSets.types";
 
 interface RunRunSetsDialogProps {
+  teamId: string;
   projectId: string;
   runId: string;
   runSets: RunSet[];
 }
 
 export default function RunRunSetsDialog({
+  teamId,
   projectId,
   runId,
   runSets,
@@ -27,7 +33,7 @@ export default function RunRunSetsDialog({
     fetcher.submit(JSON.stringify({ intent: "GET_ALL_RUN_SETS" }), {
       method: "POST",
       encType: "application/json",
-      action: `/projects/${projectId}/runs/${runId}`,
+      action: projectRunUrl(teamId, projectId, runId),
     });
   }, []);
 
@@ -53,7 +59,7 @@ export default function RunRunSetsDialog({
               return (
                 <div key={runSet._id}>
                   <Item asChild>
-                    <Link to={`/projects/${projectId}/run-sets/${runSet._id}`}>
+                    <Link to={projectRunSetUrl(teamId, projectId, runSet._id)}>
                       <div className="flex flex-1 flex-col gap-1 py-2">
                         <div className="font-medium">{runSet.name}</div>
                         <div className="text-muted-foreground flex items-center gap-4 text-xs">

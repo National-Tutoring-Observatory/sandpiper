@@ -4,7 +4,13 @@ import { toast } from "sonner";
 import addDialog from "~/modules/dialogs/addDialog";
 import CreateRunSetForRunDialog from "~/modules/runs/components/createRunSetForRunDialog";
 
-export function useCreateRunSetForRun({ projectId }: { projectId: string }) {
+export function useCreateRunSetForRun({
+  teamId,
+  projectId,
+}: {
+  teamId: string;
+  projectId: string;
+}) {
   const fetcher = useFetcher();
   const navigate = useNavigate();
 
@@ -27,7 +33,7 @@ export function useCreateRunSetForRun({ projectId }: { projectId: string }) {
       {
         method: "POST",
         encType: "application/json",
-        action: `/projects/${projectId}/runs/${runId}/add-to-run-set`,
+        action: `/teams/${teamId}/projects/${projectId}/runs/${runId}/add-to-run-set`,
       },
     );
   };

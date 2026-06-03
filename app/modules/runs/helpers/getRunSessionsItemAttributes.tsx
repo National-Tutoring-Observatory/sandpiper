@@ -1,11 +1,16 @@
 import getDateString from "~/modules/app/helpers/getDateString";
 import {
+  projectRunSessionsUrl,
+  projectRunSetRunSessionsUrl,
+} from "~/modules/projects/helpers/projectUrls";
+import {
   STATUS_META,
   getRunSessionStatusKey,
 } from "~/modules/runs/helpers/statusMeta";
 import type { RunSession } from "~/modules/runs/runs.types";
 
 interface Options {
+  teamId: string;
   projectId: string;
   runId: string;
   runSetId?: string;
@@ -32,8 +37,19 @@ export default function getRunSessionsItemAttributes(
   const to =
     item.status === "DONE"
       ? options.runSetId
-        ? `/projects/${options.projectId}/run-sets/${options.runSetId}/runs/${options.runId}/sessions/${item.sessionId}`
-        : `/projects/${options.projectId}/runs/${options.runId}/sessions/${item.sessionId}`
+        ? projectRunSetRunSessionsUrl(
+            options.teamId,
+            options.projectId,
+            options.runSetId,
+            options.runId,
+            item.sessionId,
+          )
+        : projectRunSessionsUrl(
+            options.teamId,
+            options.projectId,
+            options.runId,
+            item.sessionId,
+          )
       : undefined;
 
   return {

@@ -4,6 +4,7 @@ import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromR
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import { projectCreateRunSetUrl } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { useRunSetActions } from "~/modules/runSets/hooks/useRunSetActions";
 import { RunSetService } from "~/modules/runSets/runSet";
@@ -14,7 +15,10 @@ import type { Route } from "./+types/runSetsList.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.id);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return redirect("/");
   }
@@ -31,7 +35,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   const query = buildQueryFromParams({
-    match: { project: params.id },
+    match: { project: params.projectId },
     queryParams,
     searchableFields: ["name"],
     sortableFields: ["name", "createdAt"],
@@ -45,7 +49,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.id);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     throw new Error("Project not found");
   }
@@ -69,7 +76,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         throw new Error("Annotation type is required and must be a string.");
       }
       runSet = await RunSetService.create({
-        project: params.id,
+        project: params.projectId,
         name,
         sessions: [],
         runs: [],
@@ -87,7 +94,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
       const runSetToUpdate = await RunSetService.findOne({
         _id: entityId,
-        project: params.id,
+        project: params.projectId,
       });
       if (!runSetToUpdate) {
         return data(
@@ -106,7 +113,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
       const existingRunSet = await RunSetService.findOne({
         _id: entityId,
-        project: params.id,
+        project: params.projectId,
       });
 
       if (!existingRunSet) {
@@ -129,7 +136,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     case "DELETE_RUN_SET": {
       const runSetToDelete = await RunSetService.findOne({
         _id: entityId,
-        project: params.id,
+        project: params.projectId,
       });
       if (!runSetToDelete) {
         return data(
@@ -149,7 +156,10 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function RunSetsListRoute({ loaderData }: Route.ComponentProps) {
+export default function RunSetsListRoute({
+  loaderData,
+  params,
+}: Route.ComponentProps) {
   const { runSets, project } = loaderData;
   const navigate = useNavigate();
 
@@ -158,6 +168,7 @@ export default function RunSetsListRoute({ loaderData }: Route.ComponentProps) {
     openDeleteRunSetDialog,
     openDuplicateRunSetDialog,
   } = useRunSetActions({
+    teamId: params.teamId,
     projectId: project._id,
   });
 
@@ -188,17 +199,18 @@ export default function RunSetsListRoute({ loaderData }: Route.ComponentProps) {
   };
 
   const onCreateRunSetButtonClicked = () => {
-    navigate(`/projects/${project._id}/create-run-set`);
+    navigate(projectCreateRunSetUrl(params.teamId, project._id));
   };
 
   const onUseAsTemplateButtonClicked = (runSet: RunSet) => {
     navigate(
-      `/projects/${project._id}/create-run-set?fromRunSet=${runSet._id}`,
+      `${projectCreateRunSetUrl(params.teamId, project._id)}?fromRunSet=${runSet._id}`,
     );
   };
 
   return (
     <RunSetsList
+      teamId={params.teamId}
       runSets={runSets?.data}
       totalPages={runSets.totalPages}
       searchValue={searchValue}

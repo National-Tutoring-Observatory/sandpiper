@@ -15,16 +15,20 @@ describe("runSetsList.route loader", () => {
   });
 
   it("redirects to / when project not found", async () => {
-    const user = await UserService.create({ username: "test_user" });
+    const team = await TeamService.create({ name: "Team" });
+    const user = await UserService.create({
+      username: "test_user",
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
     const cookieHeader = await loginUser(user._id);
     const fakeProjectId = new Types.ObjectId().toString();
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + fakeProjectId + "/run-sets",
+        `http://localhost/teams/${team._id}/projects/${fakeProjectId}/run-sets`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: fakeProjectId },
+      params: { teamId: team._id, projectId: fakeProjectId },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -48,10 +52,10 @@ describe("runSetsList.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/run-sets",
+        `http://localhost/teams/${team._id}/projects/${project._id}/run-sets`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);
@@ -82,10 +86,10 @@ describe("runSetsList.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/run-sets",
+        `http://localhost/teams/${team._id}/projects/${project._id}/run-sets`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -132,7 +136,7 @@ describe("runSetsList.route action - CREATE_RUN_SET", () => {
 
     const resp = (await action({
       request: req,
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
     expect(resp.init?.status).toBe(403);
     expect(resp.data?.errors?.project).toBe("Access denied");
@@ -167,7 +171,7 @@ describe("runSetsList.route action - CREATE_RUN_SET", () => {
 
     const resp = (await action({
       request: req,
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
 
     expect(resp).not.toBeInstanceOf(Response);
@@ -226,7 +230,7 @@ describe("runSetsList.route action - DELETE_RUN_SET", () => {
 
     const resp = (await action({
       request: req,
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
     expect(resp.init?.status).toBe(403);
     expect(resp.data?.errors?.project).toBe("Access denied");
@@ -269,7 +273,7 @@ describe("runSetsList.route action - DELETE_RUN_SET", () => {
 
     const resp = (await action({
       request: req,
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
 
     expect(resp.intent).toBe("DELETE_RUN_SET");
@@ -308,7 +312,7 @@ describe("runSetsList.route action - DELETE_RUN_SET", () => {
 
     const resp = await action({
       request: req,
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
     expect((resp as any).init.status).toBe(404);
   });
@@ -370,7 +374,7 @@ describe("runSetsList.route action - IDOR protection", () => {
 
     const resp = (await action({
       request: req,
-      params: { id: projectB._id },
+      params: { teamId: teamB._id, projectId: projectB._id },
     } as any)) as any;
     expect(resp.init?.status).toBe(404);
     const stillExists = await RunSetService.findById(victimRunSet._id);
@@ -429,7 +433,7 @@ describe("runSetsList.route action - IDOR protection", () => {
 
     const resp = (await action({
       request: req,
-      params: { id: projectB._id },
+      params: { teamId: teamB._id, projectId: projectB._id },
     } as any)) as any;
     expect(resp.init?.status).toBe(404);
     const unchanged = await RunSetService.findById(victimRunSet._id);

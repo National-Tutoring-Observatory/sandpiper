@@ -2,12 +2,17 @@ import { useEffect } from "react";
 import { useFetcher, useNavigate } from "react-router";
 import { toast } from "sonner";
 import addDialog from "~/modules/dialogs/addDialog";
+import {
+  projectRunSetUrl,
+  projectRunSetsUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import DeleteRunSetDialog from "~/modules/runSets/components/deleteRunSetDialog";
 import DuplicateRunSetDialog from "~/modules/runSets/components/duplicateRunSetDialog";
 import EditRunSetDialog from "~/modules/runSets/components/editRunSetDialog";
 import type { RunSet } from "~/modules/runSets/runSets.types";
 
 interface UseRunSetActionsOptions {
+  teamId: string;
   projectId: string;
   onEditSuccess?: () => void;
   onDeleteSuccess?: () => void;
@@ -15,6 +20,7 @@ interface UseRunSetActionsOptions {
 }
 
 export function useRunSetActions({
+  teamId,
   projectId,
   onEditSuccess,
   onDeleteSuccess,
@@ -25,7 +31,7 @@ export function useRunSetActions({
   const deleteFetcher = useFetcher();
   const duplicateFetcher = useFetcher();
 
-  const actionUrl = `/projects/${projectId}/run-sets`;
+  const actionUrl = projectRunSetsUrl(teamId, projectId);
 
   useEffect(() => {
     if (editFetcher.state === "idle" && editFetcher.data) {
@@ -54,11 +60,17 @@ export function useRunSetActions({
         if (onDuplicateSuccess) {
           onDuplicateSuccess(newRunSet);
         } else {
-          navigate(`/projects/${projectId}/run-sets/${newRunSet._id}`);
+          navigate(projectRunSetUrl(teamId, projectId, newRunSet._id));
         }
       }
     }
-  }, [duplicateFetcher.state, duplicateFetcher.data, navigate, projectId]);
+  }, [
+    duplicateFetcher.state,
+    duplicateFetcher.data,
+    navigate,
+    teamId,
+    projectId,
+  ]);
 
   const submitEditRunSet = (runSet: RunSet) => {
     editFetcher.submit(

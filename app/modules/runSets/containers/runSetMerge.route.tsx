@@ -20,6 +20,11 @@ import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromR
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectRunSetUrl,
+  projectRunSetsUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { RunSetService } from "~/modules/runSets/runSet";
 import type { RunSet } from "~/modules/runSets/runSets.types";
@@ -28,7 +33,10 @@ import type { Route } from "./+types/runSetMerge.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return redirect("/");
   }
@@ -42,7 +50,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     project: params.projectId,
   });
   if (!runSet) {
-    return redirect(`/projects/${params.projectId}/run-sets`);
+    return redirect(projectRunSetsUrl(params.teamId, params.projectId));
   }
 
   const queryParams = getQueryParamsFromRequest(request, {
@@ -71,7 +79,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return data({ errors: { project: "Project not found" } }, { status: 404 });
   }
@@ -97,7 +108,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
       await RunSetService.mergeRunSets(params.runSetId, sourceRunSetIds);
       return redirect(
-        `/projects/${params.projectId}/run-sets/${params.runSetId}`,
+        projectRunSetUrl(params.teamId, params.projectId, params.runSetId),
       );
     }
     default: {
@@ -106,7 +117,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function RunSetMergeRoute() {
+export default function RunSetMergeRoute({ params }: Route.ComponentProps) {
   const {
     runSet,
     project,
@@ -159,7 +170,7 @@ export default function RunSetMergeRoute() {
   };
 
   const onCancelClicked = () => {
-    navigate(`/projects/${project._id}/run-sets/${runSet._id}`);
+    navigate(projectRunSetUrl(params.teamId, project._id, runSet._id));
   };
 
   const totalRuns = selectedRunSets.reduce((sum, id) => {
@@ -199,11 +210,14 @@ export default function RunSetMergeRoute() {
 
   const breadcrumbs = [
     { text: "Projects", link: "/" },
-    { text: project.name, link: `/projects/${project._id}` },
-    { text: "Run Sets", link: `/projects/${project._id}/run-sets` },
+    { text: project.name, link: projectUrl(params.teamId, project._id) },
+    {
+      text: "Run Sets",
+      link: projectRunSetsUrl(params.teamId, project._id),
+    },
     {
       text: runSet.name,
-      link: `/projects/${project._id}/run-sets/${runSet._id}`,
+      link: projectRunSetUrl(params.teamId, project._id, runSet._id),
     },
     { text: "Merge" },
   ];

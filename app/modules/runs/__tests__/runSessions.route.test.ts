@@ -32,7 +32,11 @@ describe("runSessions.route loader", () => {
   });
 
   it("redirects to / when project not found", async () => {
-    const user = await UserService.create({ username: "test_user" });
+    const team = await TeamService.create({ name: "Test Team" });
+    const user = await UserService.create({
+      username: "test_user",
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
     const cookieHeader = await loginUser(user._id);
     const fakeProjectId = new Types.ObjectId().toString();
     const fakeRunId = new Types.ObjectId().toString();
@@ -40,15 +44,11 @@ describe("runSessions.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" +
-          fakeProjectId +
-          "/runs/" +
-          fakeRunId +
-          "/sessions/" +
-          fakeSessionId,
+        `http://localhost/teams/${team._id}/projects/${fakeProjectId}/runs/${fakeRunId}/sessions/${fakeSessionId}`,
         { headers: { cookie: cookieHeader } },
       ),
       params: {
+        teamId: team._id,
         projectId: fakeProjectId,
         runId: fakeRunId,
         sessionId: fakeSessionId,
@@ -78,15 +78,11 @@ describe("runSessions.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" +
-          project._id +
-          "/runs/" +
-          fakeRunId +
-          "/sessions/" +
-          fakeSessionId,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${fakeRunId}/sessions/${fakeSessionId}`,
         { headers: { cookie: cookieHeader } },
       ),
       params: {
+        teamId: team._id,
         projectId: project._id,
         runId: fakeRunId,
         sessionId: fakeSessionId,
@@ -127,14 +123,15 @@ describe("runSessions.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" +
-          project._id +
-          "/runs/" +
-          run._id +
-          "/sessions/invalid",
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}/sessions/invalid`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id, runId: run._id, sessionId: "invalid" },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+        sessionId: "invalid",
+      },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -176,15 +173,15 @@ describe("runSessions.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" +
-          project._id +
-          "/runs/" +
-          run._id +
-          "/sessions/" +
-          sessionId,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}/sessions/${sessionId}`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id, runId: run._id, sessionId },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+        sessionId,
+      },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);
@@ -250,15 +247,11 @@ describe("runSessions.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" +
-          project._id +
-          "/runs/" +
-          run._id +
-          "/sessions/" +
-          targetSessionId,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}/sessions/${targetSessionId}`,
         { headers: { cookie: cookieHeader } },
       ),
       params: {
+        teamId: team._id,
         projectId: project._id,
         runId: run._id,
         sessionId: targetSessionId,
@@ -330,10 +323,11 @@ describe("runSessions.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        `http://localhost/projects/${projectB._id}/run-sets/${victimRunSet._id}/runs/${run._id}/sessions/${sessionId}`,
+        `http://localhost/teams/${teamB._id}/projects/${projectB._id}/run-sets/${victimRunSet._id}/runs/${run._id}/sessions/${sessionId}`,
         { headers: { cookie: cookieHeader } },
       ),
       params: {
+        teamId: teamB._id,
         projectId: projectB._id,
         runSetId: victimRunSet._id,
         runId: run._id,
@@ -397,16 +391,11 @@ describe("runSessions.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" +
-          project._id +
-          "/runs/" +
-          run._id +
-          "/sessions/" +
-          targetSessionId +
-          "?sidebarSearchValue=alpha",
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}/sessions/${targetSessionId}?sidebarSearchValue=alpha`,
         { headers: { cookie: cookieHeader } },
       ),
       params: {
+        teamId: team._id,
         projectId: project._id,
         runId: run._id,
         sessionId: targetSessionId,

@@ -17,6 +17,14 @@ import getSessionUserTeams from "~/modules/authentication/helpers/getSessionUser
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectCreateRunSetUrl,
+  projectCreateRunUrl,
+  projectRunSetUrl,
+  projectRunSetsUrl,
+  projectRunUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import exportRun from "~/modules/runs/helpers/exportRun";
 import { useCreateRunSetForRun } from "~/modules/runs/hooks/useCreateRunSetForRun";
@@ -36,9 +44,12 @@ interface PromptInfo {
 export async function loader({ request, params }: Route.LoaderArgs) {
   const authenticationTeams = await getSessionUserTeams({ request });
   const teamIds = map(authenticationTeams, "team");
+  if (!teamIds.includes(params.teamId)) {
+    return redirect("/");
+  }
   const project = await ProjectService.findOne({
     _id: params.projectId,
-    team: { $in: teamIds },
+    team: params.teamId,
   });
   if (!project) {
     return redirect("/");
@@ -99,7 +110,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project || !ProjectAuthorization.Runs.canManage(user, project)) {
     return redirect("/");
   }
@@ -160,7 +174,7 @@ const debounceRevalidate = throttle((revalidate) => {
   revalidate();
 }, 2000);
 
-export default function ProjectRunRoute() {
+export default function ProjectRunRoute({ params }: Route.ComponentProps) {
   const {
     project,
     run,
@@ -208,12 +222,13 @@ export default function ProjectRunRoute() {
   const navigate = useNavigate();
   const { revalidate } = useRevalidator();
   const { openEditRunDialog, openDeleteRunDialog } = useRunActions({
+    teamId: params.teamId,
     projectId: project._id,
     onDeleteSuccess: () => {
       if (runSet?._id) {
-        navigate(`/projects/${project._id}/run-sets/${runSet._id}`);
+        navigate(projectRunSetUrl(params.teamId, project._id, runSet._id));
       } else {
-        navigate(`/projects/${project._id}`);
+        navigate(projectUrl(params.teamId, project._id));
       }
     },
   });
@@ -255,19 +270,26 @@ export default function ProjectRunRoute() {
   };
 
   const { openCreateRunSetDialog } = useCreateRunSetForRun({
+    teamId: params.teamId,
     projectId: project._id,
   });
 
   const onDuplicateRunButtonClicked = (run: Run) => {
-    navigate(`/projects/${project._id}/create-run?duplicateFrom=${run._id}`);
+    navigate(
+      `${projectCreateRunUrl(params.teamId, project._id)}?duplicateFrom=${run._id}`,
+    );
   };
 
   const onAddToExistingRunSetClicked = (run: Run) => {
-    navigate(`/projects/${project._id}/runs/${run._id}/add-to-run-set`);
+    navigate(
+      `${projectRunUrl(params.teamId, project._id, run._id)}/add-to-run-set`,
+    );
   };
 
   const onUseAsTemplateClicked = (run: Run) => {
-    navigate(`/projects/${project._id}/create-run-set?fromRun=${run._id}`);
+    navigate(
+      `${projectCreateRunSetUrl(params.teamId, project._id)}?fromRun=${run._id}`,
+    );
   };
 
   useHandleSockets({
@@ -352,23 +374,27 @@ export default function ProjectRunRoute() {
 
   const parentBreadcrumbs = runSet
     ? [
-        { text: "Run Sets", link: `/projects/${project._id}/run-sets` },
+        {
+          text: "Run Sets",
+          link: projectRunSetsUrl(params.teamId, project._id),
+        },
         {
           text: runSet.name,
-          link: `/projects/${project._id}/run-sets/${runSet._id}`,
+          link: projectRunSetUrl(params.teamId, project._id, runSet._id),
         },
       ]
-    : [{ text: "Runs", link: `/projects/${project._id}` }];
+    : [{ text: "Runs", link: projectUrl(params.teamId, project._id) }];
 
   const breadcrumbs = [
     { text: "Projects", link: `/` },
-    { text: project.name, link: `/projects/${project._id}` },
+    { text: project.name, link: projectUrl(params.teamId, project._id) },
     ...parentBreadcrumbs,
     { text: run.name },
   ];
 
   return (
     <RunDetail
+      teamId={params.teamId}
       run={run}
       isExporting={isSubmittingExport || run.isExporting || false}
       promptInfo={promptInfo}

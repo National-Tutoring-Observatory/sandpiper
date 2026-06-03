@@ -3,6 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { AlertCircle } from "lucide-react";
 import { Link } from "react-router";
+import { projectRunSetUrl } from "~/modules/projects/helpers/projectUrls";
 import type { Run } from "~/modules/runs/runs.types";
 import type { AnnotationSchemaFieldCount } from "../helpers/getAnnotationSchemaFieldCounts";
 import EvaluationCreateFooter from "./evaluationCreateFooter";
@@ -13,6 +14,7 @@ export default function EvaluationCreate({
   isSubmitting,
   isSubmitDisabled,
   isAbleToCreateEvaluation,
+  teamId,
   projectId,
   runSetId,
   runs,
@@ -32,6 +34,7 @@ export default function EvaluationCreate({
   isSubmitting: boolean;
   isSubmitDisabled: boolean;
   isAbleToCreateEvaluation: boolean;
+  teamId: string;
   projectId: string;
   runSetId: string;
   runs: Run[];
@@ -56,7 +59,7 @@ export default function EvaluationCreate({
           <AlertDescription>
             At least 2 runs are required to create an evaluation.{" "}
             <Link
-              to={`/projects/${projectId}/run-sets/${runSetId}`}
+              to={projectRunSetUrl(teamId, projectId, runSetId)}
               className="underline"
             >
               Back to run set

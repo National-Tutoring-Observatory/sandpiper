@@ -9,90 +9,6 @@ import {
 export default [
   layout("modules/dashboard/containers/dashboard.route.tsx", [
     index("modules/home/containers/home.route.tsx"),
-    route("projects", "modules/projects/containers/projects.route.tsx"),
-  ]),
-  ...prefix("projects", [
-    route(
-      ":id",
-      "modules/projects/containers/project.route.tsx",
-      { id: "project" },
-      [
-        index("modules/runs/containers/runs.route.tsx", {
-          id: "RUNS",
-        }),
-        route("files", "modules/sessions/containers/files.route.tsx", {
-          id: "FILES",
-        }),
-        route("sessions", "modules/sessions/containers/sessions.route.tsx", {
-          id: "SESSIONS",
-        }),
-        route("run-sets", "modules/runSets/containers/runSetsList.route.tsx", {
-          id: "RUN_SETS",
-        }),
-      ],
-    ),
-    route(
-      ":projectId/upload-files",
-      "modules/files/containers/uploadFiles.route.tsx",
-    ),
-    route(
-      ":projectId/create-run",
-      "modules/runs/containers/createRun.route.tsx",
-    ),
-    route(
-      ":projectId/create-run-set",
-      "modules/runSets/containers/runSetCreate.route.tsx",
-    ),
-    route(":projectId/runs/:runId", "modules/runs/containers/run.route.tsx"),
-    route(
-      ":projectId/runs/:runId/add-to-run-set",
-      "modules/runs/containers/runAddToRunSet.route.tsx",
-    ),
-    route(
-      ":projectId/runs/:runId/sessions/:sessionId",
-      "modules/runs/containers/runSessions.route.tsx",
-    ),
-    route(
-      ":projectId/run-sets/:runSetId/runs/:runId",
-      "modules/runs/containers/run.route.tsx",
-      { id: "runSetRun" },
-    ),
-    route(
-      ":projectId/run-sets/:runSetId/runs/:runId/sessions/:sessionId",
-      "modules/runs/containers/runSessions.route.tsx",
-      { id: "runSetRunSession" },
-    ),
-    route(
-      ":projectId/run-sets/:runSetId",
-      "modules/runSets/containers/runSetDetail.route.tsx",
-      [
-        index("modules/runSets/containers/runSetOverview.route.tsx"),
-        route(
-          "evaluations",
-          "modules/runSets/containers/runSetEvaluations.route.tsx",
-        ),
-      ],
-    ),
-    route(
-      ":projectId/run-sets/:runSetId/add-runs",
-      "modules/runSets/containers/runSetAddRuns.route.tsx",
-    ),
-    route(
-      ":projectId/run-sets/:runSetId/create-runs",
-      "modules/runSets/containers/runSetCreateRuns.route.tsx",
-    ),
-    route(
-      ":projectId/run-sets/:runSetId/merge",
-      "modules/runSets/containers/runSetMerge.route.tsx",
-    ),
-    route(
-      ":projectId/run-sets/:runSetId/create-evaluation",
-      "modules/evaluations/containers/evaluationCreate.route.tsx",
-    ),
-    route(
-      ":projectId/run-sets/:runSetId/evaluations/:evaluationId",
-      "modules/evaluations/containers/evaluation.route.tsx",
-    ),
   ]),
   ...prefix("codebooks", [
     index("modules/codebooks/containers/codebooks.route.tsx"),
@@ -148,6 +64,88 @@ export default [
           id: "VERSION",
         }),
       ],
+    ),
+    route(
+      ":teamId/projects/:projectId",
+      "modules/projects/containers/project.route.tsx",
+      { id: "project" },
+      [
+        index("modules/runs/containers/runs.route.tsx", { id: "RUNS" }),
+        route("files", "modules/sessions/containers/files.route.tsx", {
+          id: "FILES",
+        }),
+        route("sessions", "modules/sessions/containers/sessions.route.tsx", {
+          id: "SESSIONS",
+        }),
+        route("run-sets", "modules/runSets/containers/runSetsList.route.tsx", {
+          id: "RUN_SETS",
+        }),
+      ],
+    ),
+    route(
+      ":teamId/projects/:projectId/upload-files",
+      "modules/files/containers/uploadFiles.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/create-run",
+      "modules/runs/containers/createRun.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/create-run-set",
+      "modules/runSets/containers/runSetCreate.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/runs/:runId",
+      "modules/runs/containers/run.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/runs/:runId/add-to-run-set",
+      "modules/runs/containers/runAddToRunSet.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/runs/:runId/sessions/:sessionId",
+      "modules/runs/containers/runSessions.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/run-sets/:runSetId/runs/:runId",
+      "modules/runs/containers/run.route.tsx",
+      { id: "runSetRun" },
+    ),
+    route(
+      ":teamId/projects/:projectId/run-sets/:runSetId/runs/:runId/sessions/:sessionId",
+      "modules/runs/containers/runSessions.route.tsx",
+      { id: "runSetRunSession" },
+    ),
+    route(
+      ":teamId/projects/:projectId/run-sets/:runSetId",
+      "modules/runSets/containers/runSetDetail.route.tsx",
+      [
+        index("modules/runSets/containers/runSetOverview.route.tsx"),
+        route(
+          "evaluations",
+          "modules/runSets/containers/runSetEvaluations.route.tsx",
+        ),
+      ],
+    ),
+    route(
+      ":teamId/projects/:projectId/run-sets/:runSetId/add-runs",
+      "modules/runSets/containers/runSetAddRuns.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/run-sets/:runSetId/create-runs",
+      "modules/runSets/containers/runSetCreateRuns.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/run-sets/:runSetId/merge",
+      "modules/runSets/containers/runSetMerge.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/run-sets/:runSetId/create-evaluation",
+      "modules/evaluations/containers/evaluationCreate.route.tsx",
+    ),
+    route(
+      ":teamId/projects/:projectId/run-sets/:runSetId/evaluations/:evaluationId",
+      "modules/evaluations/containers/evaluation.route.tsx",
     ),
   ]),
   ...prefix("invite", [
@@ -224,9 +222,6 @@ export default [
     "modules/datasets/containers/downloadMtmDataset.route.tsx",
   ),
   route("api/events", "modules/events/containers/events.route.tsx"),
-  route("api/projects", "modules/projects/containers/projects.route.tsx", {
-    id: "projects",
-  }),
   route(
     "api/promptVersionAlignment",
     "modules/prompts/containers/promptVersionAlignment.route.tsx",

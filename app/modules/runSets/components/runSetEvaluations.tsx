@@ -6,6 +6,7 @@ import getEvaluationsEmptyAttributes from "../helpers/getEvaluationsEmptyAttribu
 import getEvaluationsItemAttributes from "../helpers/getEvaluationsItemAttributes";
 
 export default function RunSetEvaluations({
+  teamId,
   evaluations,
   totalPages,
   currentPage,
@@ -19,6 +20,7 @@ export default function RunSetEvaluations({
   onItemClicked,
   onActionClicked,
 }: {
+  teamId: string;
   evaluations: Evaluation[];
   totalPages: number;
   currentPage: number;
@@ -38,7 +40,7 @@ export default function RunSetEvaluations({
         items={evaluations}
         itemsLayout="list"
         actions={getEvaluationsActions(isAbleToCreateEvaluation)}
-        getItemAttributes={getEvaluationsItemAttributes}
+        getItemAttributes={(item) => getEvaluationsItemAttributes(item, teamId)}
         getItemActions={() => []}
         onActionClicked={onActionClicked}
         onItemClicked={onItemClicked}

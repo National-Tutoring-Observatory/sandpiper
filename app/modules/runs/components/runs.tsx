@@ -8,6 +8,7 @@ import runsFilters from "../helpers/runsFilters";
 import runsSortOptions from "../helpers/runsSortOptions";
 
 export default function Runs({
+  teamId,
   runs,
   searchValue,
   currentPage,
@@ -22,6 +23,7 @@ export default function Runs({
   onFiltersValueChanged,
   onSortValueChanged,
 }: {
+  teamId: string;
   runs: Run[];
   searchValue: string;
   currentPage: number;
@@ -55,7 +57,7 @@ export default function Runs({
         totalPages={totalPages}
         isSyncing={isSyncing}
         emptyAttributes={getRunsEmptyAttributes()}
-        getItemAttributes={(item) => getRunsItemAttributes(item)}
+        getItemAttributes={(item) => getRunsItemAttributes(item, { teamId })}
         getItemActions={getItemActions}
         onActionClicked={onActionClicked}
         onItemActionClicked={onItemActionClicked}

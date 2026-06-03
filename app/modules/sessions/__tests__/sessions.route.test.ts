@@ -15,16 +15,20 @@ describe("sessions.route loader", () => {
   });
 
   it("redirects to / when project not found", async () => {
-    const user = await UserService.create({ username: "test_user" });
+    const team = await TeamService.create({ name: "Test Team" });
+    const user = await UserService.create({
+      username: "test_user",
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
     const cookieHeader = await loginUser(user._id);
     const fakeProjectId = new Types.ObjectId().toString();
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + fakeProjectId + "/sessions",
+        `http://localhost/teams/${team._id}/projects/${fakeProjectId}/sessions`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: fakeProjectId },
+      params: { teamId: team._id, projectId: fakeProjectId },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -46,9 +50,9 @@ describe("sessions.route loader", () => {
     await expectAuthRequired(() =>
       loader({
         request: new Request(
-          "http://localhost/projects/" + project._id + "/sessions",
+          `http://localhost/teams/${team._id}/projects/${project._id}/sessions`,
         ),
-        params: { id: project._id.toString() },
+        params: { teamId: team._id, projectId: project._id.toString() },
       } as any),
     );
   });
@@ -71,10 +75,10 @@ describe("sessions.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/sessions",
+        `http://localhost/teams/${team._id}/projects/${project._id}/sessions`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: project._id.toString() },
+      params: { teamId: team._id, projectId: project._id.toString() },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);
@@ -102,14 +106,14 @@ describe("sessions.route action", () => {
     await expectAuthRequired(() =>
       action({
         request: new Request(
-          "http://localhost/projects/" + project._id + "/sessions",
+          `http://localhost/teams/${team._id}/projects/${project._id}/sessions`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ intent: "RE_RUN" }),
           },
         ),
-        params: { id: project._id.toString() },
+        params: { teamId: team._id, projectId: project._id.toString() },
       } as any),
     );
   });
@@ -134,14 +138,14 @@ describe("sessions.route action", () => {
 
     const res = await action({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/sessions",
+        `http://localhost/teams/${team._id}/projects/${project._id}/sessions`,
         {
           method: "POST",
           headers: { cookie: cookieHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ intent: "RE_RUN" }),
         },
       ),
-      params: { id: project._id.toString() },
+      params: { teamId: team._id, projectId: project._id.toString() },
     } as any);
 
     expect(res).toBeInstanceOf(Response);

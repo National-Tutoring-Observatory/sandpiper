@@ -29,9 +29,9 @@ describe("runs.route loader - authorization", () => {
     await expectAuthRequired(() =>
       loader({
         request: new Request(
-          "http://localhost/projects/" + project._id + "/runs",
+          `http://localhost/teams/${team._id}/projects/${project._id}/runs`,
         ),
-        params: { id: project._id },
+        params: { teamId: team._id, projectId: project._id },
       } as any),
     );
   });
@@ -56,10 +56,10 @@ describe("runs.route loader - authorization", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs",
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -89,10 +89,10 @@ describe("runs.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs",
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);
@@ -124,10 +124,10 @@ describe("runs.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs",
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);

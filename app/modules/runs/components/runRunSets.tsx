@@ -6,6 +6,7 @@ import RunRunSetsDialog from "./runRunSetsDialog";
 import RunRunSetsItem from "./runRunSetsItem";
 
 interface RunRunSetsProps {
+  teamId: string;
   projectId: string;
   runId: string;
   runSets: RunSet[];
@@ -13,6 +14,7 @@ interface RunRunSetsProps {
 }
 
 export default function RunRunSets({
+  teamId,
   projectId,
   runId,
   runSets,
@@ -25,6 +27,7 @@ export default function RunRunSets({
   const openRunSetsDialog = () => {
     addDialog(
       <RunRunSetsDialog
+        teamId={teamId}
         projectId={projectId}
         runId={runId}
         runSets={runSets}
@@ -46,6 +49,7 @@ export default function RunRunSets({
         {displayRunSets.map((runSet) => (
           <RunRunSetsItem
             key={runSet._id}
+            teamId={teamId}
             projectId={projectId}
             runSet={runSet}
           />

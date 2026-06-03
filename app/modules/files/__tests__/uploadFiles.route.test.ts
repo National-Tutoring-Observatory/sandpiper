@@ -24,23 +24,26 @@ describe("uploadFiles.route loader", () => {
   it("redirects to / when there is no session cookie", async () => {
     await expectAuthRequired(() =>
       loader({
-        request: new Request("http://localhost/projects/123/upload-files"),
-        params: { projectId: "123" },
+        request: new Request(
+          "http://localhost/teams/123/projects/123/upload-files",
+        ),
+        params: { teamId: "123", projectId: "123" },
       } as any),
     );
   });
 
   it("redirects to / when project not found", async () => {
     const user = await UserService.create({ username: "test_user" });
+    const team = await TeamService.create({ name: "Test Team" });
     const fakeProjectId = createValidId();
     const cookieHeader = await loginUser(user._id);
 
     const res = await loader({
       request: new Request(
-        `http://localhost/projects/${fakeProjectId}/upload-files`,
+        `http://localhost/teams/${team._id}/projects/${fakeProjectId}/upload-files`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: fakeProjectId },
+      params: { teamId: team._id, projectId: fakeProjectId },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -66,15 +69,15 @@ describe("uploadFiles.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        `http://localhost/projects/${project._id}/upload-files`,
+        `http://localhost/teams/${team._id}/projects/${project._id}/upload-files`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
     expect((res as Response).headers.get("Location")).toBe(
-      `/projects/${project._id}/files`,
+      `/teams/${team._id}/projects/${project._id}/files`,
     );
   });
 
@@ -97,10 +100,10 @@ describe("uploadFiles.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        `http://localhost/projects/${project._id}/upload-files`,
+        `http://localhost/teams/${team._id}/projects/${project._id}/upload-files`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -116,28 +119,32 @@ describe("uploadFiles.route action", () => {
   it("redirects to / when there is no session cookie", async () => {
     const formData = new FormData();
 
-    const req = new Request("http://localhost/projects/123/upload-files", {
-      method: "POST",
-      body: formData,
-    });
+    const req = new Request(
+      "http://localhost/teams/123/projects/123/upload-files",
+      {
+        method: "POST",
+        body: formData,
+      },
+    );
 
     await expectAuthRequired(() =>
       action({
         request: req,
-        params: { projectId: "123" },
+        params: { teamId: "123", projectId: "123" },
       } as any),
     );
   });
 
   it("returns 404 when project not found", async () => {
     const user = await UserService.create({ username: "test_user" });
+    const team = await TeamService.create({ name: "Test Team" });
     const fakeProjectId = createValidId();
     const cookieHeader = await loginUser(user._id);
 
     const formData = new FormData();
 
     const req = new Request(
-      `http://localhost/projects/${fakeProjectId}/upload-files`,
+      `http://localhost/teams/${team._id}/projects/${fakeProjectId}/upload-files`,
       {
         method: "POST",
         headers: { cookie: cookieHeader },
@@ -147,7 +154,7 @@ describe("uploadFiles.route action", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: fakeProjectId },
+      params: { teamId: team._id, projectId: fakeProjectId },
     } as any)) as any;
 
     expect(resp.init?.status).toBe(404);
@@ -172,7 +179,7 @@ describe("uploadFiles.route action", () => {
     const formData = new FormData();
 
     const req = new Request(
-      `http://localhost/projects/${project._id}/upload-files`,
+      `http://localhost/teams/${team._id}/projects/${project._id}/upload-files`,
       {
         method: "POST",
         headers: { cookie: cookieHeader },
@@ -182,7 +189,7 @@ describe("uploadFiles.route action", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
 
     expect(resp.init?.status).toBe(400);
@@ -212,7 +219,7 @@ describe("uploadFiles.route action", () => {
     formData.append("files", testFile);
 
     const req = new Request(
-      `http://localhost/projects/${project._id}/upload-files`,
+      `http://localhost/teams/${team._id}/projects/${project._id}/upload-files`,
       {
         method: "POST",
         headers: { cookie: cookieHeader },
@@ -222,7 +229,7 @@ describe("uploadFiles.route action", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
 
     expect(resp.init?.status).toBe(400);
@@ -246,7 +253,7 @@ describe("uploadFiles.route action", () => {
     const cookieHeader = await loginUser(user._id);
 
     const req = new Request(
-      `http://localhost/projects/${project._id}/upload-files`,
+      `http://localhost/teams/${team._id}/projects/${project._id}/upload-files`,
       {
         method: "POST",
         headers: {
@@ -259,7 +266,7 @@ describe("uploadFiles.route action", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
 
     expect(resp.init?.status).toBe(409);
@@ -287,7 +294,7 @@ describe("uploadFiles.route action", () => {
     const cookieHeader = await loginUser(user._id);
 
     const req = new Request(
-      `http://localhost/projects/${project._id}/upload-files`,
+      `http://localhost/teams/${team._id}/projects/${project._id}/upload-files`,
       {
         method: "POST",
         headers: {
@@ -300,7 +307,7 @@ describe("uploadFiles.route action", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
 
     expect(resp.data?.success).toBe(true);
@@ -330,7 +337,7 @@ describe("uploadFiles.route action", () => {
     formData.append("files", testFile);
 
     const req = new Request(
-      `http://localhost/projects/${project._id}/upload-files`,
+      `http://localhost/teams/${team._id}/projects/${project._id}/upload-files`,
       {
         method: "POST",
         headers: { cookie: cookieHeader },
@@ -340,7 +347,7 @@ describe("uploadFiles.route action", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any)) as any;
 
     expect(resp.init?.status).toBe(409);

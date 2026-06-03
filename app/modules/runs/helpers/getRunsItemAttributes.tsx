@@ -1,7 +1,12 @@
 import get from "lodash/get";
 import { BadgeCheck } from "lucide-react";
+import getReferenceId from "~/helpers/getReferenceId";
 import { getAnnotationLabel } from "~/modules/annotations/helpers/annotationTypes";
 import getDateString from "~/modules/app/helpers/getDateString";
+import {
+  projectRunSetRunUrl,
+  projectRunUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { getRunModelDisplayName } from "~/modules/runs/helpers/runModel";
 import {
   STATUS_META,
@@ -10,10 +15,11 @@ import {
 import type { Run } from "~/modules/runs/runs.types";
 
 interface Options {
+  teamId: string;
   runSetId?: string;
 }
 
-export default function getRunsItemAttributes(item: Run, options?: Options) {
+export default function getRunsItemAttributes(item: Run, options: Options) {
   const promptName = get(item, "snapshot.prompt.name", "");
 
   const statusKey = getRunStatusKey(item);
@@ -61,9 +67,10 @@ export default function getRunsItemAttributes(item: Run, options?: Options) {
     text: `Created at - ${getDateString(item.createdAt)}`,
   });
 
-  const to = options?.runSetId
-    ? `/projects/${item.project}/run-sets/${options.runSetId}/runs/${item._id}`
-    : `/projects/${item.project}/runs/${item._id}`;
+  const projectId = getReferenceId(item.project);
+  const to = options.runSetId
+    ? projectRunSetRunUrl(options.teamId, projectId, options.runSetId, item._id)
+    : projectRunUrl(options.teamId, projectId, item._id);
 
   return {
     id: item._id,

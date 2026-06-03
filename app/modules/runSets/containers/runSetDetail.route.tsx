@@ -19,6 +19,12 @@ import getAnnotationFieldsFromRuns from "~/modules/humanAnnotations/helpers/getA
 import { useUploadHumanAnnotations } from "~/modules/humanAnnotations/hooks/useUploadHumanAnnotations";
 import type { AnnotationTemplateConfig } from "~/modules/humanAnnotations/humanAnnotations.types";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectCreateRunSetUrl,
+  projectRunSetUrl,
+  projectRunSetsUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { RunService } from "~/modules/runs/run";
 import RunSetDetail from "~/modules/runSets/components/runSetDetail";
@@ -31,7 +37,10 @@ import type { Route } from "./+types/runSetDetail.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return redirect("/");
   }
@@ -45,7 +54,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     project: params.projectId,
   });
   if (!runSet) {
-    return redirect(`/projects/${params.projectId}/run-sets`);
+    return redirect(projectRunSetsUrl(params.teamId, params.projectId));
   }
 
   const runIds = runSet.runs ?? [];
@@ -86,7 +95,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return data({ errors: { project: "Project not found" } }, { status: 404 });
   }
@@ -154,7 +166,7 @@ const debounceRevalidate = throttle((revalidate) => {
   revalidate();
 }, 500);
 
-export default function RunSetDetailRoute() {
+export default function RunSetDetailRoute({ params }: Route.ComponentProps) {
   const { runSet, project, annotationProgress, availableAnnotationFields } =
     useLoaderData<typeof loader>();
   const runIds = runSet.runs ?? [];
@@ -169,7 +181,7 @@ export default function RunSetDetailRoute() {
   const activeView = last === "evaluations" ? "evaluations" : "overview";
 
   const onActiveViewChange = (value: string) => {
-    const basePath = `/projects/${project._id}/run-sets/${runSet._id}`;
+    const basePath = projectRunSetUrl(params.teamId, project._id, runSet._id);
     if (value === "overview") {
       navigate(basePath);
     } else {
@@ -182,9 +194,10 @@ export default function RunSetDetailRoute() {
     openDeleteRunSetDialog,
     openDuplicateRunSetDialog,
   } = useRunSetActions({
+    teamId: params.teamId,
     projectId: project._id,
     onDeleteSuccess: () => {
-      navigate(`/projects/${project._id}/run-sets`);
+      navigate(projectRunSetsUrl(params.teamId, project._id));
     },
   });
 
@@ -305,15 +318,18 @@ export default function RunSetDetailRoute() {
 
   const breadcrumbs = [
     { text: "Projects", link: "/" },
-    { text: project.name, link: `/projects/${project._id}` },
-    { text: "Run Sets", link: `/projects/${project._id}/run-sets` },
+    { text: project.name, link: projectUrl(params.teamId, project._id) },
+    {
+      text: "Run Sets",
+      link: projectRunSetsUrl(params.teamId, project._id),
+    },
   ] as Breadcrumb[];
 
   if (activeView === "evaluations") {
     breadcrumbs.push(
       {
         text: runSet.name,
-        link: `/projects/${project._id}/run-sets/${runSet._id}`,
+        link: projectRunSetUrl(params.teamId, project._id, runSet._id),
       },
       {
         text: "Evaluations",
@@ -333,17 +349,21 @@ export default function RunSetDetailRoute() {
       onStopAllRunsClicked={openStopRunSetDialog}
       onExportRunSetButtonClicked={onExportRunSetButtonClicked}
       onAddRunsClicked={() =>
-        navigate(`/projects/${project._id}/run-sets/${runSet._id}/add-runs`)
+        navigate(
+          `${projectRunSetUrl(params.teamId, project._id, runSet._id)}/add-runs`,
+        )
       }
       onUploadHumanAnnotationsClicked={openUploadHumanAnnotationsDialog}
       onDownloadAnnotationTemplateClicked={openDownloadAnnotationTemplateDialog}
       onMergeClicked={() =>
-        navigate(`/projects/${project._id}/run-sets/${runSet._id}/merge`)
+        navigate(
+          `${projectRunSetUrl(params.teamId, project._id, runSet._id)}/merge`,
+        )
       }
       onDuplicateClicked={() => openDuplicateRunSetDialog(runSet)}
       onUseAsTemplateClicked={() =>
         navigate(
-          `/projects/${project._id}/create-run-set?fromRunSet=${runSet._id}`,
+          `${projectCreateRunSetUrl(params.teamId, project._id)}?fromRunSet=${runSet._id}`,
         )
       }
       onEditClicked={() => openEditRunSetDialog(runSet)}

@@ -13,7 +13,9 @@ import { Label } from "@/components/ui/label";
 import { AlertCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
+import getReferenceId from "~/helpers/getReferenceId";
 import addDialog from "~/modules/dialogs/addDialog";
+import { projectUrl } from "../helpers/projectUrls";
 import type { Project } from "../projects.types";
 import ProjectNameAlert from "./projectNameAlert";
 
@@ -45,13 +47,12 @@ const EditProjectDialog = ({
     fetcher.submit(
       JSON.stringify({
         intent: "UPDATE_PROJECT",
-        entityId: project._id,
         payload: { name: updatedProject.name },
       }),
       {
         method: "PUT",
         encType: "application/json",
-        action: "/api/projects",
+        action: projectUrl(getReferenceId(project.team), project._id),
       },
     );
   };

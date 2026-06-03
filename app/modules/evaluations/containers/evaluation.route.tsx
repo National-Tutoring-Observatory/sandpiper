@@ -18,6 +18,11 @@ import { EvaluationService } from "~/modules/evaluations/evaluation";
 import getTopPerformersVsGoldLabel from "~/modules/evaluations/helpers/getTopPerformersVsGoldLabel";
 
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectRunSetUrl,
+  projectRunSetsUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { RunService } from "~/modules/runs/run";
 import { RunSetService } from "~/modules/runSets/runSet";
@@ -26,7 +31,10 @@ import type { Route } from "./+types/evaluation.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return redirect("/");
   }
@@ -40,7 +48,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     project: params.projectId,
   });
   if (!runSet) {
-    return redirect(`/projects/${params.projectId}/run-sets`);
+    return redirect(projectRunSetsUrl(params.teamId, params.projectId));
   }
 
   const evaluation = await EvaluationService.findOne({
@@ -49,7 +57,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
   if (!evaluation) {
     return redirect(
-      `/projects/${params.projectId}/run-sets/${params.runSetId}/evaluations`,
+      `${projectRunSetUrl(params.teamId, params.projectId, params.runSetId)}/evaluations`,
     );
   }
 
@@ -70,7 +78,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return data({ errors: { project: "Project not found" } }, { status: 404 });
   }
@@ -132,7 +143,7 @@ const debounceRevalidate = throttle((revalidate) => {
   revalidate();
 }, 2000);
 
-export default function EvaluationRoute() {
+export default function EvaluationRoute({ params }: Route.ComponentProps) {
   const { project, runSet, evaluation, evaluationPrompt, evaluationRuns } =
     useLoaderData<typeof loader>();
 
@@ -230,15 +241,18 @@ export default function EvaluationRoute() {
 
   const breadcrumbs = [
     { text: "Projects", link: "/" },
-    { text: project.name, link: `/projects/${project._id}` },
-    { text: "Run Sets", link: `/projects/${project._id}/run-sets` },
+    { text: project.name, link: projectUrl(params.teamId, project._id) },
+    {
+      text: "Run Sets",
+      link: projectRunSetsUrl(params.teamId, project._id),
+    },
     {
       text: runSet.name,
-      link: `/projects/${project._id}/run-sets/${runSet._id}`,
+      link: projectRunSetUrl(params.teamId, project._id, runSet._id),
     },
     {
       text: "Evaluations",
-      link: `/projects/${project._id}/run-sets/${runSet._id}/evaluations`,
+      link: `${projectRunSetUrl(params.teamId, project._id, runSet._id)}/evaluations`,
     },
     { text: evaluation.name },
   ];

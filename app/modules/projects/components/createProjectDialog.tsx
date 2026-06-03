@@ -14,21 +14,18 @@ import { AlertCircleIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import addDialog from "~/modules/dialogs/addDialog";
-import TeamsSelectorContainer from "~/modules/teams/containers/teamsSelector.container";
+import { projectsUrl } from "../helpers/projectUrls";
 import type { Project } from "../projects.types";
 import ProjectNameAlert from "./projectNameAlert";
 
 const CreateProjectDialog = ({
-  hasTeamSelection,
   teamId,
   onProjectCreated,
 }: {
-  hasTeamSelection: boolean;
-  teamId?: string;
+  teamId: string;
   onProjectCreated: (project: Project) => void;
 }) => {
   const [name, setName] = useState("");
-  const [team, setTeam] = useState<string | null>(teamId ?? null);
   const fetcher = useFetcher();
 
   const isSubmitting = fetcher.state !== "idle";
@@ -45,28 +42,18 @@ const CreateProjectDialog = ({
     setName(event.target.value);
   };
 
-  const onTeamSelected = (selectedTeam: string) => {
-    setTeam(selectedTeam);
-  };
-
   const onSubmit = () => {
     fetcher.submit(
-      JSON.stringify({ intent: "CREATE_PROJECT", payload: { name, team } }),
-      { method: "POST", encType: "application/json", action: "/api/projects" },
+      JSON.stringify({ intent: "CREATE_PROJECT", payload: { name } }),
+      {
+        method: "POST",
+        encType: "application/json",
+        action: projectsUrl(teamId),
+      },
     );
   };
 
-  let isSubmitButtonDisabled = true;
-
-  if (name.trim().length >= 3) {
-    if (hasTeamSelection) {
-      if (team) {
-        isSubmitButtonDisabled = false;
-      }
-    } else {
-      isSubmitButtonDisabled = false;
-    }
-  }
+  const isSubmitButtonDisabled = name.trim().length < 3;
 
   return (
     <DialogContent>
@@ -96,12 +83,6 @@ const CreateProjectDialog = ({
           <ProjectNameAlert name={name} />
         )}
       </div>
-      {hasTeamSelection && (
-        <div className="grid gap-3">
-          <Label htmlFor="name-1">Team</Label>
-          <TeamsSelectorContainer team={team} onTeamSelected={onTeamSelected} />
-        </div>
-      )}
       <DialogFooter className="justify-end">
         <DialogClose asChild>
           <Button type="button" variant="secondary" disabled={isSubmitting}>

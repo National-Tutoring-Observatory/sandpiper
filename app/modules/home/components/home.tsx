@@ -15,6 +15,10 @@ import type { ReactNode } from "react";
 import { useState } from "react";
 import { Link } from "react-router";
 import {
+  PROJECTS_CREATE_PARAM,
+  projectsUrl,
+} from "~/modules/projects/helpers/projectUrls";
+import {
   PROMPTS_CREATE_PARAM,
   promptsUrl,
 } from "~/modules/prompts/helpers/promptUrls";
@@ -97,7 +101,9 @@ export default function Home({
           <h2 className="text-xl font-semibold">Get Started</h2>
           <div className="flex items-center gap-3">
             <Button asChild>
-              <Link to="/projects" state={{ create: true }}>
+              <Link
+                to={`${projectsUrl(activeTeamId)}?${PROJECTS_CREATE_PARAM}=1`}
+              >
                 <FolderOpen className="h-4 w-4" />
                 Start a Project
               </Link>

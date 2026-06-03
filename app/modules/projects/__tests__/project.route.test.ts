@@ -19,23 +19,27 @@ describe("project.route loader", () => {
   it("redirects to / when there is no session cookie", async () => {
     await expectAuthRequired(() =>
       loader({
-        request: new Request("http://localhost/projects/123"),
-        params: { id: "123" },
+        request: new Request("http://localhost/teams/123/projects/123"),
+        params: { teamId: "123", projectId: "123" },
       } as any),
     );
   });
 
   it("redirects to / when project not found", async () => {
     const user = await UserService.create({ username: "test_user" });
+    const team = await TeamService.create({ name: "Test Team" });
 
     const fakeProjectId = createValidId();
     const cookieHeader = await loginUser(user._id);
 
     const res = await loader({
-      request: new Request(`http://localhost/projects/${fakeProjectId}`, {
-        headers: { cookie: cookieHeader },
-      }),
-      params: { id: fakeProjectId },
+      request: new Request(
+        `http://localhost/teams/${team._id}/projects/${fakeProjectId}`,
+        {
+          headers: { cookie: cookieHeader },
+        },
+      ),
+      params: { teamId: team._id, projectId: fakeProjectId },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -56,10 +60,13 @@ describe("project.route loader", () => {
     const cookieHeader = await loginUser(otherUser._id);
 
     const res = await loader({
-      request: new Request("http://localhost/projects/" + project._id, {
-        headers: { cookie: cookieHeader },
-      }),
-      params: { id: project._id },
+      request: new Request(
+        `http://localhost/teams/${team._id}/projects/${project._id}`,
+        {
+          headers: { cookie: cookieHeader },
+        },
+      ),
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -85,10 +92,13 @@ describe("project.route loader", () => {
     const cookieHeader = await loginUser(user._id);
 
     const res = await loader({
-      request: new Request("http://localhost/projects/" + project._id, {
-        headers: { cookie: cookieHeader },
-      }),
-      params: { id: project._id },
+      request: new Request(
+        `http://localhost/teams/${team._id}/projects/${project._id}`,
+        {
+          headers: { cookie: cookieHeader },
+        },
+      ),
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);
@@ -117,15 +127,18 @@ describe("project.route loader", () => {
     const cookieHeader = await loginUser(user._id);
 
     const res = await loader({
-      request: new Request("http://localhost/projects/" + project._id, {
-        headers: { cookie: cookieHeader },
-      }),
-      params: { id: project._id },
+      request: new Request(
+        `http://localhost/teams/${team._id}/projects/${project._id}`,
+        {
+          headers: { cookie: cookieHeader },
+        },
+      ),
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
     expect((res as Response).headers.get("Location")).toBe(
-      `/projects/${project._id}/upload-files`,
+      `/teams/${team._id}/projects/${project._id}/upload-files`,
     );
   });
 });

@@ -7,21 +7,24 @@ import {
 import { Zap } from "lucide-react";
 import { Link } from "react-router";
 import getDateString from "~/modules/app/helpers/getDateString";
+import { projectRunSetUrl } from "~/modules/projects/helpers/projectUrls";
 import type { RunSet } from "~/modules/runSets/runSets.types";
 
 interface RunRunSetsItemProps {
+  teamId: string;
   projectId: string;
   runSet: RunSet;
 }
 
 export default function RunRunSetsItem({
+  teamId,
   projectId,
   runSet,
 }: RunRunSetsItemProps) {
   const runCount = runSet.runs?.length || 0;
 
   return (
-    <Link to={`/projects/${projectId}/run-sets/${runSet._id}`}>
+    <Link to={projectRunSetUrl(teamId, projectId, runSet._id)}>
       <HoverCard openDelay={200} closeDelay={100}>
         <HoverCardTrigger asChild>
           <Badge
