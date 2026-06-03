@@ -15,6 +15,7 @@ import { FileService } from "~/modules/files/file";
 import ProjectAuthorization from "~/modules/projects/authorization";
 import {
   projectFilesUrl,
+  projectsUrl,
   projectUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
@@ -184,7 +185,7 @@ export default function UploadFilesPageRoute({
     : "/";
 
   const breadcrumbs = [
-    { text: "Projects", link: "/" },
+    { text: "Projects", link: projectsUrl(params.teamId) },
     { text: project.name, link: backLink },
     { text: "Upload Files" },
   ];

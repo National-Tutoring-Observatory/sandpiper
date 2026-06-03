@@ -24,6 +24,7 @@ import {
   projectRunSetsUrl,
   projectRunUrl,
   projectUrl,
+  projectsUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import exportRun from "~/modules/runs/helpers/exportRun";
@@ -386,7 +387,7 @@ export default function ProjectRunRoute({ params }: Route.ComponentProps) {
     : [{ text: "Runs", link: projectUrl(params.teamId, project._id) }];
 
   const breadcrumbs = [
-    { text: "Projects", link: `/` },
+    { text: "Projects", link: projectsUrl(params.teamId) },
     { text: project.name, link: projectUrl(params.teamId, project._id) },
     ...parentBreadcrumbs,
     { text: run.name },
