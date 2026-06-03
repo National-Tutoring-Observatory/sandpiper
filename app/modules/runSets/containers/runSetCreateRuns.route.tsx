@@ -19,6 +19,7 @@ import {
   projectUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
+import { PromptService } from "~/modules/prompts/prompt";
 import createGeneralJob from "~/modules/queues/helpers/createGeneralJob";
 import { RunService } from "~/modules/runs/run";
 import getUsedPromptModels, {
@@ -100,6 +101,23 @@ export async function action({ request, params }: Route.ActionArgs) {
 
       if (Object.keys(errors).length > 0) {
         return data({ errors }, { status: 400 });
+      }
+
+      const promptIds: string[] = Array.from(
+        new Set(
+          definitions
+            .map((d: { prompt?: { promptId?: string } }) => d.prompt?.promptId)
+            .filter((id: unknown): id is string => typeof id === "string"),
+        ),
+      );
+      const prompts = await PromptService.find({
+        match: { _id: { $in: promptIds }, team: params.teamId },
+      });
+      if (prompts.length !== promptIds.length) {
+        return data(
+          { errors: { definitions: "One or more prompts not found" } },
+          { status: 404 },
+        );
       }
 
       const teamId =

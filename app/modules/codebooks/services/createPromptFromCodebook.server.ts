@@ -34,8 +34,10 @@ export default async function createPromptFromCodebook({
     throw new Error("Codebook not found");
   }
 
-  const codebookVersion =
-    await CodebookVersionService.findById(codebookVersionId);
+  const codebookVersion = await CodebookVersionService.findOne({
+    _id: codebookVersionId,
+    codebook: codebookId,
+  });
   if (!codebookVersion) {
     throw new Error("Codebook version not found");
   }

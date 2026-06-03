@@ -56,6 +56,7 @@ describe("runSetCreateRuns.route", () => {
     prompt = await PromptService.create({
       name: "Test Prompt",
       annotationType: "PER_UTTERANCE",
+      team: team._id,
     });
     await PromptVersionService.create({
       prompt: prompt._id,

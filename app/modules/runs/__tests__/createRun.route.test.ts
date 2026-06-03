@@ -323,6 +323,7 @@ describe("createRun.route action - insufficient credits", () => {
     const prompt = await PromptService.create({
       name: "Test Prompt",
       annotationType: "PER_UTTERANCE",
+      team: team._id,
     });
     promptId = prompt._id;
     await PromptVersionService.create({

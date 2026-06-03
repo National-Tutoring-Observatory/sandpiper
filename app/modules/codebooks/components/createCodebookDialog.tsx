@@ -11,29 +11,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
-import TeamsSelectorContainer from "~/modules/teams/containers/teamsSelector.container";
 import CodebookNameAlert from "./codebookNameAlert";
 
 const CreateCodebookDialog = ({
-  hasTeamSelection,
   onCreateNewCodebookClicked,
   isSubmitting = false,
 }: {
-  hasTeamSelection: boolean;
   onCreateNewCodebookClicked: ({
     name,
     description,
-    team,
   }: {
     name: string;
     description: string;
-    team: string | null;
   }) => void;
   isSubmitting?: boolean;
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [team, setTeam] = useState<string | null>(null);
 
   const onNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -45,20 +39,7 @@ const CreateCodebookDialog = ({
     setDescription(event.target.value);
   };
 
-  const onTeamSelected = (selectedTeam: string) => {
-    setTeam(selectedTeam);
-  };
-
-  let isSubmitButtonDisabled = true;
-  if (name.trim().length >= 3 && !isSubmitting) {
-    if (hasTeamSelection) {
-      if (team) {
-        isSubmitButtonDisabled = false;
-      }
-    } else {
-      isSubmitButtonDisabled = false;
-    }
-  }
+  const isSubmitButtonDisabled = name.trim().length < 3 || isSubmitting;
 
   return (
     <DialogContent>
@@ -91,15 +72,6 @@ const CreateCodebookDialog = ({
           defaultValue={description}
           onChange={onDescriptionChanged}
         />
-        {hasTeamSelection && (
-          <div className="grid gap-3">
-            <Label htmlFor="team-1">Team</Label>
-            <TeamsSelectorContainer
-              team={team}
-              onTeamSelected={onTeamSelected}
-            />
-          </div>
-        )}
       </div>
       <DialogFooter className="justify-end">
         <DialogClose asChild>
@@ -112,7 +84,7 @@ const CreateCodebookDialog = ({
             type="button"
             disabled={isSubmitButtonDisabled}
             onClick={() => {
-              onCreateNewCodebookClicked({ name, description, team });
+              onCreateNewCodebookClicked({ name, description });
             }}
           >
             Create codebook

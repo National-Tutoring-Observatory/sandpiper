@@ -18,49 +18,29 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 import { annotationTypeOptions } from "~/modules/annotations/helpers/annotationTypes";
-import TeamsSelectorContainer from "~/modules/teams/containers/teamsSelector.container";
 import PromptNameAlert from "./promptNameAlert";
 
 const CreatePromptDialog = ({
-  hasTeamSelection,
   onCreateNewPromptClicked,
   isSubmitting = false,
 }: {
-  hasTeamSelection: boolean;
   onCreateNewPromptClicked: ({
     name,
     annotationType,
-    team,
   }: {
     name: string;
     annotationType: string;
-    team: string | null;
   }) => void;
   isSubmitting?: boolean;
 }) => {
   const [name, setName] = useState("");
   const [annotationType, setAnnotationType] = useState("PER_UTTERANCE");
-  const [team, setTeam] = useState<string | null>(null);
 
   const onPromptNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
   };
 
-  const onTeamSelected = (selectedTeam: string) => {
-    setTeam(selectedTeam);
-  };
-
-  let isSubmitButtonDisabled = true;
-
-  if (name.trim().length >= 3 && !isSubmitting) {
-    if (hasTeamSelection) {
-      if (team) {
-        isSubmitButtonDisabled = false;
-      }
-    } else {
-      isSubmitButtonDisabled = false;
-    }
-  }
+  const isSubmitButtonDisabled = name.trim().length < 3 || isSubmitting;
 
   return (
     <DialogContent>
@@ -99,15 +79,6 @@ const CreatePromptDialog = ({
             ))}
           </SelectContent>
         </Select>
-        {hasTeamSelection && (
-          <div className="grid gap-3">
-            <Label htmlFor="name-1">Team</Label>
-            <TeamsSelectorContainer
-              team={team}
-              onTeamSelected={onTeamSelected}
-            />
-          </div>
-        )}
       </div>
       <DialogFooter className="justify-end">
         <DialogClose asChild>
@@ -119,7 +90,7 @@ const CreatePromptDialog = ({
           type="button"
           disabled={isSubmitButtonDisabled}
           onClick={() => {
-            onCreateNewPromptClicked({ name, team, annotationType });
+            onCreateNewPromptClicked({ name, annotationType });
           }}
         >
           Create prompt

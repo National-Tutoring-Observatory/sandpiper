@@ -33,7 +33,7 @@ describe("codebook.route action", () => {
         name: "Version 1",
         codebook: codebook._id,
         version: 1,
-         
+
         categories: [] as any,
       });
 
@@ -52,7 +52,6 @@ describe("codebook.route action", () => {
         params: { teamId: team._id, codebookId: codebook._id },
         context: {},
         unstable_pattern: "",
-         
       } as any)) as any;
 
       expect(response.data?.success).toBe(true);
@@ -85,7 +84,6 @@ describe("codebook.route action", () => {
           params: { teamId: team._id, codebookId: fakeId },
           context: {},
           unstable_pattern: "",
-           
         } as any),
       ).rejects.toThrow("Codebook not found");
     });
@@ -122,7 +120,6 @@ describe("codebook.route action", () => {
         params: { teamId: team._id, codebookId: codebook._id },
         context: {},
         unstable_pattern: "",
-         
       } as any)) as any;
 
       expect(response.data?.success).toBe(true);
@@ -161,7 +158,6 @@ describe("codebook.route action", () => {
         params: { teamId: team._id, codebookId: codebook._id },
         context: {},
         unstable_pattern: "",
-         
       } as any)) as any;
 
       expect(response.data?.success).toBe(true);
@@ -207,7 +203,6 @@ describe("codebook.route action", () => {
           params: { teamId: teamB._id, codebookId: codebook._id },
           context: {},
           unstable_pattern: "",
-           
         } as any),
       ).rejects.toThrow("Codebook not found");
     });

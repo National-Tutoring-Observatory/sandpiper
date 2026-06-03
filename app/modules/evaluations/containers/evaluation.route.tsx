@@ -24,6 +24,7 @@ import {
   projectUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
+import { PromptService } from "~/modules/prompts/prompt";
 import { RunService } from "~/modules/runs/run";
 import { RunSetService } from "~/modules/runSets/runSet";
 import type { Route } from "./+types/evaluation.route";
@@ -105,6 +106,17 @@ export async function action({ request, params }: Route.ActionArgs) {
         );
       }
 
+      const evaluation = await EvaluationService.findOne({
+        _id: params.evaluationId,
+        runSet: params.runSetId,
+      });
+      if (!evaluation) {
+        return data(
+          { errors: { evaluation: "Evaluation not found" } },
+          { status: 404 },
+        );
+      }
+
       const { selectedRuns } = payload;
 
       if (!Array.isArray(selectedRuns) || selectedRuns.length < 2) {
@@ -114,7 +126,26 @@ export async function action({ request, params }: Route.ActionArgs) {
         );
       }
 
+      const runSetRunIds = new Set(runSet.runs ?? []);
+      if (!selectedRuns.every((id: string) => runSetRunIds.has(id))) {
+        return data(
+          { errors: { runs: "Selected runs must belong to this run set" } },
+          { status: 400 },
+        );
+      }
+
       const { modelCode, promptId, promptVersion } = payload;
+
+      const promptDoc = await PromptService.findOne({
+        _id: promptId,
+        team: params.teamId,
+      });
+      if (!promptDoc) {
+        return data(
+          { errors: { prompt: "Prompt not found" } },
+          { status: 404 },
+        );
+      }
 
       await EvaluationService.startAdjudication({
         evaluationId: params.evaluationId,

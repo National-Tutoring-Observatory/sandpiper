@@ -20,6 +20,7 @@ import {
   projectUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
+import { PromptService } from "~/modules/prompts/prompt";
 import createGeneralJob from "~/modules/queues/helpers/createGeneralJob";
 import { RunService } from "~/modules/runs/run";
 import type { CreateRun as CreateRunPayload } from "~/modules/runs/runs.types";
@@ -110,6 +111,17 @@ export async function action({ request, params }: Route.ActionArgs) {
 
       if (Object.keys(errors).length > 0) {
         return data({ errors }, { status: 400 });
+      }
+
+      const promptDoc = await PromptService.findOne({
+        _id: prompt,
+        team: params.teamId,
+      });
+      if (!promptDoc) {
+        return data(
+          { errors: { prompt: "Prompt not found" } },
+          { status: 404 },
+        );
       }
 
       const teamId =
