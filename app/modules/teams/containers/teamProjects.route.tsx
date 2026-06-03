@@ -24,7 +24,7 @@ import type { Route } from "./+types/teamProjects.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
-  if (!TeamAuthorization.canView(user, params.id)) {
+  if (!TeamAuthorization.canView(user, params.teamId)) {
     return redirect("/");
   }
 
@@ -36,7 +36,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   const query = buildQueryFromParams({
-    match: { team: params.id },
+    match: { team: params.teamId },
     queryParams,
     searchableFields: ["name"],
     sortableFields: ["name", "createdAt"],
@@ -54,7 +54,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const user = await requireAuth({ request });
 
-  if (!ProjectAuthorization.canCreate(user, params.id)) {
+  if (!ProjectAuthorization.canCreate(user, params.teamId)) {
     throw new Error(
       "You do not have permission to create a project in this team.",
     );
@@ -65,7 +65,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       throw new Error("Project name is required and must be a string.");
     const project = await ProjectService.create({
       name,
-      team: params.id,
+      team: params.teamId,
       createdBy: user._id,
     });
     return {
@@ -83,7 +83,7 @@ export default function TeamProjectsRoute() {
   const ctx = useOutletContext<{ team: Team }>();
   const navigate = useNavigate();
   const user = useContext(AuthenticationContext) as User;
-  const teamId = params.id;
+  const teamId = params.teamId;
 
   const {
     searchValue,

@@ -25,8 +25,8 @@ import CreateTeamInviteLinkDialogContainer from "./createTeamInviteLinkDialog.co
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
-  if (!TeamAuthorization.Invites.canView(user, params.id)) {
-    return redirect(`/teams/${params.id}`);
+  if (!TeamAuthorization.Invites.canView(user, params.teamId)) {
+    return redirect(`/teams/${params.teamId}`);
   }
 
   const queryParams = getQueryParamsFromRequest(request, {
@@ -37,7 +37,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   const query = buildQueryFromParams({
-    match: { team: params.id },
+    match: { team: params.teamId },
     queryParams,
     searchableFields: ["name"],
     sortableFields: ["name", "createdAt", "usedCount"],
@@ -65,7 +65,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   const { intent, payload = {} } = await request.json();
 
   if (intent === "CREATE_TEAM_INVITE_LINK") {
-    if (!TeamAuthorization.Invites.canCreate(user, params.id)) {
+    if (!TeamAuthorization.Invites.canCreate(user, params.teamId)) {
       return data({ errors: { general: "Forbidden" } }, { status: 403 });
     }
     const name = typeof payload.name === "string" ? payload.name.trim() : "";
@@ -83,7 +83,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       );
     }
     const invite = await TeamInviteService.create({
-      team: params.id,
+      team: params.teamId,
       name,
       maxUses,
       createdBy: user._id,
@@ -91,20 +91,20 @@ export async function action({ request, params }: Route.ActionArgs) {
     trackServerEvent({
       name: "team_invite_link_created",
       userId: user._id,
-      params: { team_id: params.id, max_uses: maxUses },
+      params: { team_id: params.teamId, max_uses: maxUses },
     });
     return data({ success: true, invite });
   }
 
   if (intent === "REVOKE_TEAM_INVITE_LINK") {
-    if (!TeamAuthorization.Invites.canRevoke(user, params.id)) {
+    if (!TeamAuthorization.Invites.canRevoke(user, params.teamId)) {
       return data({ errors: { general: "Forbidden" } }, { status: 403 });
     }
     const inviteLinkId =
       typeof payload.inviteLinkId === "string" ? payload.inviteLinkId : "";
     const existing = await TeamInviteService.findOne({
       _id: inviteLinkId,
-      team: params.id,
+      team: params.teamId,
     });
     if (!existing) {
       return data({ errors: { general: "Not found" } }, { status: 404 });

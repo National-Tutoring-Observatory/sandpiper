@@ -26,7 +26,7 @@ import type { Route } from "./+types/teamPrompts.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
-  if (!TeamAuthorization.canView(user, params.id)) {
+  if (!TeamAuthorization.canView(user, params.teamId)) {
     return redirect("/");
   }
 
@@ -38,7 +38,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   const query = buildQueryFromParams({
-    match: { team: params.id, deletedAt: { $exists: false } },
+    match: { team: params.teamId, deletedAt: { $exists: false } },
     queryParams,
     searchableFields: ["name"],
     sortableFields: ["name", "createdAt"],
@@ -56,7 +56,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const user = await requireAuth({ request });
 
-  if (!PromptAuthorization.canCreate(user, params.id)) {
+  if (!PromptAuthorization.canCreate(user, params.teamId)) {
     throw new Error(
       "You do not have permission to create a prompt in this team.",
     );
@@ -69,7 +69,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     const prompt = await PromptService.create({
       name,
       annotationType,
-      team: params.id,
+      team: params.teamId,
       productionVersion: 1,
       createdBy: user._id,
     });

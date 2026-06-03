@@ -34,7 +34,7 @@ describe("teamPrompts.route", () => {
           headers: { cookie: cookieHeader },
           body,
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any)) as any;

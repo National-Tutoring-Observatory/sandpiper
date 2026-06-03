@@ -12,15 +12,15 @@ import type { Route } from "./+types/teamInviteLink.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
-  if (!TeamAuthorization.Invites.canView(user, params.id)) {
-    return redirect(`/teams/${params.id}`);
+  if (!TeamAuthorization.Invites.canView(user, params.teamId)) {
+    return redirect(`/teams/${params.teamId}`);
   }
 
   const invite = await TeamInviteService.findOne({
     _id: params.inviteLinkId,
-    team: params.id,
+    team: params.teamId,
   });
-  if (!invite) return redirect(`/teams/${params.id}/invite-links`);
+  if (!invite) return redirect(`/teams/${params.teamId}/invite-links`);
 
   const signups = await UserService.find({
     match: { "teams.viaTeamInvite": invite._id },
@@ -34,7 +34,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  if (!TeamAuthorization.Invites.canRevoke(user, params.id)) {
+  if (!TeamAuthorization.Invites.canRevoke(user, params.teamId)) {
     return data({ errors: { general: "Forbidden" } }, { status: 403 });
   }
 
@@ -45,7 +45,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const invite = await TeamInviteService.findOne({
     _id: params.inviteLinkId,
-    team: params.id,
+    team: params.teamId,
   });
   if (!invite) {
     return data({ errors: { general: "Not found" } }, { status: 404 });

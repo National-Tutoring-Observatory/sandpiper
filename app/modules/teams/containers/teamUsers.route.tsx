@@ -28,7 +28,7 @@ import InviteUserToTeamDialogContainer from "./inviteUserToTeamDialogContainer";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
-  if (!TeamAuthorization.Users.canView(user, params.id)) {
+  if (!TeamAuthorization.Users.canView(user, params.teamId)) {
     return redirect("/");
   }
 
@@ -40,7 +40,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   const query = buildQueryFromParams({
-    match: { "teams.team": params.id },
+    match: { "teams.team": params.teamId },
     queryParams,
     searchableFields: ["username"],
     sortableFields: ["username", "createdAt"],
@@ -59,7 +59,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   switch (intent) {
     case "ADD_SUPERADMIN_TO_TEAM": {
-      if (!TeamAuthorization.Users.canRequestAccess(user, params.id)) {
+      if (!TeamAuthorization.Users.canRequestAccess(user, params.teamId)) {
         throw new Error("Only super admins can add super admins to teams.");
       }
       const { reason, option } = payload;
@@ -67,7 +67,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         throw new Error("Invalid team assignment option");
       }
       await addSuperAdminToTeam({
-        teamId: params.id,
+        teamId: params.teamId,
         userId: user._id,
         performedByUserId: user._id,
         reason: reason.trim(),
@@ -76,7 +76,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       return {};
     }
     case "ADD_USERS_TO_TEAM": {
-      if (!TeamAuthorization.Users.canUpdate(user, params.id)) {
+      if (!TeamAuthorization.Users.canUpdate(user, params.teamId)) {
         throw new Error("You do not have permission to manage team users.");
       }
       for (const { userId: id, role } of (payload.users ?? []) as Array<{
@@ -89,14 +89,14 @@ export async function action({ request, params }: Route.ActionArgs) {
         const userDoc = await UserService.findById(id);
         if (userDoc) {
           if (!userDoc.teams) userDoc.teams = [];
-          userDoc.teams.push({ team: params.id, role: role as TeamRole });
+          userDoc.teams.push({ team: params.teamId, role: role as TeamRole });
           await UserService.updateById(id, { teams: userDoc.teams });
         }
       }
       return {};
     }
     case "UPDATE_USER_ROLE": {
-      if (!TeamAuthorization.Users.canUpdate(user, params.id)) {
+      if (!TeamAuthorization.Users.canUpdate(user, params.teamId)) {
         throw new Error("You do not have permission to manage team users.");
       }
       const { userId: targetUserId, role: newRole } = payload;
@@ -107,17 +107,17 @@ export async function action({ request, params }: Route.ActionArgs) {
       const targetUser = await UserService.findById(targetUserId);
       if (!targetUser) return {};
       const updatedTeams = targetUser.teams.map((t: UserTeam) =>
-        t.team === params.id ? { ...t, role: newRole } : t,
+        t.team === params.teamId ? { ...t, role: newRole } : t,
       );
       await UserService.updateById(targetUserId, { teams: updatedTeams });
       return {};
     }
     case "REMOVE_USER_FROM_TEAM":
-      if (!TeamAuthorization.Users.canUpdate(user, params.id)) {
+      if (!TeamAuthorization.Users.canUpdate(user, params.teamId)) {
         throw new Error("You do not have permission to manage team users.");
       }
       if (!userId) return {};
-      await UserService.removeTeam(userId, params.id);
+      await UserService.removeTeam(userId, params.teamId);
       return {};
     default:
       return {};

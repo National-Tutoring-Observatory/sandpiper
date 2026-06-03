@@ -18,7 +18,7 @@ describe("teamUsers.route", () => {
       await expectAuthRequired(() =>
         loader({
           request: new Request("http://localhost/"),
-          params: { id: team._id },
+          params: { teamId: team._id },
           unstable_pattern: "",
           context: {},
         } as any),
@@ -39,7 +39,7 @@ describe("teamUsers.route", () => {
         request: new Request("http://localhost/", {
           headers: { cookie: cookieHeader },
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -81,7 +81,7 @@ describe("teamUsers.route", () => {
         request: new Request("http://localhost/", {
           headers: { cookie: cookieHeader },
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -133,7 +133,7 @@ describe("teamUsers.route", () => {
           headers: { cookie: cookieHeader },
           body,
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -183,7 +183,7 @@ describe("teamUsers.route", () => {
           headers: { cookie: cookieHeader },
           body,
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -223,7 +223,7 @@ describe("teamUsers.route", () => {
             headers: { cookie: cookieHeader },
             body,
           }),
-          params: { id: team._id },
+          params: { teamId: team._id },
           unstable_pattern: "",
           context: {},
         } as any),
@@ -261,7 +261,7 @@ describe("teamUsers.route", () => {
           headers: { cookie: cookieHeader },
           body,
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -299,7 +299,7 @@ describe("teamUsers.route", () => {
             payload: { userId: target._id, role: "INVALID_ROLE" },
           }),
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -335,7 +335,7 @@ describe("teamUsers.route", () => {
             headers: { cookie: cookieHeader },
             body,
           }),
-          params: { id: team._id },
+          params: { teamId: team._id },
           unstable_pattern: "",
           context: {},
         } as any),
@@ -373,7 +373,7 @@ describe("teamUsers.route", () => {
           headers: { cookie: cookieHeader },
           body,
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -410,7 +410,7 @@ describe("teamUsers.route", () => {
             headers: { cookie: cookieHeader },
             body,
           }),
-          params: { id: team._id },
+          params: { teamId: team._id },
           unstable_pattern: "",
           context: {},
         } as any),
@@ -440,7 +440,7 @@ describe("teamUsers.route", () => {
           headers: { cookie: cookieHeader },
           body,
         }),
-        params: { id: team._id },
+        params: { teamId: team._id },
         unstable_pattern: "",
         context: {},
       } as any);

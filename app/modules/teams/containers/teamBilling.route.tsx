@@ -40,15 +40,15 @@ import type { Route } from "./+types/teamBilling.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  if (!TeamAuthorization.canView(user, params.id)) {
+  if (!TeamAuthorization.canView(user, params.teamId)) {
     return redirect("/");
   }
 
-  const team = await TeamService.findById(params.id);
+  const team = await TeamService.findById(params.teamId);
   if (!team) return redirect("/teams");
 
   if (!BillingAuthorization.canViewBilling(user, team, isBillingEnabled())) {
-    return redirect(`/teams/${params.id}/users`);
+    return redirect(`/teams/${params.teamId}/users`);
   }
 
   const creditsQueryParams = getQueryParamsFromRequest(
@@ -63,7 +63,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   );
 
   const creditsQuery = buildQueryFromParams({
-    match: { team: params.id },
+    match: { team: params.teamId },
     queryParams: creditsQueryParams,
     searchableFields: ["metadata.note"],
     sortableFields: ["createdAt", "amount"],
@@ -97,7 +97,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     pendingPlanChange,
     userCosts,
   ] = await Promise.all([
-    getBillingReportingSummary(params.id),
+    getBillingReportingSummary(params.teamId),
     BillingLedgerEntryService.paginate({
       match: {
         ...creditsQuery.match,
@@ -113,8 +113,8 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         )
       : Promise.resolve(null),
     canAssignPlan ? BillingPlanService.find() : Promise.resolve([]),
-    TeamBillingPlanService.getPendingPlanChange(params.id),
-    TeamBillingService.paginateUserCosts(params.id, userCostsQuery),
+    TeamBillingPlanService.getPendingPlanChange(params.teamId),
+    TeamBillingService.paginateUserCosts(params.teamId, userCostsQuery),
   ]);
 
   const { balanceSummary, closedPeriods } = billingReportingSummary;
@@ -163,7 +163,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     byModel: rawCostsByModel,
     bySource: costsBySource,
     overTime: costsOverTime,
-  } = await getBillingSpendAnalytics(params.id, spendGranularity);
+  } = await getBillingSpendAnalytics(params.teamId, spendGranularity);
 
   const costsByModel = rawCostsByModel.map((c) => ({
     ...c,
@@ -196,7 +196,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
   const { intent, payload = {} } = await request.json();
 
-  const team = await TeamService.findById(params.id);
+  const team = await TeamService.findById(params.teamId);
   if (!team) throw new Error("Team not found");
 
   switch (intent) {
@@ -233,7 +233,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         );
       }
       const result = await addCredits({
-        teamId: params.id,
+        teamId: params.teamId,
         amount: payload.amount,
         addedBy: user._id,
         note,
@@ -246,7 +246,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     case "SET_BILLING_USER": {
-      if (!BillingAuthorization.canSetBillingUser(user, params.id)) {
+      if (!BillingAuthorization.canSetBillingUser(user, params.teamId)) {
         return data(
           {
             errors: {
@@ -264,7 +264,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
       const isMember = await UserService.findOne({
         _id: payload.userId,
-        "teams.team": params.id,
+        "teams.team": params.teamId,
       });
       if (!isMember) {
         return data(
@@ -272,7 +272,9 @@ export async function action({ request, params }: Route.ActionArgs) {
           { status: 400 },
         );
       }
-      await TeamService.updateById(params.id, { billingUser: isMember._id });
+      await TeamService.updateById(params.teamId, {
+        billingUser: isMember._id,
+      });
       return data({ success: true, intent: "SET_BILLING_USER" });
     }
 
@@ -296,7 +298,7 @@ export async function action({ request, params }: Route.ActionArgs) {
           { status: 404 },
         );
       }
-      await TeamBillingPlanService.assignPlan(params.id, plan._id);
+      await TeamBillingPlanService.assignPlan(params.teamId, plan._id);
       return data({ success: true, intent: "ASSIGN_PLAN" });
     }
 
@@ -328,9 +330,9 @@ export async function action({ request, params }: Route.ActionArgs) {
         session = await StripeService.createCheckoutSession({
           customerId,
           amount,
-          successUrl: `${baseUrl}/teams/${params.id}/billing?topup=success`,
-          cancelUrl: `${baseUrl}/teams/${params.id}/billing`,
-          metadata: { teamId: params.id, userId: user._id.toString() },
+          successUrl: `${baseUrl}/teams/${params.teamId}/billing?topup=success`,
+          cancelUrl: `${baseUrl}/teams/${params.teamId}/billing`,
+          metadata: { teamId: params.teamId, userId: user._id.toString() },
         });
       } catch {
         return data(
