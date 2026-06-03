@@ -57,8 +57,10 @@ export default function useActiveTeam(): {
     if (teamIdFromUrl) return teamIdFromUrl;
     const stored = readStoredTeamId();
     if (stored && user?.teams.some((t) => t.team === stored)) return stored;
+    const personal = availableTeams.find((t) => t.isPersonal);
+    if (personal) return personal._id;
     return user?.teams[0]?.team ?? null;
-  }, [teamIdFromUrl, user]);
+  }, [teamIdFromUrl, user, availableTeams]);
 
   const activeTeam = useMemo(() => {
     if (!activeTeamId) return null;
