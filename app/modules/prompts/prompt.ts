@@ -68,6 +68,11 @@ export class PromptService {
     return doc ? this.toPrompt(doc) : null;
   }
 
+  static async findOne(match: Record<string, unknown>): Promise<Prompt | null> {
+    const doc = await PromptModel.findOne(match);
+    return doc ? this.toPrompt(doc) : null;
+  }
+
   static async create(data: Partial<Prompt>): Promise<Prompt> {
     const doc = await PromptModel.create(data);
     return this.toPrompt(doc);

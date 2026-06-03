@@ -9,6 +9,7 @@ type PromptVersionItemProps = {
   name: string;
   version: number;
   prompt: Prompt | string;
+  teamId: string;
   createdAt: string;
   isSelected: boolean;
   isProduction: boolean;
@@ -18,6 +19,7 @@ export default function PromptVersionItem({
   name,
   version,
   prompt,
+  teamId,
   createdAt,
   isSelected,
   isProduction,
@@ -27,7 +29,11 @@ export default function PromptVersionItem({
   });
 
   return (
-    <Link to={`/prompts/${prompt}/${version}`} replace className={className}>
+    <Link
+      to={`/teams/${teamId}/prompts/${prompt}/${version}`}
+      replace
+      className={className}
+    >
       <div className="mb-2">
         <Badge
           variant="outline"

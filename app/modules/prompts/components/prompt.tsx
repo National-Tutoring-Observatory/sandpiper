@@ -92,6 +92,7 @@ export default function Prompt({
               <PromptVersionItem
                 key={promptVersion._id}
                 prompt={promptVersion.prompt}
+                teamId={prompt.team as string}
                 name={promptVersion.name}
                 version={promptVersion.version}
                 createdAt={promptVersion.createdAt}

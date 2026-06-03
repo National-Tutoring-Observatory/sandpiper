@@ -24,7 +24,10 @@ import SavePromptVersionDialogContainer from "./savePromptVersionDialogContainer
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const prompt = await PromptService.findById(params.id);
+  const prompt = await PromptService.findOne({
+    _id: params.promptId,
+    team: params.teamId,
+  });
 
   if (!prompt) {
     return redirect("/");
@@ -36,7 +39,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const promptVersion = await PromptVersionService.findOne({
     version: Number(params.version),
-    prompt: params.id,
+    prompt: params.promptId,
   });
 
   if (!promptVersion) {

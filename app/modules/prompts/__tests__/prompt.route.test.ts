@@ -6,7 +6,7 @@ import { UserService } from "~/modules/users/user";
 import clearDocumentDB from "../../../../test/helpers/clearDocumentDB";
 import expectAuthRequired from "../../../../test/helpers/expectAuthRequired";
 import loginUser from "../../../../test/helpers/loginUser";
-import { action } from "../containers/prompt.route";
+import { action, loader } from "../containers/prompt.route";
 import { PromptService } from "../prompt";
 import { PromptVersionService } from "../promptVersion";
 
@@ -52,7 +52,7 @@ describe("prompt.route action", () => {
             payload: { version: 1 },
           }),
         }),
-        params: { id: prompt._id },
+        params: { teamId: team._id, promptId: prompt._id },
         context: {},
         unstable_pattern: "",
       } as any)) as any;
@@ -88,7 +88,7 @@ describe("prompt.route action", () => {
               payload: { version: 1 },
             }),
           }),
-          params: { id: prompt._id },
+          params: { teamId: team._id, promptId: prompt._id },
           context: {},
           unstable_pattern: "",
         } as any),
@@ -116,7 +116,7 @@ describe("prompt.route action", () => {
               payload: { version: 1 },
             }),
           }),
-          params: { id: fakeId },
+          params: { teamId: team._id, promptId: fakeId },
           context: {},
           unstable_pattern: "",
         } as any),
@@ -149,7 +149,7 @@ describe("prompt.route action", () => {
             payload: { version: 999 },
           }),
         }),
-        params: { id: prompt._id },
+        params: { teamId: team._id, promptId: prompt._id },
         context: {},
         unstable_pattern: "",
       } as any)) as any;
@@ -188,7 +188,7 @@ describe("prompt.route action", () => {
             payload: { name: "Updated Name" },
           }),
         }),
-        params: { id: prompt._id },
+        params: { teamId: team._id, promptId: prompt._id },
         context: {},
         unstable_pattern: "",
       } as any)) as any;
@@ -223,7 +223,7 @@ describe("prompt.route action", () => {
             payload: {},
           }),
         }),
-        params: { id: prompt._id },
+        params: { teamId: team._id, promptId: prompt._id },
         context: {},
         unstable_pattern: "",
       } as any)) as any;
@@ -261,7 +261,7 @@ describe("prompt.route action", () => {
             entityId: prompt._id,
           }),
         }),
-        params: { id: prompt._id },
+        params: { teamId: team._id, promptId: prompt._id },
         context: {},
         unstable_pattern: "",
       } as any)) as any;
@@ -304,7 +304,7 @@ describe("prompt.route action", () => {
               entityId: prompt._id,
             }),
           }),
-          params: { id: prompt._id },
+          params: { teamId: team._id, promptId: prompt._id },
           context: {},
           unstable_pattern: "",
         } as any),
@@ -363,7 +363,7 @@ describe("prompt.route action", () => {
             entityId: prompt._id,
           }),
         }),
-        params: { id: prompt._id },
+        params: { teamId: team._id, promptId: prompt._id },
         context: {},
         unstable_pattern: "",
       } as any)) as any;
@@ -371,5 +371,95 @@ describe("prompt.route action", () => {
       expect(response.init?.status).toBe(400);
       expect(response.data?.errors?.general).toContain("active run");
     });
+  });
+});
+
+describe("prompt.route loader", () => {
+  beforeEach(async () => {
+    await clearDocumentDB();
+  });
+
+  it("returns the prompt when teamId and promptId match", async () => {
+    const team = await TeamService.create({ name: "team A" });
+    const user = await UserService.create({
+      username: "owner",
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
+    const prompt = await PromptService.create({
+      name: "Owned",
+      annotationType: "PER_UTTERANCE",
+      team: team._id,
+      createdBy: user._id,
+    });
+    const cookieHeader = await loginUser(user._id);
+
+    const result = (await loader({
+      request: new Request(
+        `http://localhost/teams/${team._id}/prompts/${prompt._id}`,
+        { headers: { cookie: cookieHeader } },
+      ),
+      params: { teamId: team._id, promptId: prompt._id },
+      context: {},
+      unstable_pattern: "",
+    } as any)) as any;
+
+    expect(result.prompt?._id).toBe(prompt._id);
+    expect(Array.isArray(result.promptVersions)).toBe(true);
+  });
+
+  it("redirects to the team's prompts list when the prompt belongs to a different team (IDOR)", async () => {
+    const teamA = await TeamService.create({ name: "Team A" });
+    const teamB = await TeamService.create({ name: "Team B" });
+    const owner = await UserService.create({
+      username: "owner",
+      teams: [{ team: teamA._id, role: "ADMIN" }],
+    });
+    const attacker = await UserService.create({
+      username: "attacker",
+      teams: [{ team: teamB._id, role: "ADMIN" }],
+    });
+    const victimPrompt = await PromptService.create({
+      name: "Victim",
+      annotationType: "PER_UTTERANCE",
+      team: teamA._id,
+      createdBy: owner._id,
+    });
+    const cookieHeader = await loginUser(attacker._id);
+
+    const res = (await loader({
+      request: new Request(
+        `http://localhost/teams/${teamB._id}/prompts/${victimPrompt._id}`,
+        { headers: { cookie: cookieHeader } },
+      ),
+      params: { teamId: teamB._id, promptId: victimPrompt._id },
+      context: {},
+      unstable_pattern: "",
+    } as any)) as Response;
+
+    expect(res).toBeInstanceOf(Response);
+    expect(res.headers.get("Location")).toBe(`/teams/${teamB._id}/prompts`);
+  });
+
+  it("redirects to the team's prompts list when the prompt does not exist", async () => {
+    const team = await TeamService.create({ name: "team" });
+    const user = await UserService.create({
+      username: "user",
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
+    const cookieHeader = await loginUser(user._id);
+    const fakeId = new Types.ObjectId().toString();
+
+    const res = (await loader({
+      request: new Request(
+        `http://localhost/teams/${team._id}/prompts/${fakeId}`,
+        { headers: { cookie: cookieHeader } },
+      ),
+      params: { teamId: team._id, promptId: fakeId },
+      context: {},
+      unstable_pattern: "",
+    } as any)) as Response;
+
+    expect(res).toBeInstanceOf(Response);
+    expect(res.headers.get("Location")).toBe(`/teams/${team._id}/prompts`);
   });
 });

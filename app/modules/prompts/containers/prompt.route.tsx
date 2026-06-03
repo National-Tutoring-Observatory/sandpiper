@@ -20,15 +20,18 @@ import type { Route } from "./+types/prompt.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
-  const prompt = await PromptService.findById(params.id);
+  const prompt = await PromptService.findOne({
+    _id: params.promptId,
+    team: params.teamId,
+  });
   if (!prompt) {
-    return redirect("/prompts");
+    return redirect(`/teams/${params.teamId}/prompts`);
   }
   if (!PromptAuthorization.canView(user, prompt)) {
     throw new Error("You do not have permission to view this prompt.");
   }
   const promptVersions = await PromptVersionService.find({
-    match: { prompt: params.id },
+    match: { prompt: params.promptId },
     sort: { version: -1 },
   });
   return { prompt, promptVersions };
@@ -137,7 +140,7 @@ export default function PromptRoute() {
   const loaderData = useLoaderData<typeof loader>();
   const navigate = useNavigate();
 
-  const { id, version } = useParams();
+  const { teamId, promptId, version } = useParams();
 
   const fetcher = useFetcher();
 
@@ -146,14 +149,14 @@ export default function PromptRoute() {
   const canDelete = PromptAuthorization.canDelete(user, prompt);
 
   const { openEditPromptDialog, openDeletePromptDialog } = usePromptActions({
-    onDeleteSuccess: () => navigate("/prompts"),
+    onDeleteSuccess: () => navigate(`/teams/${teamId}/prompts`),
   });
 
   const submitCreatePromptVersion = () => {
     fetcher.submit(
       JSON.stringify({
         intent: "CREATE_PROMPT_VERSION",
-        entityId: id,
+        entityId: promptId,
         payload: { version },
       }),
       { method: "POST", encType: "application/json" },
@@ -167,13 +170,13 @@ export default function PromptRoute() {
         fetcher.data.intent === "CREATE_PROMPT_VERSION"
       ) {
         navigate(
-          `/prompts/${fetcher.data.data.prompt}/${fetcher.data.data.version}`,
+          `/teams/${teamId}/prompts/${fetcher.data.data.prompt}/${fetcher.data.data.version}`,
         );
       } else if (fetcher.data.errors) {
         toast.error(fetcher.data.errors.general || "An error occurred");
       }
     }
-  }, [fetcher.state, fetcher.data, navigate]);
+  }, [fetcher.state, fetcher.data, navigate, teamId]);
 
   const breadcrumbs = [
     {

@@ -13,7 +13,9 @@ export default function getTeamPromptsItemAttributes(
   return {
     id: item._id,
     title: item.name,
-    to: canView ? `/prompts/${item._id}/${item.productionVersion}` : undefined,
+    to: canView
+      ? `/teams/${item.team}/prompts/${item._id}/${item.productionVersion}`
+      : undefined,
     meta: [
       {
         text: `Annotation type - ${getAnnotationLabel(item.annotationType)}`,
