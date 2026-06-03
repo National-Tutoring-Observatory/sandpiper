@@ -14,6 +14,8 @@ import PromptAuthorization from "~/modules/prompts/authorization";
 import { usePromptActions } from "~/modules/prompts/hooks/usePromptActions";
 import { RunService } from "~/modules/runs/run";
 import Prompt from "../components/prompt";
+import getPromptTeamId from "../helpers/getPromptTeamId";
+import { promptsUrl } from "../helpers/promptUrls";
 import { PromptService } from "../prompt";
 import { PromptVersionService } from "../promptVersion";
 import type { Route } from "./+types/prompt.route";
@@ -25,7 +27,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     team: params.teamId,
   });
   if (!prompt) {
-    return redirect(`/teams/${params.teamId}/prompts`);
+    return redirect(promptsUrl(params.teamId));
   }
   if (!PromptAuthorization.canView(user, prompt)) {
     throw new Error("You do not have permission to view this prompt.");
@@ -149,7 +151,7 @@ export default function PromptRoute() {
   const canDelete = PromptAuthorization.canDelete(user, prompt);
 
   const { openEditPromptDialog, openDeletePromptDialog } = usePromptActions({
-    onDeleteSuccess: () => navigate(`/teams/${teamId}/prompts`),
+    onDeleteSuccess: () => navigate(promptsUrl(teamId!)),
   });
 
   const submitCreatePromptVersion = () => {
@@ -170,7 +172,11 @@ export default function PromptRoute() {
         fetcher.data.intent === "CREATE_PROMPT_VERSION"
       ) {
         navigate(
-          `/teams/${teamId}/prompts/${fetcher.data.data.prompt}/${fetcher.data.data.version}`,
+          promptsUrl(
+            teamId!,
+            fetcher.data.data.prompt,
+            fetcher.data.data.version,
+          ),
         );
       } else if (fetcher.data.errors) {
         toast.error(fetcher.data.errors.general || "An error occurred");
@@ -181,7 +187,7 @@ export default function PromptRoute() {
   const breadcrumbs = [
     {
       text: "Prompts",
-      link: `/teams/${prompt.team}/prompts`,
+      link: promptsUrl(getPromptTeamId(prompt)),
     },
     {
       text: prompt.name,

@@ -1,6 +1,8 @@
 import { getAnnotationLabel } from "~/modules/annotations/helpers/annotationTypes";
 import getDateString from "~/modules/app/helpers/getDateString";
 import PromptAuthorization from "~/modules/prompts/authorization";
+import getPromptTeamId from "~/modules/prompts/helpers/getPromptTeamId";
+import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 import type { Prompt } from "~/modules/prompts/prompts.types";
 import type { User } from "~/modules/users/users.types";
 
@@ -14,7 +16,7 @@ export default function getTeamPromptsItemAttributes(
     id: item._id,
     title: item.name,
     to: canView
-      ? `/teams/${item.team}/prompts/${item._id}/${item.productionVersion}`
+      ? promptsUrl(getPromptTeamId(item), item._id, item.productionVersion)
       : undefined,
     meta: [
       {

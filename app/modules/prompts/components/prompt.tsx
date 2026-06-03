@@ -10,6 +10,7 @@ import { Outlet } from "react-router";
 import { getAnnotationLabel } from "~/modules/annotations/helpers/annotationTypes";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
+import getPromptTeamId from "../helpers/getPromptTeamId";
 import type { Prompt, PromptVersion } from "../prompts.types";
 import PromptVersionItem from "./promptVersionItem";
 
@@ -91,8 +92,8 @@ export default function Prompt({
             return (
               <PromptVersionItem
                 key={promptVersion._id}
-                prompt={promptVersion.prompt}
-                teamId={prompt.team as string}
+                promptId={prompt._id}
+                teamId={getPromptTeamId(prompt)}
                 name={promptVersion.name}
                 version={promptVersion.version}
                 createdAt={promptVersion.createdAt}

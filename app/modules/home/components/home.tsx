@@ -14,6 +14,7 @@ import {
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Link } from "react-router";
+import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 
 export default function Home({
   onDownloadClicked,
@@ -100,7 +101,7 @@ export default function Home({
             </Button>
             <Button variant="outline" asChild disabled={!activeTeamId}>
               <Link
-                to={activeTeamId ? `/teams/${activeTeamId}/prompts` : "/teams"}
+                to={activeTeamId ? promptsUrl(activeTeamId) : "/teams"}
                 state={{ create: true }}
               >
                 <PenLine className="h-4 w-4" />
