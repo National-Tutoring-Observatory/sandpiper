@@ -3,12 +3,10 @@ import { expect, test } from "@playwright/test";
 
 async function navigateToBilling(page: Page) {
   await page.goto("/");
-  await page.getByRole("link", { name: "Teams", exact: true }).first().click();
   await page
-    .getByRole("link")
-    .filter({ hasText: "Research Team Alpha" })
+    .getByRole("link", { name: "Billing", exact: true })
+    .first()
     .click();
-  await page.getByRole("tab", { name: "Billing" }).click();
   await expect(page).toHaveURL(/\/teams\/[a-f0-9]+\/billing$/);
 }
 

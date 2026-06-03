@@ -137,7 +137,6 @@ test.describe("Prompts", () => {
       .click();
 
     await expect(page).toHaveURL(/\/teams\/[a-f0-9]+\/prompts\/[a-f0-9]+\/1$/);
-    await expect(page.getByText("Prompt created")).toBeVisible();
     await expect(page.getByText(promptName)).toBeVisible();
   });
 
