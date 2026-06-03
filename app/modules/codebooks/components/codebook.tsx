@@ -5,8 +5,9 @@ import {
   PageHeaderRight,
 } from "@/components/ui/pageHeader";
 import map from "lodash/map";
-import { CirclePlus, Pencil, Sparkles } from "lucide-react";
+import { CirclePlus, Pencil, Sparkles, Trash2 } from "lucide-react";
 import { Outlet } from "react-router";
+import getReferenceId from "~/helpers/getReferenceId";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 import type {
@@ -20,8 +21,10 @@ type CodebookProps = {
   codebookVersions: CodebookVersion[];
   version: number;
   breadcrumbs: Breadcrumb[];
+  canDelete: boolean;
   onCreateCodebookVersionClicked: () => void;
   onEditCodebookButtonClicked: (codebook: CodebookType) => void;
+  onDeleteCodebookButtonClicked: (codebook: CodebookType) => void;
   onCreatePromptFromCodebookClicked: () => void;
 };
 
@@ -30,10 +33,13 @@ export default function Codebook({
   codebookVersions,
   version,
   breadcrumbs,
+  canDelete,
   onCreateCodebookVersionClicked,
   onEditCodebookButtonClicked,
+  onDeleteCodebookButtonClicked,
   onCreatePromptFromCodebookClicked,
 }: CodebookProps) {
+  const teamId = getReferenceId(codebook.team);
   return (
     <div className="max-w-7xl p-8">
       <PageHeader>
@@ -59,6 +65,17 @@ export default function Codebook({
             >
               <Pencil />
               Edit
+            </Button>
+          )}
+          {canDelete && (
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-muted-foreground"
+              onClick={() => onDeleteCodebookButtonClicked(codebook)}
+            >
+              <Trash2 />
+              Delete
             </Button>
           )}
         </PageHeaderRight>
@@ -94,6 +111,7 @@ export default function Codebook({
             return (
               <CodebookVersionItem
                 key={codebookVersion._id}
+                teamId={teamId}
                 codebook={codebookVersion.codebook}
                 name={codebookVersion.name}
                 version={codebookVersion.version}

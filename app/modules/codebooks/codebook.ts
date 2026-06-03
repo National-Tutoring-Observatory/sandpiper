@@ -68,6 +68,13 @@ export class CodebookService {
     return doc ? this.toCodebook(doc) : null;
   }
 
+  static async findOne(
+    match: Record<string, unknown>,
+  ): Promise<Codebook | null> {
+    const doc = await CodebookModel.findOne(match);
+    return doc ? this.toCodebook(doc) : null;
+  }
+
   static async create(data: Partial<Codebook>): Promise<Codebook> {
     const doc = await CodebookModel.create(data);
     return this.toCodebook(doc);

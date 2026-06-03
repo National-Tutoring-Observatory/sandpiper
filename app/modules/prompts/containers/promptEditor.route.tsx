@@ -47,8 +47,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     return redirect("/");
   }
 
-  let codebookData: { _id: string; name: string; version: number } | null =
-    null;
+  let codebookData: {
+    _id: string;
+    name: string;
+    version: number;
+    teamId: string;
+  } | null = null;
 
   if (promptVersion.codebook) {
     const [codebook, codebookVersion] = await Promise.all([
@@ -60,6 +64,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
         _id: codebook._id,
         name: codebook.name,
         version: codebookVersion.version,
+        teamId: getReferenceId(codebook.team),
       };
     }
   }

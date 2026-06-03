@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router";
+import { codebookUrl } from "~/modules/codebooks/helpers/codebookUrls";
 import type { AnnotationSchemaItem, PromptVersion } from "../prompts.types";
 import AnnotationSchemaBuilder from "./annotationSchemaBuilder";
 
@@ -26,7 +27,12 @@ export default function PromptEditor({
   onToggleSystemPromptClicked,
 }: {
   promptVersion: PromptVersion;
-  codebook: { _id: string; name: string; version: number } | null;
+  codebook: {
+    _id: string;
+    name: string;
+    version: number;
+    teamId: string;
+  } | null;
   systemPrompt: string;
   isLoading: boolean;
   isProduction: boolean;
@@ -84,7 +90,7 @@ export default function PromptEditor({
           <div>{`Version: ${promptVersion.name}`}</div>
           {codebook && (
             <Link
-              to={`/codebooks/${codebook._id}/${codebook.version}`}
+              to={codebookUrl(codebook.teamId, codebook._id, codebook.version)}
               className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
             >
               <BookOpen className="h-3 w-3" />

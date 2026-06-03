@@ -228,7 +228,7 @@ export default function AppSidebar() {
                     <FeatureFlag flag="HAS_CODEBOOKS">
                       <SidebarMenuItem>
                         <SidebarMenuButton asChild>
-                          <NavLink to="/codebooks">
+                          <NavLink to={`/teams/${activeTeamId}/codebooks`}>
                             {({ isActive }) => (
                               <>
                                 <Notebook />

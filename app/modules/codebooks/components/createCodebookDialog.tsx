@@ -15,9 +15,11 @@ import TeamsSelectorContainer from "~/modules/teams/containers/teamsSelector.con
 import CodebookNameAlert from "./codebookNameAlert";
 
 const CreateCodebookDialog = ({
+  hasTeamSelection,
   onCreateNewCodebookClicked,
   isSubmitting = false,
 }: {
+  hasTeamSelection: boolean;
   onCreateNewCodebookClicked: ({
     name,
     description,
@@ -47,8 +49,16 @@ const CreateCodebookDialog = ({
     setTeam(selectedTeam);
   };
 
-  const isSubmitButtonDisabled =
-    name.trim().length < 3 || !team || isSubmitting;
+  let isSubmitButtonDisabled = true;
+  if (name.trim().length >= 3 && !isSubmitting) {
+    if (hasTeamSelection) {
+      if (team) {
+        isSubmitButtonDisabled = false;
+      }
+    } else {
+      isSubmitButtonDisabled = false;
+    }
+  }
 
   return (
     <DialogContent>
@@ -81,10 +91,15 @@ const CreateCodebookDialog = ({
           defaultValue={description}
           onChange={onDescriptionChanged}
         />
-        <div className="grid gap-3">
-          <Label htmlFor="team-1">Team</Label>
-          <TeamsSelectorContainer team={team} onTeamSelected={onTeamSelected} />
-        </div>
+        {hasTeamSelection && (
+          <div className="grid gap-3">
+            <Label htmlFor="team-1">Team</Label>
+            <TeamsSelectorContainer
+              team={team}
+              onTeamSelected={onTeamSelected}
+            />
+          </div>
+        )}
       </div>
       <DialogFooter className="justify-end">
         <DialogClose asChild>
