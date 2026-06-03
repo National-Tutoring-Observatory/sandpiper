@@ -6,6 +6,7 @@ import {
   useSubmit,
   type ShouldRevalidateFunctionArgs,
 } from "react-router";
+import getReferenceId from "~/helpers/getReferenceId";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import { CodebookService } from "~/modules/codebooks/codebook";
 import { CodebookVersionService } from "~/modules/codebooks/codebookVersion";
@@ -86,10 +87,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     throw new Error("Prompt version not found");
   }
 
-  const promptId =
-    typeof promptVersion.prompt === "string"
-      ? promptVersion.prompt
-      : promptVersion.prompt._id;
+  const promptId = getReferenceId(promptVersion.prompt);
   const prompt = await PromptService.findById(promptId);
 
   if (!prompt) {
