@@ -406,5 +406,57 @@ describe("runSetCreateRuns.route", () => {
       const unchanged = await RunSetService.findById(victimRunSet._id);
       expect(unchanged!.runs).toHaveLength(0);
     });
+
+    it("rejects a prompt that belongs to a different team (IDOR)", async () => {
+      const teamB = await TeamService.create({ name: "Team B" });
+      await UserService.updateById(user._id, {
+        teams: [
+          { team: team._id, role: "ADMIN" },
+          { team: teamB._id, role: "ADMIN" },
+        ],
+      });
+      const promptInB = await PromptService.create({
+        name: "Foreign Prompt",
+        annotationType: "PER_UTTERANCE",
+        team: teamB._id,
+      });
+      await PromptVersionService.create({
+        prompt: promptInB._id,
+        version: 1,
+        userPrompt: "leaked",
+        annotationSchema: [],
+      });
+
+      const res = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "CREATE_RUNS",
+            payload: {
+              definitions: [
+                {
+                  key: `${promptInB._id}:1:${testModel}`,
+                  modelCode: testModel,
+                  prompt: {
+                    promptId: promptInB._id,
+                    promptName: "Foreign",
+                    version: 1,
+                  },
+                },
+              ],
+            },
+          }),
+        }),
+        params: {
+          teamId: team._id,
+          projectId: project._id,
+          runSetId: runSet._id,
+        },
+      } as any)) as any;
+
+      expect(res.init?.status).toBe(404);
+      expect(res.data.errors.definitions).toBeDefined();
+    });
   });
 });
