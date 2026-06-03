@@ -13,6 +13,11 @@ import useHandleSockets from "~/modules/app/hooks/useHandleSockets";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import getSessionUserTeams from "~/modules/authentication/helpers/getSessionUserTeams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import {
+  projectCreateRunSetUrl,
+  projectCreateRunUrl,
+  projectRunUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { useCreateRunSetForRun } from "~/modules/runs/hooks/useCreateRunSetForRun";
 import { useRunActions } from "~/modules/runs/hooks/useRunActions";
@@ -26,9 +31,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const authenticationTeams = await getSessionUserTeams({ request });
   const teamIds = map(authenticationTeams, "team");
+  if (!teamIds.includes(params.teamId)) {
+    return redirect("/");
+  }
+
   const project = await ProjectService.findOne({
-    _id: params.id,
-    team: { $in: teamIds },
+    _id: params.projectId,
+    team: params.teamId,
   });
   if (!project) {
     return redirect("/");
@@ -42,7 +51,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   const query = buildQueryFromParams({
-    match: { project: params.id, isHuman: { $ne: true } },
+    match: { project: params.projectId, isHuman: { $ne: true } },
     queryParams,
     searchableFields: ["name"],
     sortableFields: ["name", "createdAt"],
@@ -56,14 +65,19 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export default function ProjectRunsRoute() {
   const { runs } = useLoaderData<typeof loader>();
-  const { id: projectId } = useParams();
+  const { teamId, projectId } = useParams() as {
+    teamId: string;
+    projectId: string;
+  };
   const navigate = useNavigate();
   const { revalidate } = useRevalidator();
   const { openCreateRunSetDialog } = useCreateRunSetForRun({
-    projectId: projectId!,
+    teamId,
+    projectId,
   });
   const { openEditRunDialog, openDeleteRunDialog } = useRunActions({
-    projectId: projectId!,
+    teamId,
+    projectId,
   });
 
   const {
@@ -84,11 +98,13 @@ export default function ProjectRunsRoute() {
   });
 
   const onCreateRunButtonClicked = () => {
-    navigate(`/projects/${projectId}/create-run`);
+    navigate(projectCreateRunUrl(teamId, projectId));
   };
 
   const onDuplicateRunButtonClicked = (run: Run) => {
-    navigate(`/projects/${projectId}/create-run?duplicateFrom=${run._id}`);
+    navigate(
+      `${projectCreateRunUrl(teamId, projectId)}?duplicateFrom=${run._id}`,
+    );
   };
 
   const onActionClicked = (action: string) => {
@@ -117,13 +133,13 @@ export default function ProjectRunsRoute() {
         openDeleteRunDialog(run);
         break;
       case "ADD_TO_EXISTING_RUN_SET":
-        navigate(`/projects/${projectId}/runs/${id}/add-to-run-set`);
+        navigate(`${projectRunUrl(teamId, projectId, id)}/add-to-run-set`);
         break;
       case "ADD_TO_NEW_RUN_SET":
         openCreateRunSetDialog(id);
         break;
       case "USE_AS_RUN_SET_TEMPLATE":
-        navigate(`/projects/${projectId}/create-run-set?fromRun=${id}`);
+        navigate(`${projectCreateRunSetUrl(teamId, projectId)}?fromRun=${id}`);
         break;
     }
   };
@@ -165,6 +181,7 @@ export default function ProjectRunsRoute() {
 
   return (
     <Runs
+      teamId={teamId}
       runs={runs.data}
       searchValue={searchValue}
       currentPage={currentPage}

@@ -7,6 +7,7 @@ import runSetsSortOptions from "~/modules/runSets/helpers/runSetsSortOptions";
 import type { RunSet } from "~/modules/runSets/runSets.types";
 
 interface RunSetsListProps {
+  teamId: string;
   runSets: RunSet[];
   totalPages: number;
   searchValue: string;
@@ -24,6 +25,7 @@ interface RunSetsListProps {
 }
 
 export default function RunSetsList({
+  teamId,
   runSets,
   totalPages,
   searchValue,
@@ -88,7 +90,7 @@ export default function RunSetsList({
         totalPages={totalPages}
         isSyncing={isSyncing}
         emptyAttributes={getRunSetsEmptyAttributes()}
-        getItemAttributes={getRunSetsItemAttributes}
+        getItemAttributes={(item) => getRunSetsItemAttributes(item, teamId)}
         getItemActions={getRunSetsItemActions}
         onActionClicked={handleActionClicked}
         onItemActionClicked={handleItemActionClicked}

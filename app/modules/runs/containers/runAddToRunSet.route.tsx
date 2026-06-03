@@ -11,6 +11,11 @@ import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromR
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectRunSetUrl,
+  projectRunUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { RunService } from "~/modules/runs/run";
 import { RunSetService } from "~/modules/runSets/runSet";
@@ -20,7 +25,10 @@ import type { Route } from "./+types/runAddToRunSet.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return redirect("/");
   }
@@ -34,7 +42,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     project: params.projectId,
   });
   if (!run) {
-    return redirect(`/projects/${params.projectId}`);
+    return redirect(projectUrl(params.teamId, params.projectId));
   }
 
   const queryParams = getQueryParamsFromRequest(request, {
@@ -64,7 +72,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return data({ errors: { project: "Project not found" } }, { status: 404 });
   }
@@ -95,7 +106,11 @@ export async function action({ request, params }: Route.ActionArgs) {
         intent: "ADD_TO_RUN_SETS",
         data: {
           count: runSetIds.length,
-          redirectTo: `/projects/${params.projectId}/runs/${params.runId}`,
+          redirectTo: projectRunUrl(
+            params.teamId,
+            params.projectId,
+            params.runId,
+          ),
         },
       });
     }
@@ -119,7 +134,11 @@ export async function action({ request, params }: Route.ActionArgs) {
         success: true,
         intent: "CREATE_RUN_SET",
         data: {
-          redirectTo: `/projects/${params.projectId}/run-sets/${runSet._id}`,
+          redirectTo: projectRunSetUrl(
+            params.teamId,
+            params.projectId,
+            runSet._id,
+          ),
         },
       });
     }
@@ -129,7 +148,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function RunAddToRunSetRoute() {
+export default function RunAddToRunSetRoute({ params }: Route.ComponentProps) {
   const { project, run, eligibleRunSets, totalEligibleRunSets, totalPages } =
     useLoaderData<typeof loader>();
   const fetcher = useFetcher();
@@ -171,11 +190,11 @@ export default function RunAddToRunSetRoute() {
 
   const breadcrumbs = [
     { text: "Projects", link: "/" },
-    { text: project.name, link: `/projects/${project._id}` },
-    { text: "Runs", link: `/projects/${project._id}` },
+    { text: project.name, link: projectUrl(params.teamId, project._id) },
+    { text: "Runs", link: projectUrl(params.teamId, project._id) },
     {
       text: run.name,
-      link: `/projects/${project._id}/runs/${run._id}`,
+      link: projectRunUrl(params.teamId, project._id, run._id),
     },
     { text: "Add to Run Set" },
   ];
@@ -195,7 +214,7 @@ export default function RunAddToRunSetRoute() {
         if (window.history.length > 1) {
           navigate(-1);
         } else {
-          navigate(`/projects/${project._id}/runs/${run._id}`);
+          navigate(projectRunUrl(params.teamId, project._id, run._id));
         }
       }}
       onSearchValueChanged={setSearchValue}

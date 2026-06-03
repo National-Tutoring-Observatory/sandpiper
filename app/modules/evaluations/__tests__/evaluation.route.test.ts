@@ -60,6 +60,7 @@ describe("evaluation.route loader - IDOR protection", () => {
         headers: { cookie: attackerCookie },
       }),
       params: {
+        teamId: teamB._id,
         projectId: projectB._id,
         runSetId: victimRunSet._id,
         evaluationId: victimEvaluation._id,
@@ -68,7 +69,7 @@ describe("evaluation.route loader - IDOR protection", () => {
 
     expect(res).toBeInstanceOf(Response);
     expect((res as Response).headers.get("Location")).toBe(
-      `/projects/${projectB._id}/run-sets`,
+      `/teams/${teamB._id}/projects/${projectB._id}/run-sets`,
     );
   });
 
@@ -109,6 +110,7 @@ describe("evaluation.route loader - IDOR protection", () => {
         headers: { cookie: cookieHeader },
       }),
       params: {
+        teamId: team._id,
         projectId: project._id,
         runSetId: ownRunSet._id,
         evaluationId: evaluationInOtherRunSet._id,
@@ -117,7 +119,7 @@ describe("evaluation.route loader - IDOR protection", () => {
 
     expect(res).toBeInstanceOf(Response);
     expect((res as Response).headers.get("Location")).toBe(
-      `/projects/${project._id}/run-sets/${ownRunSet._id}/evaluations`,
+      `/teams/${team._id}/projects/${project._id}/run-sets/${ownRunSet._id}/evaluations`,
     );
   });
 });

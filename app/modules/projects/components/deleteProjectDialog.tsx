@@ -18,7 +18,7 @@ const DeleteProjectDialog = ({
   isSubmitting = false,
 }: {
   project: Project;
-  onDeleteProjectClicked: (id: string) => void;
+  onDeleteProjectClicked: () => void;
   isSubmitting?: boolean;
 }) => {
   const [projectName, setProjectName] = useState("");
@@ -76,7 +76,7 @@ const DeleteProjectDialog = ({
             disabled={isDeleteButtonDisabled || isSubmitting}
             variant="destructive"
             onClick={() => {
-              onDeleteProjectClicked(project._id);
+              onDeleteProjectClicked();
               setProjectName("");
             }}
           >

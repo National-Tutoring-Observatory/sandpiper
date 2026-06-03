@@ -5,6 +5,7 @@ import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import { EvaluationService } from "~/modules/evaluations/evaluation";
 import isAbleToCreateEvaluation from "~/modules/evaluations/helpers/isAbleToCreateEvaluation";
+import { projectRunSetUrl } from "~/modules/projects/helpers/projectUrls";
 import RunSetEvaluations from "~/modules/runSets/components/runSetEvaluations";
 import type { RunSet } from "~/modules/runSets/runSets.types";
 import type { Route } from "./+types/runSetEvaluations.route";
@@ -37,7 +38,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   };
 }
 
-export default function RunSetEvaluationsRoute() {
+export default function RunSetEvaluationsRoute({
+  params,
+}: Route.ComponentProps) {
   const { evaluations } = useLoaderData<typeof loader>();
   const { runSet, project } = useOutletContext<{
     runSet: RunSet;
@@ -65,13 +68,14 @@ export default function RunSetEvaluationsRoute() {
   const onActionClicked = (action: string) => {
     if (action === "CREATE_EVALUATION") {
       navigate(
-        `/projects/${project._id}/run-sets/${runSet._id}/create-evaluation`,
+        `${projectRunSetUrl(params.teamId, project._id, runSet._id)}/create-evaluation`,
       );
     }
   };
 
   return (
     <RunSetEvaluations
+      teamId={params.teamId}
       evaluations={evaluations.data}
       totalPages={evaluations.totalPages}
       currentPage={currentPage}

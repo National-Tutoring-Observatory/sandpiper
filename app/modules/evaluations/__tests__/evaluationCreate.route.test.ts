@@ -53,18 +53,23 @@ describe("evaluationCreate.route loader - IDOR protection", () => {
       request: new Request("http://localhost/", {
         headers: { cookie: attackerCookie },
       }),
-      params: { projectId: projectB._id, runSetId: victimRunSet._id },
+      params: {
+        teamId: teamB._id,
+        projectId: projectB._id,
+        runSetId: victimRunSet._id,
+      },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
     expect((res as Response).headers.get("Location")).toBe(
-      `/projects/${projectB._id}/run-sets`,
+      `/teams/${teamB._id}/projects/${projectB._id}/run-sets`,
     );
   });
 });
 
 describe("evaluationCreate.route action - CREATE_EVALUATION authorization", () => {
   let cookieHeader: string;
+  let teamId: string;
   let projectId: string;
   let runSetId: string;
 
@@ -72,6 +77,7 @@ describe("evaluationCreate.route action - CREATE_EVALUATION authorization", () =
     await clearDocumentDB();
 
     const team = await TeamService.create({ name: "Team" });
+    teamId = team._id;
     const user = await UserService.create({
       username: "test_user",
       teams: [{ team: team._id, role: "ADMIN" }],
@@ -137,7 +143,7 @@ describe("evaluationCreate.route action - CREATE_EVALUATION authorization", () =
         },
         cookieHeader,
       ),
-      params: { projectId, runSetId },
+      params: { teamId, projectId, runSetId },
     } as any)) as any;
 
     expect(res.data.errors.runs).toMatch(/could not be found/i);

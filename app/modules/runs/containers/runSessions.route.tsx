@@ -9,6 +9,13 @@ import {
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import {
+  projectRunSetRunUrl,
+  projectRunSetUrl,
+  projectRunSetsUrl,
+  projectRunUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { RunService } from "~/modules/runs/run";
 import { RunSetService } from "~/modules/runSets/runSet";
@@ -23,9 +30,12 @@ export const meta: Route.MetaFunction = () => [
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
   const teamIds = map(user.teams, "team");
+  if (!teamIds.includes(params.teamId)) {
+    return redirect("/");
+  }
   const project = await ProjectService.findOne({
     _id: params.projectId,
-    team: { $in: teamIds },
+    team: params.teamId,
   });
   if (!project) {
     return redirect("/");
@@ -90,23 +100,23 @@ export default function ProjectRunSessionsRoute({
     ? [
         {
           text: "Run Sets",
-          link: `/projects/${project._id}/run-sets`,
+          link: projectRunSetsUrl(params.teamId, project._id),
         },
         {
           text: runSet.name,
-          link: `/projects/${project._id}/run-sets/${runSet._id}`,
+          link: projectRunSetUrl(params.teamId, project._id, runSet._id),
         },
       ]
     : [
         {
           text: "Runs",
-          link: `/projects/${project._id}`,
+          link: projectUrl(params.teamId, project._id),
         },
       ];
 
   const runLink = runSet
-    ? `/projects/${project._id}/run-sets/${runSet._id}/runs/${run._id}`
-    : `/projects/${project._id}/runs/${run._id}`;
+    ? projectRunSetRunUrl(params.teamId, project._id, runSet._id, run._id)
+    : projectRunUrl(params.teamId, project._id, run._id);
 
   const breadcrumbs = [
     {
@@ -115,7 +125,7 @@ export default function ProjectRunSessionsRoute({
     },
     {
       text: project.name,
-      link: `/projects/${project._id}`,
+      link: projectUrl(params.teamId, project._id),
     },
     ...parentBreadcrumbs,
     {

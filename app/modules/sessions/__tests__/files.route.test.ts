@@ -14,16 +14,20 @@ describe("files.route loader", () => {
   });
 
   it("redirects to / when project not found", async () => {
-    const user = await UserService.create({ username: "test_user" });
+    const team = await TeamService.create({ name: "Test Team" });
+    const user = await UserService.create({
+      username: "test_user",
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
     const cookieHeader = await loginUser(user._id);
     const fakeProjectId = new Types.ObjectId().toString();
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + fakeProjectId + "/files",
+        `http://localhost/teams/${team._id}/projects/${fakeProjectId}/files`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: fakeProjectId },
+      params: { teamId: team._id, projectId: fakeProjectId },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -48,10 +52,10 @@ describe("files.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/files",
+        `http://localhost/teams/${team._id}/projects/${project._id}/files`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { id: project._id.toString() },
+      params: { teamId: team._id, projectId: project._id.toString() },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);

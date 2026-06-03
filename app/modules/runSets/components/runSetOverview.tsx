@@ -10,6 +10,7 @@ import getSessionsItemAttributes from "~/modules/sessions/helpers/getSessionsIte
 import type { Session } from "~/modules/sessions/sessions.types";
 
 export default function RunSetOverview({
+  teamId,
   runSet,
   runs,
   runsTotalPages,
@@ -35,6 +36,7 @@ export default function RunSetOverview({
   onCreateRunsClicked,
   onRunActionClicked,
 }: {
+  teamId: string;
   runSet: RunSet;
   runs: Run[];
   runsTotalPages: number;
@@ -120,6 +122,7 @@ export default function RunSetOverview({
               ]}
               getItemAttributes={(item) =>
                 getRunsItemAttributes(item, {
+                  teamId,
                   runSetId: runSet._id,
                 })
               }

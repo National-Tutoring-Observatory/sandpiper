@@ -1,9 +1,11 @@
 import { useEffect } from "react";
 import { useFetcher } from "react-router";
 import { toast } from "sonner";
+import getReferenceId from "~/helpers/getReferenceId";
 import addDialog from "~/modules/dialogs/addDialog";
 import DeleteProjectDialog from "~/modules/projects/components/deleteProjectDialog";
 import EditProjectDialog from "~/modules/projects/components/editProjectDialog";
+import { projectUrl } from "~/modules/projects/helpers/projectUrls";
 import type { Project } from "~/modules/projects/projects.types";
 
 interface UseProjectActionsOptions {
@@ -16,8 +18,6 @@ export function useProjectActions({
   onDeleteSuccess,
 }: UseProjectActionsOptions = {}) {
   const deleteFetcher = useFetcher();
-
-  const actionUrl = "/api/projects";
 
   useEffect(() => {
     if (deleteFetcher.state === "idle" && deleteFetcher.data) {
@@ -34,11 +34,12 @@ export function useProjectActions({
     }
   }, [deleteFetcher.state, deleteFetcher.data]);
 
-  const submitDeleteProject = (projectId: string) => {
-    deleteFetcher.submit(
-      JSON.stringify({ intent: "DELETE_PROJECT", entityId: projectId }),
-      { method: "DELETE", encType: "application/json", action: actionUrl },
-    );
+  const submitDeleteProject = (project: Project) => {
+    deleteFetcher.submit(JSON.stringify({ intent: "DELETE_PROJECT" }), {
+      method: "DELETE",
+      encType: "application/json",
+      action: projectUrl(getReferenceId(project.team), project._id),
+    });
   };
 
   const openEditProjectDialog = (project: Project) => {
@@ -57,7 +58,7 @@ export function useProjectActions({
     addDialog(
       <DeleteProjectDialog
         project={project}
-        onDeleteProjectClicked={submitDeleteProject}
+        onDeleteProjectClicked={() => submitDeleteProject(project)}
       />,
     );
   };

@@ -19,6 +19,7 @@ const testModel = getAvailableProviders()[0].models[0].code;
 
 describe("createRun.route action - CREATE_AND_START_RUN validation", () => {
   let cookieHeader: string;
+  let teamId: string;
   let projectId: string;
 
   beforeEach(async () => {
@@ -26,6 +27,7 @@ describe("createRun.route action - CREATE_AND_START_RUN validation", () => {
 
     const user = await UserService.create({ username: "test_user", teams: [] });
     const team = await TeamService.create({ name: "Test Team" });
+    teamId = team._id;
     await UserService.updateById(user._id, {
       teams: [{ team: team._id, role: "ADMIN" }],
     });
@@ -68,7 +70,7 @@ describe("createRun.route action - CREATE_AND_START_RUN validation", () => {
           },
         }),
       }),
-      params: { projectId },
+      params: { teamId, projectId },
     } as any);
 
     expect((res as any).data.errors.project).toBeDefined();
@@ -83,7 +85,7 @@ describe("createRun.route action - CREATE_AND_START_RUN validation", () => {
         model: "gpt-4o",
         sessions: [new Types.ObjectId().toString()],
       }),
-      params: { projectId },
+      params: { teamId, projectId },
     } as any);
 
     expect((res as any).data.errors.name).toBeDefined();
@@ -99,7 +101,7 @@ describe("createRun.route action - CREATE_AND_START_RUN validation", () => {
         model: "gpt-4o",
         sessions: [new Types.ObjectId().toString()],
       }),
-      params: { projectId },
+      params: { teamId, projectId },
     } as any);
 
     expect((res as any).data.errors.name).toBeDefined();
@@ -115,7 +117,7 @@ describe("createRun.route action - CREATE_AND_START_RUN validation", () => {
         model: "gpt-4o",
         sessions: [new Types.ObjectId().toString()],
       }),
-      params: { projectId },
+      params: { teamId, projectId },
     } as any);
 
     expect((res as any).data.errors.name).toBeDefined();
@@ -131,7 +133,7 @@ describe("createRun.route action - CREATE_AND_START_RUN validation", () => {
         model: "gpt-4o",
         sessions: [],
       }),
-      params: { projectId },
+      params: { teamId, projectId },
     } as any);
 
     expect((res as any).data.errors.sessions).toBeDefined();
@@ -146,7 +148,7 @@ describe("createRun.route action - CREATE_AND_START_RUN validation", () => {
         model: "gpt-4o",
         sessions: [new Types.ObjectId().toString()],
       }),
-      params: { projectId },
+      params: { teamId, projectId },
     } as any);
 
     expect((res as any).data.errors.prompt).toBeDefined();
@@ -159,16 +161,20 @@ describe("createRun.route loader", () => {
   });
 
   it("redirects to / when project not found", async () => {
-    const user = await UserService.create({ username: "test_user" });
+    const team = await TeamService.create({ name: "Some Team" });
+    const user = await UserService.create({
+      username: "test_user",
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
     const cookieHeader = await loginUser(user._id);
     const fakeProjectId = new Types.ObjectId().toString();
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + fakeProjectId + "/create-run",
+        `http://localhost/teams/${team._id}/projects/${fakeProjectId}/create-run`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: fakeProjectId },
+      params: { teamId: team._id, projectId: fakeProjectId },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -197,10 +203,10 @@ describe("createRun.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/create-run",
+        `http://localhost/teams/${team._id}/projects/${project._id}/create-run`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -224,10 +230,10 @@ describe("createRun.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/create-run",
+        `http://localhost/teams/${team._id}/projects/${project._id}/create-run`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id },
+      params: { teamId: team._id, projectId: project._id },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);
@@ -274,10 +280,10 @@ describe("createRun.route loader", () => {
     const cookieHeader = await loginUser(attacker._id);
     const res = await loader({
       request: new Request(
-        `http://localhost/projects/${projectB._id}/create-run?duplicateFrom=${foreignRun._id}`,
+        `http://localhost/teams/${teamB._id}/projects/${projectB._id}/create-run?duplicateFrom=${foreignRun._id}`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: projectB._id },
+      params: { teamId: teamB._id, projectId: projectB._id },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);
@@ -287,6 +293,7 @@ describe("createRun.route loader", () => {
 
 describe("createRun.route action - insufficient credits", () => {
   let cookieHeader: string;
+  let teamId: string;
   let projectId: string;
   let sessionId: string;
   let promptId: string;
@@ -296,6 +303,7 @@ describe("createRun.route action - insufficient credits", () => {
 
     const user = await UserService.create({ username: "test_user", teams: [] });
     const team = await TeamService.create({ name: "Test Team" });
+    teamId = team._id;
     await UserService.updateById(user._id, {
       teams: [{ team: team._id, role: "ADMIN" }],
     });
@@ -351,7 +359,7 @@ describe("createRun.route action - insufficient credits", () => {
           },
         }),
       }),
-      params: { projectId },
+      params: { teamId, projectId },
     } as any);
 
     expect((res as any).init?.status).toBe(402);

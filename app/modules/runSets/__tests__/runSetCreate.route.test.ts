@@ -82,7 +82,7 @@ describe("runSetCreate.route", () => {
       await expectAuthRequired(() =>
         loader({
           request: new Request("http://localhost/"),
-          params: { projectId: project._id },
+          params: { teamId: team._id, projectId: project._id },
           unstable_pattern: "",
           context: {},
         } as any),
@@ -95,7 +95,7 @@ describe("runSetCreate.route", () => {
         request: new Request("http://localhost/", {
           headers: { cookie: cookieHeader },
         }),
-        params: { projectId: fakeId },
+        params: { teamId: team._id, projectId: fakeId },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -115,7 +115,7 @@ describe("runSetCreate.route", () => {
         request: new Request("http://localhost/", {
           headers: { cookie: otherCookie },
         }),
-        params: { projectId: project._id },
+        params: { teamId: team._id, projectId: project._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -129,7 +129,7 @@ describe("runSetCreate.route", () => {
         request: new Request("http://localhost/", {
           headers: { cookie: cookieHeader },
         }),
-        params: { projectId: project._id },
+        params: { teamId: team._id, projectId: project._id },
         unstable_pattern: "",
         context: {},
       } as any);
@@ -169,7 +169,7 @@ describe("runSetCreate.route", () => {
           headers: { cookie: cookieHeader },
           body,
         }),
-        params: { projectId: project._id },
+        params: { teamId: team._id, projectId: project._id },
         context: {},
       } as any);
 
@@ -216,7 +216,7 @@ describe("runSetCreate.route", () => {
           headers: { cookie: cookieHeader },
           body,
         }),
-        params: { projectId: project._id },
+        params: { teamId: team._id, projectId: project._id },
         context: {},
       } as any);
 
@@ -247,7 +247,7 @@ describe("runSetCreate.route", () => {
             method: "POST",
             body,
           }),
-          params: { projectId: project._id },
+          params: { teamId: team._id, projectId: project._id },
           context: {},
         } as any),
       );

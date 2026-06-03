@@ -43,6 +43,7 @@ import DownloadDropdown from "./downloadDropdown";
 import RunRunSets from "./runRunSets";
 
 export default function RunDetail({
+  teamId,
   run,
   isExporting,
   promptInfo,
@@ -73,6 +74,7 @@ export default function RunDetail({
   onSessionsSortValueChanged,
   onSessionsFiltersValueChanged,
 }: {
+  teamId: string;
   run: Run;
   isExporting: boolean;
   promptInfo: { name: string; version: number };
@@ -290,6 +292,7 @@ export default function RunDetail({
         )}
         <div className="mt-6">
           <RunRunSets
+            teamId={teamId}
             projectId={projectId}
             runId={run._id}
             runSets={runSets}
@@ -309,6 +312,7 @@ export default function RunDetail({
               itemsLayout="list"
               getItemAttributes={(item) =>
                 getRunSessionsItemAttributes(item, {
+                  teamId,
                   projectId,
                   runId: run._id,
                   runSetId,

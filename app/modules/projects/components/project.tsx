@@ -16,11 +16,18 @@ import clsx from "clsx";
 import { Pencil, Trash2 } from "lucide-react";
 import { useContext } from "react";
 import { Link, Outlet, useNavigate } from "react-router";
+import getReferenceId from "~/helpers/getReferenceId";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
 import ProjectAuthorization from "~/modules/projects/authorization";
 import type { User } from "~/modules/users/users.types";
+import {
+  projectFilesUrl,
+  projectRunSetsUrl,
+  projectSessionsUrl,
+  projectUrl,
+} from "../helpers/projectUrls";
 import type { Project } from "../projects.types";
 
 interface ProjectProps {
@@ -56,6 +63,7 @@ export default function Project({
   const user = useContext(AuthenticationContext) as User | null;
   const canUpdate = ProjectAuthorization.canUpdate(user, project);
   const canDelete = ProjectAuthorization.canDelete(user, project);
+  const teamId = getReferenceId(project.team);
 
   return (
     <div className="max-w-7xl p-8">
@@ -94,7 +102,7 @@ export default function Project({
       </PageHeader>
       <div className="grid grid-cols-4 gap-8">
         <Link
-          to={`/projects/${project._id}/files`}
+          to={projectFilesUrl(teamId, project._id)}
           replace
           className="focus-visible:ring-ring h-full rounded-xl focus-visible:ring-2 focus-visible:outline-none"
         >
@@ -125,7 +133,7 @@ export default function Project({
           </Card>
         </Link>
         <Link
-          to={`/projects/${project._id}/sessions`}
+          to={projectSessionsUrl(teamId, project._id)}
           replace
           className="focus-visible:ring-ring h-full rounded-xl focus-visible:ring-2 focus-visible:outline-none"
         >
@@ -161,7 +169,7 @@ export default function Project({
           </Card>
         </Link>
         <Link
-          to={`/projects/${project._id}`}
+          to={projectUrl(teamId, project._id)}
           replace
           className="focus-visible:ring-ring h-full rounded-xl focus-visible:ring-2 focus-visible:outline-none"
         >
@@ -191,7 +199,7 @@ export default function Project({
           </Card>
         </Link>
         <Link
-          to={`/projects/${project._id}/run-sets`}
+          to={projectRunSetsUrl(teamId, project._id)}
           replace
           className="focus-visible:ring-ring h-full rounded-xl focus-visible:ring-2 focus-visible:outline-none"
         >

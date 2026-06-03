@@ -2,17 +2,20 @@ import { useEffect } from "react";
 import { useFetcher } from "react-router";
 import { toast } from "sonner";
 import addDialog from "~/modules/dialogs/addDialog";
+import { projectRunUrl } from "~/modules/projects/helpers/projectUrls";
 import DeleteRunDialog from "~/modules/runs/components/deleteRunDialog";
 import EditRunDialog from "~/modules/runs/components/editRunDialog";
 import type { Run } from "~/modules/runs/runs.types";
 
 interface UseRunActionsOptions {
+  teamId: string;
   projectId: string;
   onUpdateSuccess?: () => void;
   onDeleteSuccess?: () => void;
 }
 
 export function useRunActions({
+  teamId,
   projectId,
   onUpdateSuccess,
   onDeleteSuccess,
@@ -44,7 +47,7 @@ export function useRunActions({
       {
         method: "PUT",
         encType: "application/json",
-        action: `/projects/${projectId}/runs/${run._id}`,
+        action: projectRunUrl(teamId, projectId, run._id),
       },
     );
   };
@@ -58,7 +61,7 @@ export function useRunActions({
       {
         method: "DELETE",
         encType: "application/json",
-        action: `/projects/${projectId}/runs/${runId}`,
+        action: projectRunUrl(teamId, projectId, runId),
       },
     );
   };

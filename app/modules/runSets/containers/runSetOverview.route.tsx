@@ -17,6 +17,10 @@ import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectRunSetUrl,
+  projectRunSetsUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import buildRunStatusMatch from "~/modules/runs/helpers/buildRunStatusMatch";
 import { RunService } from "~/modules/runs/run";
@@ -32,7 +36,10 @@ import type { Route } from "./+types/runSetOverview.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return redirect("/");
   }
@@ -46,7 +53,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     project: params.projectId,
   });
   if (!runSet) {
-    return redirect(`/projects/${params.projectId}/run-sets`);
+    return redirect(projectRunSetsUrl(params.teamId, params.projectId));
   }
 
   const runsQueryParams = getQueryParamsFromRequest(
@@ -107,7 +114,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return data({ errors: { project: "Project not found" } }, { status: 404 });
   }
@@ -140,7 +150,7 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function RunSetOverviewRoute() {
+export default function RunSetOverviewRoute({ params }: Route.ComponentProps) {
   const { runs, sessions } = useLoaderData<typeof loader>();
   const { runSet, project } = useOutletContext<{
     runSet: RunSet;
@@ -281,6 +291,7 @@ export default function RunSetOverviewRoute() {
 
   return (
     <RunSetOverview
+      teamId={params.teamId}
       runSet={runSet}
       runs={runs.data}
       runsTotalPages={runs.totalPages}
@@ -306,7 +317,9 @@ export default function RunSetOverviewRoute() {
       onSessionsCurrentPageChanged={setSessionsCurrentPage}
       onSessionsSortValueChanged={setSessionsSortValue}
       onCreateRunsClicked={() =>
-        navigate(`/projects/${project._id}/run-sets/${runSet._id}/create-runs`)
+        navigate(
+          `${projectRunSetUrl(params.teamId, project._id, runSet._id)}/create-runs`,
+        )
       }
       onRunActionClicked={onRunActionClicked}
     />

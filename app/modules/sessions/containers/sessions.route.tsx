@@ -17,7 +17,10 @@ import type { Route } from "./+types/sessions.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.id);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return redirect("/");
   }
@@ -34,7 +37,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   });
 
   const query = buildQueryFromParams({
-    match: { project: params.id },
+    match: { project: params.projectId },
     queryParams,
     searchableFields: ["name"],
     sortableFields: ["name", "createdAt"],
@@ -49,7 +52,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.id);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project || !ProjectAuthorization.canView(user, project)) {
     return redirect("/");
   }
@@ -59,11 +65,11 @@ export async function action({ request, params }: Route.ActionArgs) {
   switch (intent) {
     case "RE_RUN": {
       await createSessionsFromFiles({
-        projectId: params.id,
+        projectId: params.projectId,
         shouldCreateSessionModels: false,
       });
 
-      return await ProjectService.updateById(params.id, {
+      return await ProjectService.updateById(params.projectId, {
         isConvertingFiles: true,
       });
     }

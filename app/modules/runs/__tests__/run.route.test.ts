@@ -68,10 +68,14 @@ describe("run.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs/" + fakeRunId,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${fakeRunId}`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id, runId: fakeRunId },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: fakeRunId,
+      },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -107,10 +111,14 @@ describe("run.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs/" + run._id,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id, runId: run._id },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+      },
     } as any);
 
     expect(res).not.toBeInstanceOf(Response);
@@ -153,10 +161,14 @@ describe("run.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs/" + run._id,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id, runId: run._id },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+      },
     } as any);
 
     const loaderData = res as any;
@@ -200,10 +212,14 @@ describe("run.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs/" + run._id,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}`,
         { headers: { cookie: cookieHeader } },
       ),
-      params: { projectId: project._id, runId: run._id },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+      },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -250,10 +266,11 @@ describe("run.route loader", () => {
 
     const res = await loader({
       request: new Request(
-        `http://localhost/projects/${projectA._id}/run-sets/${runSetInProjectB._id}/runs/${run._id}`,
+        `http://localhost/teams/${team._id}/projects/${projectA._id}/run-sets/${runSetInProjectB._id}/runs/${run._id}`,
         { headers: { cookie: cookieHeader } },
       ),
       params: {
+        teamId: team._id,
         projectId: projectA._id,
         runId: run._id,
         runSetId: runSetInProjectB._id,
@@ -296,14 +313,18 @@ describe("run.route action", () => {
     await expectAuthRequired(() =>
       action({
         request: new Request(
-          "http://localhost/projects/" + project._id + "/runs/" + run._id,
+          `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}`,
           {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ intent: "DELETE_RUN", payload: {} }),
           },
         ),
-        params: { projectId: project._id, runId: run._id },
+        params: {
+          teamId: team._id,
+          projectId: project._id,
+          runId: run._id,
+        },
       } as any),
     );
   });
@@ -339,14 +360,18 @@ describe("run.route action", () => {
 
     const res = await action({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs/" + run._id,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}`,
         {
           method: "POST",
           headers: { cookie: cookieHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ intent: "DELETE_RUN", payload: {} }),
         },
       ),
-      params: { projectId: project._id, runId: run._id },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+      },
     } as any);
 
     expect(res).toBeInstanceOf(Response);
@@ -389,14 +414,18 @@ describe("run.route action", () => {
 
     const res = await action({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs/" + run._id,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}`,
         {
           method: "POST",
           headers: { cookie: cookieHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ intent: "GET_ALL_RUN_SETS" }),
         },
       ),
-      params: { projectId: project._id, runId: run._id },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+      },
     } as any);
 
     const data = res as any;
@@ -433,7 +462,7 @@ describe("run.route action", () => {
 
     const res = await action({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs/" + run._id,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}`,
         {
           method: "PUT",
           headers: { cookie: cookieHeader, "Content-Type": "application/json" },
@@ -443,7 +472,11 @@ describe("run.route action", () => {
           }),
         },
       ),
-      params: { projectId: project._id, runId: run._id },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+      },
     } as any);
 
     const data = res as any;
@@ -482,14 +515,18 @@ describe("run.route action", () => {
 
     const res = await action({
       request: new Request(
-        "http://localhost/projects/" + project._id + "/runs/" + run._id,
+        `http://localhost/teams/${team._id}/projects/${project._id}/runs/${run._id}`,
         {
           method: "DELETE",
           headers: { cookie: cookieHeader, "Content-Type": "application/json" },
           body: JSON.stringify({ intent: "DELETE_RUN", payload: {} }),
         },
       ),
-      params: { projectId: project._id, runId: run._id },
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runId: run._id,
+      },
     } as any);
 
     const data = res as any;
@@ -559,7 +596,11 @@ describe("run.route action - IDOR protection", () => {
     await expect(
       action({
         request: req,
-        params: { projectId: projectB._id, runId: victimRun._id },
+        params: {
+          teamId: teamB._id,
+          projectId: projectB._id,
+          runId: victimRun._id,
+        },
       } as any),
     ).rejects.toThrow("Run not found");
     const unchanged = await RunService.findById(victimRun._id);
@@ -616,7 +657,11 @@ describe("run.route action - IDOR protection", () => {
     await expect(
       action({
         request: req,
-        params: { projectId: projectB._id, runId: victimRun._id },
+        params: {
+          teamId: teamB._id,
+          projectId: projectB._id,
+          runId: victimRun._id,
+        },
       } as any),
     ).rejects.toThrow("Run not found");
     const stillExists = await RunService.findById(victimRun._id);

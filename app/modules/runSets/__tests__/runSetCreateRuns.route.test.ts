@@ -87,7 +87,11 @@ describe("runSetCreateRuns.route", () => {
       await expectAuthRequired(() =>
         loader({
           request: new Request("http://localhost/"),
-          params: { projectId: project._id, runSetId: runSet._id },
+          params: {
+            teamId: team._id,
+            projectId: project._id,
+            runSetId: runSet._id,
+          },
         } as any),
       );
     });
@@ -103,7 +107,11 @@ describe("runSetCreateRuns.route", () => {
         request: new Request("http://localhost/", {
           headers: { cookie: otherCookie },
         }),
-        params: { projectId: project._id, runSetId: runSet._id },
+        params: {
+          teamId: team._id,
+          projectId: project._id,
+          runSetId: runSet._id,
+        },
       } as any);
 
       expect(res).toBeInstanceOf(Response);
@@ -115,7 +123,11 @@ describe("runSetCreateRuns.route", () => {
         request: new Request("http://localhost/", {
           headers: { cookie: cookieHeader },
         }),
-        params: { projectId: project._id, runSetId: runSet._id },
+        params: {
+          teamId: team._id,
+          projectId: project._id,
+          runSetId: runSet._id,
+        },
       } as any);
 
       expect(res).not.toBeInstanceOf(Response);
@@ -169,12 +181,16 @@ describe("runSetCreateRuns.route", () => {
         request: new Request("http://localhost/", {
           headers: { cookie: attackerCookie },
         }),
-        params: { projectId: projectB._id, runSetId: victimRunSet._id },
+        params: {
+          teamId: teamB._id,
+          projectId: projectB._id,
+          runSetId: victimRunSet._id,
+        },
       } as any);
 
       expect(res).toBeInstanceOf(Response);
       expect((res as Response).headers.get("Location")).toBe(
-        `/projects/${projectB._id}/run-sets`,
+        `/teams/${teamB._id}/projects/${projectB._id}/run-sets`,
       );
     });
   });
@@ -210,7 +226,11 @@ describe("runSetCreateRuns.route", () => {
 
       const resp = (await action({
         request: req,
-        params: { projectId: project._id, runSetId: runSet._id },
+        params: {
+          teamId: team._id,
+          projectId: project._id,
+          runSetId: runSet._id,
+        },
       } as any)) as any;
 
       expect(resp.init?.status).toBe(403);
@@ -230,7 +250,11 @@ describe("runSetCreateRuns.route", () => {
 
       const resp = (await action({
         request: req,
-        params: { projectId: project._id, runSetId: runSet._id },
+        params: {
+          teamId: team._id,
+          projectId: project._id,
+          runSetId: runSet._id,
+        },
       } as any)) as any;
 
       expect(resp.init?.status).toBe(400);
@@ -260,7 +284,11 @@ describe("runSetCreateRuns.route", () => {
 
       const res = await action({
         request: req,
-        params: { projectId: project._id, runSetId: runSet._id },
+        params: {
+          teamId: team._id,
+          projectId: project._id,
+          runSetId: runSet._id,
+        },
       } as any);
 
       expect(res).not.toBeInstanceOf(Response);
@@ -300,7 +328,11 @@ describe("runSetCreateRuns.route", () => {
 
       const res = await action({
         request: req,
-        params: { projectId: project._id, runSetId: runSet._id },
+        params: {
+          teamId: team._id,
+          projectId: project._id,
+          runSetId: runSet._id,
+        },
       } as any);
 
       expect((res as any).init?.status).toBe(402);
@@ -363,7 +395,11 @@ describe("runSetCreateRuns.route", () => {
 
       const resp = (await action({
         request: req,
-        params: { projectId: projectB._id, runSetId: victimRunSet._id },
+        params: {
+          teamId: teamB._id,
+          projectId: projectB._id,
+          runSetId: victimRunSet._id,
+        },
       } as any)) as any;
       expect(resp.init?.status).toBe(404);
       const unchanged = await RunSetService.findById(victimRunSet._id);

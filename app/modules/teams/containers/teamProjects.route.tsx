@@ -1,11 +1,14 @@
+import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import {
+  data,
   redirect,
   useLoaderData,
   useNavigate,
   useOutletContext,
   useParams,
+  useSearchParams,
 } from "react-router";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
@@ -15,6 +18,10 @@ import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import ProjectAuthorization from "~/modules/projects/authorization";
 import CreateProjectDialog from "~/modules/projects/components/createProjectDialog";
+import {
+  PROJECTS_CREATE_PARAM,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { useProjectActions } from "~/modules/projects/hooks/useProjectActions";
 import { ProjectService } from "~/modules/projects/project";
 import type { User } from "~/modules/users/users.types";
@@ -50,32 +57,50 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
-  const { intent, payload = {} } = await request.json();
-  const { name } = payload;
-
   const user = await requireAuth({ request });
 
   if (!ProjectAuthorization.canCreate(user, params.teamId)) {
-    throw new Error(
-      "You do not have permission to create a project in this team.",
+    return data(
+      {
+        errors: {
+          general: "You do not have permission to create projects in this team",
+        },
+      },
+      { status: 403 },
     );
   }
 
-  if (intent === "CREATE_PROJECT") {
-    if (typeof name !== "string")
-      throw new Error("Project name is required and must be a string.");
-    const project = await ProjectService.create({
-      name,
-      team: params.teamId,
-      createdBy: user._id,
-    });
-    return {
-      intent: "CREATE_PROJECT",
-      data: project,
-    };
+  const { intent, payload = {} } = await request.json();
+  const { name } = payload;
+
+  if (intent !== "CREATE_PROJECT") {
+    return data({ errors: { general: "Invalid intent" } }, { status: 400 });
   }
 
-  return {};
+  if (typeof name !== "string" || !name.trim()) {
+    return data(
+      { errors: { general: "Project name is required" } },
+      { status: 400 },
+    );
+  }
+
+  const existingProject = await ProjectService.findOne({
+    name: { $regex: new RegExp(`^${escapeRegExp(name.trim())}$`, "i") },
+    team: params.teamId,
+  });
+  if (existingProject) {
+    return data(
+      { errors: { general: "A project with this name already exists" } },
+      { status: 409 },
+    );
+  }
+
+  const project = await ProjectService.create({
+    name: name.trim(),
+    team: params.teamId,
+    createdBy: user._id,
+  });
+  return data({ success: true, intent: "CREATE_PROJECT", data: project });
 }
 
 export default function TeamProjectsRoute() {
@@ -88,6 +113,7 @@ export default function TeamProjectsRoute() {
 
   const { openEditProjectDialog, openDeleteProjectDialog } =
     useProjectActions();
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const {
     searchValue,
@@ -109,14 +135,26 @@ export default function TeamProjectsRoute() {
   const onCreateProjectButtonClicked = () => {
     addDialog(
       <CreateProjectDialog
-        hasTeamSelection={false}
-        teamId={teamId}
+        teamId={teamId!}
         onProjectCreated={(project) => {
-          navigate(`/projects/${project._id}`);
+          navigate(projectUrl(teamId!, project._id));
         }}
       />,
     );
   };
+
+  useEffect(() => {
+    if (searchParams.get(PROJECTS_CREATE_PARAM) !== "1") return;
+    onCreateProjectButtonClicked();
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete(PROJECTS_CREATE_PARAM);
+        return next;
+      },
+      { replace: true },
+    );
+  }, [searchParams, setSearchParams]);
 
   const onActionClicked = (action: string) => {
     if (action === "CREATE") {

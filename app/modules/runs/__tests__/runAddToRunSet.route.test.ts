@@ -74,7 +74,7 @@ describe("runAddToRunSet.route action - ADD_TO_RUN_SETS", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id, runId: run._id },
+      params: { teamId: team._id, projectId: project._id, runId: run._id },
     } as any)) as any;
 
     expect(resp).not.toBeInstanceOf(Response);
@@ -104,7 +104,7 @@ describe("runAddToRunSet.route action - ADD_TO_RUN_SETS", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id, runId: run._id },
+      params: { teamId: team._id, projectId: project._id, runId: run._id },
     } as any)) as any;
 
     expect(resp).not.toBeInstanceOf(Response);
@@ -144,7 +144,7 @@ describe("runAddToRunSet.route action - ADD_TO_RUN_SETS", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id, runId: run._id },
+      params: { teamId: team._id, projectId: project._id, runId: run._id },
     } as any)) as any;
 
     expect(resp.init?.status).toBe(403);
@@ -199,7 +199,7 @@ describe("runAddToRunSet.route action - CREATE_RUN_SET", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id, runId: run._id },
+      params: { teamId: team._id, projectId: project._id, runId: run._id },
     } as any)) as any;
 
     expect(resp).not.toBeInstanceOf(Response);
@@ -229,7 +229,7 @@ describe("runAddToRunSet.route action - CREATE_RUN_SET", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id, runId: run._id },
+      params: { teamId: team._id, projectId: project._id, runId: run._id },
     } as any)) as any;
 
     expect(resp.init?.status).toBe(400);
@@ -267,7 +267,7 @@ describe("runAddToRunSet.route action - CREATE_RUN_SET", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: project._id, runId: run._id },
+      params: { teamId: team._id, projectId: project._id, runId: run._id },
     } as any)) as any;
 
     expect(resp.init?.status).toBe(403);
@@ -290,7 +290,7 @@ describe("runAddToRunSet.route action - CREATE_RUN_SET", () => {
     await expectAuthRequired(() =>
       action({
         request: req,
-        params: { projectId: project._id, runId: run._id },
+        params: { teamId: team._id, projectId: project._id, runId: run._id },
       } as any),
     );
   });
@@ -347,7 +347,11 @@ describe("runAddToRunSet.route action - CREATE_RUN_SET", () => {
 
     const resp = (await action({
       request: req,
-      params: { projectId: projectB._id, runId: attackerRun._id },
+      params: {
+        teamId: teamB._id,
+        projectId: projectB._id,
+        runId: attackerRun._id,
+      },
     } as any)) as any;
     expect(resp.init?.status).toBe(404);
     const victimUnchanged = await RunSetService.findById(victimRunSet._id);

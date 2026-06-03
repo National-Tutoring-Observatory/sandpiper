@@ -13,6 +13,10 @@ import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import insertMtmDataset from "~/modules/datasets/services/insertMtmDataset.server";
 import { FileService } from "~/modules/files/file";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectFilesUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import type { Route } from "./+types/uploadFiles.route";
 import UploadFilesContainer from "./uploadFiles.container";
@@ -20,7 +24,10 @@ import UploadFilesContainer from "./uploadFiles.container";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) return redirect("/");
 
   if (!ProjectAuthorization.canUpdate(user, project)) {
@@ -29,7 +36,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   if (project.isUploadingFiles || project.isConvertingFiles) {
     return redirect(
-      project.hasSetupProject ? `/projects/${params.projectId}/files` : "/",
+      project.hasSetupProject
+        ? projectFilesUrl(params.teamId, params.projectId)
+        : "/",
     );
   }
 
@@ -39,7 +48,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return data({ errors: { general: "Project not found" } }, { status: 404 });
   }
@@ -141,6 +153,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
 export default function UploadFilesPageRoute({
   loaderData,
+  params,
 }: Route.ComponentProps) {
   const { project } = loaderData;
   const fetcher = useFetcher();
@@ -152,10 +165,10 @@ export default function UploadFilesPageRoute({
     if (fetcher.data.success) {
       if (fetcher.data.intent === "UPLOAD_FILES") {
         toast.success("Files uploaded successfully");
-        navigate(`/projects/${project._id}/files`);
+        navigate(projectFilesUrl(params.teamId, project._id));
       } else if (fetcher.data.intent === "INSERT_MTM_DATASET") {
         toast.success("MTM dataset is being added to your project");
-        navigate(`/projects/${project._id}`);
+        navigate(projectUrl(params.teamId, project._id));
       }
     } else if (fetcher.data.errors) {
       toast.error(
@@ -164,10 +177,10 @@ export default function UploadFilesPageRoute({
           "Upload failed",
       );
     }
-  }, [fetcher.state, fetcher.data, navigate, project._id]);
+  }, [fetcher.state, fetcher.data, navigate, project._id, params.teamId]);
 
   const backLink = project.hasSetupProject
-    ? `/projects/${project._id}/files`
+    ? projectFilesUrl(params.teamId, project._id)
     : "/";
 
   const breadcrumbs = [

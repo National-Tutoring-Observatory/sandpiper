@@ -17,6 +17,12 @@ import getEvaluationCompatibleRuns from "~/modules/evaluations/helpers/getEvalua
 import getRunDisabledReason from "~/modules/evaluations/helpers/getRunDisabledReason";
 import isAbleToCreateEvaluation from "~/modules/evaluations/helpers/isAbleToCreateEvaluation";
 import ProjectAuthorization from "~/modules/projects/authorization";
+import {
+  projectEvaluationUrl,
+  projectRunSetUrl,
+  projectRunSetsUrl,
+  projectUrl,
+} from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
 import { RunService } from "~/modules/runs/run";
 import { RunSetService } from "~/modules/runSets/runSet";
@@ -25,7 +31,10 @@ import type { Route } from "./+types/evaluationCreate.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return redirect("/");
   }
@@ -39,7 +48,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     project: params.projectId,
   });
   if (!runSet) {
-    return redirect(`/projects/${params.projectId}/run-sets`);
+    return redirect(projectRunSetsUrl(params.teamId, params.projectId));
   }
 
   const runs = runSet.runs?.length
@@ -52,7 +61,10 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
 
-  const project = await ProjectService.findById(params.projectId);
+  const project = await ProjectService.findOne({
+    _id: params.projectId,
+    team: params.teamId,
+  });
   if (!project) {
     return data({ errors: { project: "Project not found" } }, { status: 404 });
   }
@@ -178,7 +190,9 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function EvaluationCreateRoute() {
+export default function EvaluationCreateRoute({
+  params,
+}: Route.ComponentProps) {
   const { project, runSet, runs } = useLoaderData<typeof loader>();
   const actionData = useActionData();
   const navigate = useNavigate();
@@ -194,10 +208,15 @@ export default function EvaluationCreateRoute() {
   useEffect(() => {
     if (actionData?.intent === "CREATE_EVALUATION") {
       navigate(
-        `/projects/${actionData.data.projectId}/run-sets/${actionData.data.runSetId}/evaluations/${actionData.data.evaluationId}`,
+        projectEvaluationUrl(
+          params.teamId,
+          actionData.data.projectId,
+          actionData.data.runSetId,
+          actionData.data.evaluationId,
+        ),
       );
     }
-  }, [actionData]);
+  }, [actionData, navigate, params.teamId]);
 
   const compatibleRuns = useMemo(
     () => getEvaluationCompatibleRuns(runs, baseRun),
@@ -244,11 +263,14 @@ export default function EvaluationCreateRoute() {
 
   const breadcrumbs = [
     { text: "Projects", link: "/" },
-    { text: project.name, link: `/projects/${project._id}` },
-    { text: "Run Sets", link: `/projects/${project._id}/run-sets` },
+    { text: project.name, link: projectUrl(params.teamId, project._id) },
+    {
+      text: "Run Sets",
+      link: projectRunSetsUrl(params.teamId, project._id),
+    },
     {
       text: runSet.name,
-      link: `/projects/${project._id}/run-sets/${runSet._id}`,
+      link: projectRunSetUrl(params.teamId, project._id, runSet._id),
     },
     { text: "Create Evaluation" },
   ];
@@ -265,7 +287,9 @@ export default function EvaluationCreateRoute() {
   };
 
   const handleCancel = () => {
-    navigate(`/projects/${project._id}/run-sets/${runSet._id}/evaluations`);
+    navigate(
+      `${projectRunSetUrl(params.teamId, project._id, runSet._id)}/evaluations`,
+    );
   };
 
   return (
@@ -286,6 +310,7 @@ export default function EvaluationCreateRoute() {
         isSubmitting={isSubmitting}
         isSubmitDisabled={isSubmitDisabled}
         isAbleToCreateEvaluation={isAbleToCreateEvaluation(runSet)}
+        teamId={params.teamId}
         projectId={project._id}
         runSetId={runSet._id}
         runs={runs}
