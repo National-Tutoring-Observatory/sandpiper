@@ -31,7 +31,7 @@ describe("teamInviteLink.route", () => {
         `http://localhost/teams/${teamA._id}/invite-links/${fromB._id}`,
         { headers: { cookie } },
       ),
-      params: { id: teamA._id, inviteLinkId: fromB._id },
+      params: { teamId: teamA._id, inviteLinkId: fromB._id },
     } as any)) as Response;
 
     expect(resp.status).toBe(302);
@@ -60,7 +60,7 @@ describe("teamInviteLink.route", () => {
         `http://localhost/teams/${team._id}/invite-links/${invite._id}`,
         { headers: { cookie } },
       ),
-      params: { id: team._id, inviteLinkId: invite._id },
+      params: { teamId: team._id, inviteLinkId: invite._id },
     } as any)) as any;
 
     expect(result.invite._id).toBe(invite._id);
@@ -91,7 +91,7 @@ describe("teamInviteLink.route", () => {
           body: JSON.stringify({ intent: "REVOKE_TEAM_INVITE_LINK" }),
         },
       ),
-      params: { id: team._id, inviteLinkId: invite._id },
+      params: { teamId: team._id, inviteLinkId: invite._id },
     } as any);
 
     const updated = await TeamInviteService.findById(invite._id);

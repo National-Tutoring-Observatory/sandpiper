@@ -116,32 +116,37 @@ export default [
   ]),
   ...prefix("teams", [
     index("modules/teams/containers/teams.route.tsx"),
-    route(":id", "modules/teams/containers/team.route.tsx", { id: "team" }, [
-      route("projects", "modules/teams/containers/teamProjects.route.tsx", {
-        id: "teamProjects",
-      }),
-      route("prompts", "modules/teams/containers/teamPrompts.route.tsx", {
-        id: "teamPrompts",
-      }),
-      route("users", "modules/teams/containers/teamUsers.route.tsx", {
-        id: "teamUsers",
-      }),
-      route(
-        "invite-links",
-        "modules/teams/containers/teamInviteLinks.route.tsx",
-        {
-          id: "teamInviteLinks",
-        },
-      ),
-      route(
-        "invite-links/:inviteLinkId",
-        "modules/teams/containers/teamInviteLink.route.tsx",
-        { id: "teamInviteLink" },
-      ),
-      route("billing", "modules/teams/containers/teamBilling.route.tsx", {
-        id: "teamBilling",
-      }),
-    ]),
+    route(
+      ":teamId",
+      "modules/teams/containers/team.route.tsx",
+      { id: "team" },
+      [
+        route("projects", "modules/teams/containers/teamProjects.route.tsx", {
+          id: "teamProjects",
+        }),
+        route("prompts", "modules/teams/containers/teamPrompts.route.tsx", {
+          id: "teamPrompts",
+        }),
+        route("users", "modules/teams/containers/teamUsers.route.tsx", {
+          id: "teamUsers",
+        }),
+        route(
+          "invite-links",
+          "modules/teams/containers/teamInviteLinks.route.tsx",
+          {
+            id: "teamInviteLinks",
+          },
+        ),
+        route(
+          "invite-links/:inviteLinkId",
+          "modules/teams/containers/teamInviteLink.route.tsx",
+          { id: "teamInviteLink" },
+        ),
+        route("billing", "modules/teams/containers/teamBilling.route.tsx", {
+          id: "teamBilling",
+        }),
+      ],
+    ),
   ]),
   ...prefix("invite", [
     route(":id", "modules/teams/containers/invite.route.tsx", { id: "invite" }),

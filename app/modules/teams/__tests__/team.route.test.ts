@@ -17,7 +17,7 @@ describe("team.route loader", () => {
     await expectAuthRequired(() =>
       loader({
         request: new Request("http://localhost/teams/" + team._id),
-        params: { id: team._id },
+        params: { teamId: team._id },
       } as any),
     );
   });
@@ -36,7 +36,7 @@ describe("team.route loader", () => {
       request: new Request("http://localhost/teams/" + team._id, {
         headers: { cookie: cookieHeader },
       }),
-      params: { id: team._id },
+      params: { teamId: team._id },
     } as any)) as any;
 
     expect(result.team._id).toBe(team._id);
@@ -47,7 +47,7 @@ describe("team.route loader", () => {
     await expectAuthRequired(() =>
       loader({
         request: new Request("http://localhost/teams/nonexistent"),
-        params: { id: "nonexistent" },
+        params: { teamId: "nonexistent" },
       } as any),
     );
   });

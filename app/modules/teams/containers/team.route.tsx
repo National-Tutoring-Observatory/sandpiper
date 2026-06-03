@@ -13,11 +13,11 @@ import type { Route } from "./+types/team.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const userSession = await requireAuth({ request });
 
-  if (!TeamAuthorization.canView(userSession, params.id)) {
+  if (!TeamAuthorization.canView(userSession, params.teamId)) {
     return redirect("/");
   }
 
-  const team = await TeamService.findById(params.id);
+  const team = await TeamService.findById(params.teamId);
   if (!team) {
     return redirect("/teams");
   }

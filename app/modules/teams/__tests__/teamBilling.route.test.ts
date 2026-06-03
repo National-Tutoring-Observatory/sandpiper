@@ -29,7 +29,7 @@ function buildActionRequest(
       },
       body: JSON.stringify(body),
     }),
-    params: { id: teamId },
+    params: { teamId },
   } as any;
 }
 

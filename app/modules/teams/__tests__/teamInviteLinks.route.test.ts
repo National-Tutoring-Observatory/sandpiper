@@ -37,7 +37,7 @@ describe("teamInviteLinks.route", () => {
             headers: { cookie },
           },
         ),
-        params: { id: team._id },
+        params: { teamId: team._id },
       } as any)) as Response;
 
       expect(resp.status).toBe(302);
@@ -58,7 +58,7 @@ describe("teamInviteLinks.route", () => {
             headers: { cookie },
           },
         ),
-        params: { id: team._id },
+        params: { teamId: team._id },
       } as any)) as any;
       expect(result.invites.data).toHaveLength(1);
       expect(result.invites.data[0].name).toBe("Alpha");
@@ -85,7 +85,7 @@ describe("teamInviteLinks.route", () => {
             }),
           },
         ),
-        params: { id: team._id },
+        params: { teamId: team._id },
       } as any)) as any;
       expect(resp.init?.status).toBe(403);
     });
@@ -104,7 +104,7 @@ describe("teamInviteLinks.route", () => {
             }),
           },
         ),
-        params: { id: team._id },
+        params: { teamId: team._id },
       } as any)) as any;
       expect(resp.init?.status).toBe(400);
     });
@@ -123,7 +123,7 @@ describe("teamInviteLinks.route", () => {
             }),
           },
         ),
-        params: { id: team._id },
+        params: { teamId: team._id },
       } as any)) as any;
       expect(resp.init?.status).toBe(400);
     });
@@ -142,7 +142,7 @@ describe("teamInviteLinks.route", () => {
             }),
           },
         ),
-        params: { id: team._id },
+        params: { teamId: team._id },
       } as any)) as any;
       expect(resp.data?.invite?.role).toBe("MEMBER");
     });
@@ -170,7 +170,7 @@ describe("teamInviteLinks.route", () => {
             }),
           },
         ),
-        params: { id: teamA._id },
+        params: { teamId: teamA._id },
       } as any)) as any;
       expect(resp.init?.status).toBe(404);
 
