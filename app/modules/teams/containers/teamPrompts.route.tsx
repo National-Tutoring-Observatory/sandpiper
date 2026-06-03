@@ -6,6 +6,7 @@ import {
   useLoaderData,
   useNavigate,
   useOutletContext,
+  useParams,
   useSubmit,
 } from "react-router";
 import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
@@ -16,6 +17,7 @@ import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "~/modules/prompts/authorization";
 import CreatePromptDialog from "~/modules/prompts/components/createPromptDialog";
+import { usePromptActions } from "~/modules/prompts/hooks/usePromptActions";
 import { PromptService } from "~/modules/prompts/prompt";
 import { PromptVersionService } from "~/modules/prompts/promptVersion";
 import createGeneralJob from "~/modules/queues/helpers/createGeneralJob";
@@ -117,6 +119,10 @@ export default function TeamPromptsRoute() {
   const actionData = useActionData();
   const submit = useSubmit();
   const navigate = useNavigate();
+  const params = useParams();
+  const teamId = params.teamId;
+
+  const { openEditPromptDialog, openDeletePromptDialog } = usePromptActions();
 
   const {
     searchValue,
@@ -138,10 +144,10 @@ export default function TeamPromptsRoute() {
   useEffect(() => {
     if (actionData?.intent === "CREATE_PROMPT") {
       navigate(
-        `/prompts/${actionData.data._id}/${actionData.data.productionVersion}`,
+        `/teams/${teamId}/prompts/${actionData.data._id}/${actionData.data.productionVersion}`,
       );
     }
-  }, [actionData]);
+  }, [actionData, navigate, teamId]);
 
   const onCreatePromptButtonClicked = () => {
     addDialog(
@@ -176,13 +182,21 @@ export default function TeamPromptsRoute() {
 
   const onItemActionClicked = ({
     id,
-    action: _action,
+    action,
   }: {
     id: string;
     action: string;
   }) => {
     const prompt = find(data.prompts.data, { _id: id });
     if (!prompt) return null;
+    switch (action) {
+      case "EDIT":
+        openEditPromptDialog(prompt);
+        break;
+      case "DELETE":
+        openDeletePromptDialog(prompt);
+        break;
+    }
   };
 
   const onSearchValueChanged = (searchValue: string) => {

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useFetcher, useRouteLoaderData } from "react-router";
+import useActiveTeam from "~/modules/app/hooks/useActiveTeam";
 import Home from "../components/home";
 
 export function loader() {
@@ -16,6 +17,7 @@ export default function HomeRoute() {
     | undefined;
   const fetcher = useFetcher();
   const isDownloading = fetcher.state !== "idle";
+  const { activeTeamId } = useActiveTeam();
 
   useEffect(() => {
     if (fetcher.state !== "idle") return;
@@ -40,6 +42,7 @@ export default function HomeRoute() {
       onDownloadClicked={onDownloadClicked}
       isDownloading={isDownloading}
       initialCredits={rootData?.initialCredits ?? 20}
+      activeTeamId={activeTeamId}
     />
   );
 }

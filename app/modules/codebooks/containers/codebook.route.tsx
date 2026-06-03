@@ -188,7 +188,7 @@ export default function CodebookRoute() {
         toast.success("Prompt created from codebook");
         addDialog(null);
         navigate(
-          `/prompts/${fetcher.data.data._id}/${fetcher.data.data.productionVersion}`,
+          `/teams/${codebook.team}/prompts/${fetcher.data.data._id}/${fetcher.data.data.productionVersion}`,
         );
       } else if (
         fetcher.data.success &&

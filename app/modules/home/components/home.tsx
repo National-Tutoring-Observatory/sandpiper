@@ -19,10 +19,12 @@ export default function Home({
   onDownloadClicked,
   isDownloading,
   initialCredits,
+  activeTeamId,
 }: {
   onDownloadClicked: () => void;
   isDownloading: boolean;
   initialCredits: number;
+  activeTeamId: string | null;
 }) {
   const [agreed, setAgreed] = useState(false);
   return (
@@ -96,8 +98,11 @@ export default function Home({
                 Start a Project
               </Link>
             </Button>
-            <Button variant="outline" asChild>
-              <Link to="/prompts" state={{ create: true }}>
+            <Button variant="outline" asChild disabled={!activeTeamId}>
+              <Link
+                to={activeTeamId ? `/teams/${activeTeamId}/prompts` : "/teams"}
+                state={{ create: true }}
+              >
                 <PenLine className="h-4 w-4" />
                 Create a Prompt
               </Link>

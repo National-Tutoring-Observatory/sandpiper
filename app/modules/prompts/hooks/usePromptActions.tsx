@@ -48,7 +48,17 @@ export function usePromptActions({
     }
   }, [deleteFetcher.state, deleteFetcher.data]);
 
+  const getPromptTeamId = (prompt: Prompt | { team: unknown }): string => {
+    const team = (prompt as { team: unknown }).team;
+    if (typeof team === "string") return team;
+    if (team && typeof team === "object" && "_id" in team) {
+      return (team as { _id: string })._id;
+    }
+    throw new Error("Prompt is missing a team reference");
+  };
+
   const submitEditPrompt = (prompt: Prompt) => {
+    const teamId = getPromptTeamId(prompt);
     editFetcher.submit(
       JSON.stringify({
         intent: "UPDATE_PROMPT",
@@ -58,12 +68,12 @@ export function usePromptActions({
       {
         method: "PUT",
         encType: "application/json",
-        action: `/prompts/${prompt._id}`,
+        action: `/teams/${teamId}/prompts/${prompt._id}`,
       },
     );
   };
 
-  const submitDeletePrompt = (promptId: string) => {
+  const submitDeletePrompt = (promptId: string, teamId: string) => {
     deleteFetcher.submit(
       JSON.stringify({
         intent: "DELETE_PROMPT",
@@ -72,7 +82,7 @@ export function usePromptActions({
       {
         method: "POST",
         encType: "application/json",
-        action: `/prompts/${promptId}`,
+        action: `/teams/${teamId}/prompts/${promptId}`,
       },
     );
   };
@@ -88,10 +98,13 @@ export function usePromptActions({
   };
 
   const openDeletePromptDialog = (prompt: Prompt) => {
+    const teamId = getPromptTeamId(prompt);
     addDialog(
       <DeletePromptDialog
         prompt={prompt}
-        onDeletePromptClicked={submitDeletePrompt}
+        onDeletePromptClicked={(promptId: string) =>
+          submitDeletePrompt(promptId, teamId)
+        }
         isSubmitting={deleteFetcher.state === "submitting"}
       />,
     );

@@ -94,14 +94,6 @@ export default [
       "modules/evaluations/containers/evaluation.route.tsx",
     ),
   ]),
-  ...prefix("prompts", [
-    index("modules/prompts/containers/prompts.route.tsx"),
-    route(":id", "modules/prompts/containers/prompt.route.tsx", [
-      route(":version", "modules/prompts/containers/promptEditor.route.tsx", {
-        id: "VERSION",
-      }),
-    ]),
-  ]),
   ...prefix("codebooks", [
     index("modules/codebooks/containers/codebooks.route.tsx"),
     route(":id", "modules/codebooks/containers/codebook.route.tsx", [
@@ -144,6 +136,16 @@ export default [
         ),
         route("billing", "modules/teams/containers/teamBilling.route.tsx", {
           id: "teamBilling",
+        }),
+      ],
+    ),
+    route(
+      ":teamId/prompts/:promptId",
+      "modules/prompts/containers/prompt.route.tsx",
+      { id: "prompt" },
+      [
+        route(":version", "modules/prompts/containers/promptEditor.route.tsx", {
+          id: "VERSION",
         }),
       ],
     ),
@@ -233,9 +235,6 @@ export default [
     "api/promptVersionsList",
     "modules/prompts/containers/promptVersionsList.route.tsx",
   ),
-  route("api/prompts", "modules/prompts/containers/prompts.route.tsx", {
-    id: "prompts",
-  }),
   route("api/promptsList", "modules/prompts/containers/promptsList.route.tsx"),
   route("api/runsList", "modules/runs/containers/runsList.route.tsx"),
   route(
