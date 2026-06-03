@@ -85,16 +85,19 @@ setup("authenticate", async ({ page }) => {
       secure: false,
       sameSite: "Lax",
     },
+    {
+      // The app reads sandpiper.activeTeamId on home/sidebar resolution.
+      // Seed it so tests land on the seeded "Research Team Alpha" instead
+      // of the admin's personal workspace.
+      name: "sandpiper.activeTeamId",
+      value: activeTeamId,
+      domain: "localhost",
+      path: "/",
+      httpOnly: false,
+      secure: false,
+      sameSite: "Lax",
+    },
   ]);
-
-  // useActiveTeam reads sandpiper.activeTeamId from localStorage before
-  // falling back to the personal team. Seed it so tests land on the
-  // seeded "Research Team Alpha" instead of the admin's personal workspace.
-  await page.goto("/");
-  await page.evaluate(
-    ({ id }) => window.localStorage.setItem("sandpiper.activeTeamId", id),
-    { id: activeTeamId },
-  );
 
   await page.context().storageState({ path: authFile });
 });

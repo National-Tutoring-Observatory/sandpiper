@@ -2,28 +2,12 @@ import get from "lodash/get";
 import { useContext, useEffect, useMemo } from "react";
 import { useFetcher, useMatch, useNavigate } from "react-router";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
+import {
+  readActiveTeamFromBrowser,
+  writeActiveTeamToBrowser,
+} from "~/modules/teams/helpers/activeTeamCookie";
 import type { Team } from "~/modules/teams/teams.types";
 import type { User } from "~/modules/users/users.types";
-
-const STORAGE_KEY = "sandpiper.activeTeamId";
-
-function readStoredTeamId(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(STORAGE_KEY);
-  } catch {
-    return null;
-  }
-}
-
-function writeStoredTeamId(id: string) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, id);
-  } catch {
-    // ignore storage failures (private mode, quota, etc.)
-  }
-}
 
 export default function useActiveTeam(): {
   activeTeamId: string | null;
@@ -48,14 +32,14 @@ export default function useActiveTeam(): {
   }, [teamIdFromUrl]);
 
   useEffect(() => {
-    if (teamIdFromUrl) writeStoredTeamId(teamIdFromUrl);
+    if (teamIdFromUrl) writeActiveTeamToBrowser(teamIdFromUrl);
   }, [teamIdFromUrl]);
 
   const availableTeams: Team[] = get(teamsFetcher, "data.teams.data", []);
 
   const activeTeamId = useMemo(() => {
     if (teamIdFromUrl) return teamIdFromUrl;
-    const stored = readStoredTeamId();
+    const stored = readActiveTeamFromBrowser();
     if (stored && user?.teams.some((t) => t.team === stored)) return stored;
     const personal = availableTeams.find((t) => t.isPersonal);
     if (personal) return personal._id;
@@ -68,7 +52,7 @@ export default function useActiveTeam(): {
   }, [activeTeamId, availableTeams]);
 
   const switchActiveTeam = (id: string) => {
-    writeStoredTeamId(id);
+    writeActiveTeamToBrowser(id);
     navigate(`/teams/${id}/projects`);
   };
 

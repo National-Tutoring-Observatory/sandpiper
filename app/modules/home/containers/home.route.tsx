@@ -6,6 +6,7 @@ import {
   useRouteLoaderData,
 } from "react-router";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import { readActiveTeamFromRequest } from "~/modules/teams/helpers/activeTeamCookie";
 import { TeamService } from "~/modules/teams/team";
 import Home from "../components/home";
 import type { Route } from "./+types/home.route";
@@ -14,6 +15,11 @@ export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
   const userTeamIds = user.teams.map((t) => t.team);
   if (userTeamIds.length === 0) return redirect("/admin/teams");
+
+  const cookieTeamId = readActiveTeamFromRequest(request);
+  if (cookieTeamId && userTeamIds.includes(cookieTeamId)) {
+    return { activeTeamId: cookieTeamId };
+  }
 
   const personal = await TeamService.findOne({
     _id: { $in: userTeamIds },
