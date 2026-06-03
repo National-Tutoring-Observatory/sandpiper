@@ -155,7 +155,6 @@ export default function TeamCodebooksRoute() {
   const onCreateCodebookButtonClicked = () => {
     addDialog(
       <CreateCodebookDialog
-        hasTeamSelection={false}
         onCreateNewCodebookClicked={onCreateNewCodebookClicked}
       />,
     );
@@ -180,7 +179,6 @@ export default function TeamCodebooksRoute() {
   }: {
     name: string;
     description: string;
-    team: string | null;
   }) => {
     submit(
       JSON.stringify({

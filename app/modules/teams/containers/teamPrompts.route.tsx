@@ -162,7 +162,6 @@ export default function TeamPromptsRoute() {
   const onCreatePromptButtonClicked = () => {
     addDialog(
       <CreatePromptDialog
-        hasTeamSelection={false}
         onCreateNewPromptClicked={onCreateNewPromptClicked}
       />,
     );

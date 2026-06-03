@@ -50,26 +50,18 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     return redirect(projectUploadFilesUrl(params.teamId, params.projectId));
   }
 
-  const filesCount = await FileService.count({ project: params.projectId });
-  const sessions = await SessionService.find({
-    match: { project: params.projectId },
-  });
-  const sessionsCount = sessions.length;
-  const convertedSessionsCount = filter(sessions, {
-    hasConverted: true,
-  }).length;
-  const runsCount = await RunService.count({
-    project: params.projectId,
-    isHuman: { $ne: true },
-  });
-  const runSetsCount = await RunSetService.count({
-    project: params.projectId,
-  });
+  const [filesCount, sessions, runsCount, runSetsCount] = await Promise.all([
+    FileService.count({ project: params.projectId }),
+    SessionService.find({ match: { project: params.projectId } }),
+    RunService.count({ project: params.projectId, isHuman: { $ne: true } }),
+    RunSetService.count({ project: params.projectId }),
+  ]);
+
   return {
     project,
     filesCount,
-    sessionsCount,
-    convertedSessionsCount,
+    sessionsCount: sessions.length,
+    convertedSessionsCount: filter(sessions, { hasConverted: true }).length,
     runsCount,
     runSetsCount,
   };
