@@ -1,8 +1,17 @@
 import { expect, test } from "@playwright/test";
 
+async function gotoPrompts(page: import("@playwright/test").Page) {
+  await page.goto("/");
+  await page
+    .getByRole("link", { name: "Prompts", exact: true })
+    .first()
+    .click();
+  await expect(page).toHaveURL(/\/teams\/[a-f0-9]+\/prompts$/);
+}
+
 test.describe("Prompts", () => {
   test("should display prompts list", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     await expect(
       page.getByRole("button", { name: "Create prompt" }),
@@ -15,7 +24,7 @@ test.describe("Prompts", () => {
   });
 
   test("should show annotation types in list", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const perUtterancePrompts = page
       .getByText("Annotation type - Per utterance")
@@ -29,21 +38,23 @@ test.describe("Prompts", () => {
   });
 
   test("should navigate to prompt detail page", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const promptLink = page
       .getByRole("link")
       .filter({ hasText: "Talk Moves (sample prompt)" });
     await promptLink.click();
 
-    await expect(page).toHaveURL(/\/prompts\/[a-f0-9]+\/\d+$/);
+    await expect(page).toHaveURL(
+      /\/teams\/[a-f0-9]+\/prompts\/[a-f0-9]+\/\d+$/,
+    );
     await expect(
       page.getByText("Annotation Type: Per utterance"),
     ).toBeVisible();
   });
 
   test("should show prompt edit button", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const promptLink = page
       .getByRole("link")
@@ -54,7 +65,7 @@ test.describe("Prompts", () => {
   });
 
   test("should display prompt versions", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const promptLink = page
       .getByRole("link")
@@ -67,7 +78,7 @@ test.describe("Prompts", () => {
   });
 
   test("should display prompt content", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const promptLink = page
       .getByRole("link")
@@ -80,7 +91,7 @@ test.describe("Prompts", () => {
   });
 
   test("should show annotation schema fields", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const promptLink = page
       .getByRole("link")
@@ -94,9 +105,12 @@ test.describe("Prompts", () => {
   test("should navigate using sidebar", async ({ page }) => {
     await page.goto("/");
 
-    await page.getByRole("link", { name: "Prompts", exact: true }).click();
+    await page
+      .getByRole("link", { name: "Prompts", exact: true })
+      .first()
+      .click();
 
-    await expect(page).toHaveURL("/prompts");
+    await expect(page).toHaveURL(/\/teams\/[a-f0-9]+\/prompts$/);
     await expect(page.getByText("Talk Moves (sample prompt)")).toBeVisible();
   });
 
@@ -104,7 +118,7 @@ test.describe("Prompts", () => {
     const timestamp = Date.now();
     const promptName = `E2E Test Prompt ${timestamp}`;
 
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     await page.getByRole("button", { name: "Create prompt" }).click();
 
@@ -118,20 +132,17 @@ test.describe("Prompts", () => {
     await annotationTypeSelect.click();
     await page.getByRole("option", { name: "Per utterance" }).click();
 
-    await page.getByRole("combobox").filter({ hasText: "Select team" }).click();
-    await page.getByRole("option", { name: "Research Team Alpha" }).click();
-
     await page
       .getByRole("button", { name: "Create prompt", exact: true })
       .click();
 
-    await expect(page).toHaveURL(/\/prompts\/[a-f0-9]+\/1$/);
+    await expect(page).toHaveURL(/\/teams\/[a-f0-9]+\/prompts\/[a-f0-9]+\/1$/);
     await expect(page.getByText("Prompt created")).toBeVisible();
     await expect(page.getByText(promptName)).toBeVisible();
   });
 
   test("should create a new version of existing prompt", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const promptLink = page
       .getByRole("link")
@@ -139,7 +150,9 @@ test.describe("Prompts", () => {
       .first();
     await promptLink.click();
 
-    await expect(page).toHaveURL(/\/prompts\/[a-f0-9]+\/\d+$/);
+    await expect(page).toHaveURL(
+      /\/teams\/[a-f0-9]+\/prompts\/[a-f0-9]+\/\d+$/,
+    );
     await expect(page.getByText("Versions")).toBeVisible();
 
     const beforeUrl = page.url();
@@ -165,7 +178,7 @@ test.describe("Prompts", () => {
   });
 
   test("should edit prompt title from list page", async ({ page }) => {
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const promptItem = page
       .locator('[data-slot="item"]')
@@ -193,7 +206,7 @@ test.describe("Prompts", () => {
     const timestamp = Date.now();
     const editedName = `E2E Edited Detail ${timestamp}`;
 
-    await page.goto("/prompts");
+    await gotoPrompts(page);
 
     const promptLink = page
       .getByRole("link")
@@ -201,7 +214,9 @@ test.describe("Prompts", () => {
       .first();
     await promptLink.click();
 
-    await expect(page).toHaveURL(/\/prompts\/[a-f0-9]+\/\d+$/);
+    await expect(page).toHaveURL(
+      /\/teams\/[a-f0-9]+\/prompts\/[a-f0-9]+\/\d+$/,
+    );
 
     await page.getByRole("button", { name: "Edit" }).click();
 
