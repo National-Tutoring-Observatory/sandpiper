@@ -45,7 +45,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   const team = await TeamService.findById(params.teamId);
-  if (!team) return redirect("/teams");
+  if (!team) return redirect("/admin/teams");
 
   if (!BillingAuthorization.canViewBilling(user, team, isBillingEnabled())) {
     return redirect(`/teams/${params.teamId}/users`);

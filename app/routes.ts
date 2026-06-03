@@ -11,7 +11,6 @@ export default [
     index("modules/home/containers/home.route.tsx"),
   ]),
   ...prefix("teams", [
-    index("modules/teams/containers/teams.route.tsx"),
     route(
       ":teamId",
       "modules/teams/containers/team.route.tsx",
@@ -161,12 +160,6 @@ export default [
   ]),
   route("signup", "modules/authentication/containers/signup.route.tsx"),
   route("onboarding", "modules/authentication/containers/onboarding.route.tsx"),
-  ...prefix("featureFlags", [
-    route("/", "modules/featureFlags/containers/featureFlags.route.tsx", [
-      route(":id", "modules/featureFlags/containers/featureFlag.route.tsx"),
-    ]),
-  ]),
-  route("migrations", "modules/migrations/containers/migrations.route.tsx"),
   route("api", "modules/app/containers/api.route.tsx"),
   route(
     "api/annotations/:runId/:sessionId/:utteranceId/:annotationIndex",
@@ -257,14 +250,10 @@ export default [
     "auth/callback/:provider",
     "modules/authentication/containers/authCallback.route.tsx",
   ),
-  ...prefix("queues", [
-    layout("modules/queues/containers/queuesLayout.route.tsx", [
-      route(":type", "modules/queues/containers/queue.route.tsx", [
-        route(":state", "modules/queues/containers/queueJobs.route.tsx"),
-      ]),
-    ]),
-  ]),
   ...prefix("admin", [
+    route("teams", "modules/teams/containers/teams.route.tsx", {
+      id: "adminTeams",
+    }),
     route("users", "modules/users/containers/adminUsers.route.tsx"),
     ...prefix("billing", [
       layout("modules/billing/containers/billingLayout.route.tsx", [
@@ -279,5 +268,18 @@ export default [
       "maintenance",
       "modules/systemSettings/containers/maintenance.route.tsx",
     ),
+    route("migrations", "modules/migrations/containers/migrations.route.tsx"),
+    ...prefix("featureFlags", [
+      route("/", "modules/featureFlags/containers/featureFlags.route.tsx", [
+        route(":id", "modules/featureFlags/containers/featureFlag.route.tsx"),
+      ]),
+    ]),
+    ...prefix("queues", [
+      layout("modules/queues/containers/queuesLayout.route.tsx", [
+        route(":type", "modules/queues/containers/queue.route.tsx", [
+          route(":state", "modules/queues/containers/queueJobs.route.tsx"),
+        ]),
+      ]),
+    ]),
   ]),
 ] satisfies RouteConfig;

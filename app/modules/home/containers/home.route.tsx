@@ -13,7 +13,7 @@ import type { Route } from "./+types/home.route";
 export async function loader({ request }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
   const userTeamIds = user.teams.map((t) => t.team);
-  if (userTeamIds.length === 0) return redirect("/teams");
+  if (userTeamIds.length === 0) return redirect("/admin/teams");
 
   const personal = await TeamService.findOne({
     _id: { $in: userTeamIds },

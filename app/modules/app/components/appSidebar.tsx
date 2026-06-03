@@ -146,14 +146,18 @@ export default function AppSidebar() {
       ]
     : [];
   const organizationEntries: NavEntry[] = [
-    { to: "/teams", icon: Building2, label: "Teams" },
+    { to: "/admin/teams", icon: Building2, label: "Teams" },
     { to: "/admin/users", icon: UsersRound, label: "Users" },
     { to: "/admin/billing", icon: CircleDollarSign, label: "Billing" },
   ];
   const infrastructureEntries: NavEntry[] = [
-    { to: "/featureFlags", icon: FlagIcon, label: "Feature flags" },
-    { to: "/queues/tasks/active", icon: ChartNoAxesGantt, label: "Queues" },
-    { to: "/migrations", icon: Database, label: "Migrations" },
+    { to: "/admin/featureFlags", icon: FlagIcon, label: "Feature flags" },
+    {
+      to: "/admin/queues/tasks/active",
+      icon: ChartNoAxesGantt,
+      label: "Queues",
+    },
+    { to: "/admin/migrations", icon: Database, label: "Migrations" },
     { to: "/admin/maintenance", icon: Construction, label: "Maintenance" },
   ];
 
@@ -278,7 +282,7 @@ export default function AppSidebar() {
                   mode={mode}
                   roleLabel={roleLabel}
                   onSwitchTeam={switchActiveTeam}
-                  onEnterAdmin={() => navigate("/teams")}
+                  onEnterAdmin={() => navigate("/admin/teams")}
                   onLogout={onLogoutClicked}
                 />
               </SidebarMenuItem>
