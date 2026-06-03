@@ -14,7 +14,10 @@ import {
 import type { ReactNode } from "react";
 import { useState } from "react";
 import { Link } from "react-router";
-import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
+import {
+  PROMPTS_CREATE_PARAM,
+  promptsUrl,
+} from "~/modules/prompts/helpers/promptUrls";
 
 export default function Home({
   onDownloadClicked,
@@ -100,7 +103,9 @@ export default function Home({
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link to={`${promptsUrl(activeTeamId)}?create=1`}>
+              <Link
+                to={`${promptsUrl(activeTeamId)}?${PROMPTS_CREATE_PARAM}=1`}
+              >
                 <PenLine className="h-4 w-4" />
                 Create a Prompt
               </Link>

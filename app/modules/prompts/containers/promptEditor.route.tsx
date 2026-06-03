@@ -88,7 +88,10 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 
   const promptId = getReferenceId(promptVersion.prompt);
-  const prompt = await PromptService.findById(promptId);
+  const prompt = await PromptService.findOne({
+    _id: promptId,
+    team: params.teamId,
+  });
 
   if (!prompt) {
     throw new Error("Prompt not found");

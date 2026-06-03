@@ -71,6 +71,11 @@ export class TeamService {
     };
   }
 
+  static async findOne(match: Record<string, unknown>): Promise<Team | null> {
+    const doc = await TeamModel.findOne(match);
+    return doc ? this.toTeam(doc) : null;
+  }
+
   static async findById(id: string | undefined): Promise<Team | null> {
     if (!id) return null;
     const doc = await TeamModel.findById(id);
