@@ -1,19 +1,18 @@
 import { Collection } from "@/components/ui/collection";
-import { PageHeader, PageHeaderLeft } from "@/components/ui/pageHeader";
-import type { Breadcrumb } from "~/modules/app/app.types";
-import Breadcrumbs from "~/modules/app/components/breadcrumbs";
+import { useContext } from "react";
+import { AuthenticationContext } from "~/modules/authentication/authentication.context";
+import type { Codebook } from "~/modules/codebooks/codebooks.types";
 import type { User } from "~/modules/users/users.types";
-import type { Codebook } from "../codebooks.types";
-import codebooksActions from "../helpers/codebooksActions";
-import codebooksSortOptions from "../helpers/codebooksSortOptions";
-import getCodebooksEmptyAttributes from "../helpers/getCodebooksEmptyAttributes";
-import getCodebooksItemActions from "../helpers/getCodebooksItemActions";
-import getCodebooksItemAttributes from "../helpers/getCodebooksItemAttributes";
+import getTeamCodebooksActions from "../helpers/getTeamCodebooksActions";
+import getTeamCodebooksEmptyAttributes from "../helpers/getTeamCodebooksEmptyAttributes";
+import getTeamCodebooksItemActions from "../helpers/getTeamCodebooksItemActions";
+import getTeamCodebooksItemAttributes from "../helpers/getTeamCodebooksItemAttributes";
+import teamCodebooksSortOptions from "../helpers/teamCodebooksSortOptions";
+import type { Team } from "../teams.types";
 
-interface CodebooksProps {
+interface TeamCodebooksProps {
   codebooks: Codebook[];
-  user: User;
-  breadcrumbs: Breadcrumb[];
+  team: Team;
   searchValue: string;
   currentPage: number;
   totalPages: number;
@@ -26,10 +25,9 @@ interface CodebooksProps {
   onSortValueChanged: (sortValue: string) => void;
 }
 
-export default function Codebooks({
+export default function TeamCodebooks({
   codebooks,
-  user,
-  breadcrumbs,
+  team,
   sortValue,
   searchValue,
   currentPage,
@@ -40,21 +38,18 @@ export default function Codebooks({
   onSearchValueChanged,
   onPaginationChanged,
   onSortValueChanged,
-}: CodebooksProps) {
+}: TeamCodebooksProps) {
+  const user = useContext(AuthenticationContext) as User | null;
+
   return (
-    <div className="max-w-7xl p-8">
-      <PageHeader>
-        <PageHeaderLeft>
-          <Breadcrumbs breadcrumbs={breadcrumbs} />
-        </PageHeaderLeft>
-      </PageHeader>
+    <div>
       <Collection
         items={codebooks}
         itemsLayout="list"
-        actions={codebooksActions}
+        actions={getTeamCodebooksActions(team._id, user)}
         filters={[]}
         filtersValues={{}}
-        sortOptions={codebooksSortOptions}
+        sortOptions={teamCodebooksSortOptions}
         hasSearch
         hasPagination
         sortValue={sortValue}
@@ -62,9 +57,9 @@ export default function Codebooks({
         currentPage={currentPage}
         totalPages={totalPages}
         isSyncing={isSyncing}
-        emptyAttributes={getCodebooksEmptyAttributes()}
-        getItemAttributes={getCodebooksItemAttributes}
-        getItemActions={(item) => getCodebooksItemActions(item, user)}
+        emptyAttributes={getTeamCodebooksEmptyAttributes()}
+        getItemAttributes={(item) => getTeamCodebooksItemAttributes(item, user)}
+        getItemActions={(item) => getTeamCodebooksItemActions(item, user)}
         onActionClicked={onActionClicked}
         onItemActionClicked={onItemActionClicked}
         onSearchValueChanged={onSearchValueChanged}

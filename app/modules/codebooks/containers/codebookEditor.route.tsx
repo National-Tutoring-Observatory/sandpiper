@@ -4,6 +4,7 @@ import {
   useNavigation,
   useSubmit,
 } from "react-router";
+import getReferenceId from "~/helpers/getReferenceId";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import CodebookAuthorization from "../authorization";
@@ -17,7 +18,10 @@ import type { Route } from "./+types/codebookEditor.route";
 export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
 
-  const codebook = await CodebookService.findById(params.id);
+  const codebook = await CodebookService.findOne({
+    _id: params.codebookId,
+    team: params.teamId,
+  });
 
   if (!codebook) {
     return redirect("/");
@@ -29,7 +33,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const codebookVersion = await CodebookVersionService.findOne({
     version: Number(params.version),
-    codebook: params.id,
+    codebook: params.codebookId,
   });
 
   if (!codebookVersion) {
@@ -55,11 +59,11 @@ export async function action({ request, params }: Route.ActionArgs) {
     throw new Error("Codebook version not found");
   }
 
-  const codebookId =
-    typeof codebookVersion.codebook === "string"
-      ? codebookVersion.codebook
-      : codebookVersion.codebook._id;
-  const codebook = await CodebookService.findById(codebookId);
+  const codebookId = getReferenceId(codebookVersion.codebook);
+  const codebook = await CodebookService.findOne({
+    _id: codebookId,
+    team: params.teamId,
+  });
 
   if (!codebook) {
     throw new Error("Codebook not found");

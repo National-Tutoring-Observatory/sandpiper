@@ -10,18 +10,6 @@ export default [
   layout("modules/dashboard/containers/dashboard.route.tsx", [
     index("modules/home/containers/home.route.tsx"),
   ]),
-  ...prefix("codebooks", [
-    index("modules/codebooks/containers/codebooks.route.tsx"),
-    route(":id", "modules/codebooks/containers/codebook.route.tsx", [
-      route(
-        ":version",
-        "modules/codebooks/containers/codebookEditor.route.tsx",
-        {
-          id: "CODEBOOK_VERSION",
-        },
-      ),
-    ]),
-  ]),
   ...prefix("teams", [
     index("modules/teams/containers/teams.route.tsx"),
     route(
@@ -34,6 +22,9 @@ export default [
         }),
         route("prompts", "modules/teams/containers/teamPrompts.route.tsx", {
           id: "teamPrompts",
+        }),
+        route("codebooks", "modules/teams/containers/teamCodebooks.route.tsx", {
+          id: "teamCodebooks",
         }),
         route("users", "modules/teams/containers/teamUsers.route.tsx", {
           id: "teamUsers",
@@ -63,6 +54,20 @@ export default [
         route(":version", "modules/prompts/containers/promptEditor.route.tsx", {
           id: "VERSION",
         }),
+      ],
+    ),
+    route(
+      ":teamId/codebooks/:codebookId",
+      "modules/codebooks/containers/codebook.route.tsx",
+      { id: "codebook" },
+      [
+        route(
+          ":version",
+          "modules/codebooks/containers/codebookEditor.route.tsx",
+          {
+            id: "CODEBOOK_VERSION",
+          },
+        ),
       ],
     ),
     route(

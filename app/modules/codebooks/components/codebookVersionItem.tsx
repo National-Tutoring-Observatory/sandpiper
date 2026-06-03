@@ -2,10 +2,13 @@ import { Badge } from "@/components/ui/badge";
 import clsx from "clsx";
 import { BookCheck } from "lucide-react";
 import { Link } from "react-router";
+import getReferenceId from "~/helpers/getReferenceId";
 import getDateString from "~/modules/app/helpers/getDateString";
 import type { Codebook } from "../codebooks.types";
+import { codebookUrl } from "../helpers/codebookUrls";
 
 type CodebookVersionItemProps = {
+  teamId: string;
   name: string;
   version: number;
   codebook: Codebook | string;
@@ -15,6 +18,7 @@ type CodebookVersionItemProps = {
 };
 
 export default function CodebookVersionItem({
+  teamId,
   name,
   version,
   codebook,
@@ -28,7 +32,7 @@ export default function CodebookVersionItem({
 
   return (
     <Link
-      to={`/codebooks/${codebook}/${version}`}
+      to={codebookUrl(teamId, getReferenceId(codebook), version)}
       replace
       className={className}
     >
