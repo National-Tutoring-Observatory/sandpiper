@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { useFetcher } from "react-router";
 import { toast } from "sonner";
+import getReferenceId from "~/helpers/getReferenceId";
 import addDialog from "~/modules/dialogs/addDialog";
 import DeletePromptDialog from "~/modules/prompts/components/deletePromptDialog";
 import EditPromptDialog from "~/modules/prompts/components/editPromptDialog";
-import getPromptTeamId from "~/modules/prompts/helpers/getPromptTeamId";
 import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 import type { Prompt } from "~/modules/prompts/prompts.types";
 
@@ -60,7 +60,7 @@ export function usePromptActions({
       {
         method: "PUT",
         encType: "application/json",
-        action: promptsUrl(getPromptTeamId(prompt), prompt._id),
+        action: promptsUrl(getReferenceId(prompt.team), prompt._id),
       },
     );
   };
@@ -74,7 +74,7 @@ export function usePromptActions({
       {
         method: "POST",
         encType: "application/json",
-        action: promptsUrl(getPromptTeamId(prompt), prompt._id),
+        action: promptsUrl(getReferenceId(prompt.team), prompt._id),
       },
     );
   };
