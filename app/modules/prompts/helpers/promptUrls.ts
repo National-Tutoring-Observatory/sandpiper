@@ -1,3 +1,5 @@
+export const PROMPTS_CREATE_PARAM = "create";
+
 export function promptsUrl(
   teamId: string,
   promptId?: string,

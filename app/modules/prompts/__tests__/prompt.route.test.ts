@@ -372,6 +372,48 @@ describe("prompt.route action", () => {
       expect(response.data?.errors?.general).toContain("active run");
     });
   });
+
+  describe("IDOR scoping", () => {
+    it("rejects when URL teamId does not match the prompt's team", async () => {
+      const teamA = await TeamService.create({ name: "Team A" });
+      const teamB = await TeamService.create({ name: "Team B" });
+      // user belongs to BOTH teams — auth-only check would let this through
+      const user = await UserService.create({
+        username: "dual",
+        teams: [
+          { team: teamA._id, role: "ADMIN" },
+          { team: teamB._id, role: "ADMIN" },
+        ],
+      });
+      const prompt = await PromptService.create({
+        name: "Lives in A",
+        annotationType: "PER_UTTERANCE",
+        team: teamA._id,
+        createdBy: user._id,
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      await expect(
+        action({
+          request: new Request("http://localhost/", {
+            method: "PUT",
+            headers: { cookie: cookieHeader },
+            body: JSON.stringify({
+              intent: "UPDATE_PROMPT",
+              entityId: prompt._id,
+              payload: { name: "hijack" },
+            }),
+          }),
+          params: { teamId: teamB._id, promptId: prompt._id },
+          context: {},
+          unstable_pattern: "",
+        } as any),
+      ).rejects.toThrow("Prompt not found");
+
+      const unchanged = await PromptService.findById(prompt._id);
+      expect(unchanged?.name).toBe("Lives in A");
+    });
+  });
 });
 
 describe("prompt.route loader", () => {
