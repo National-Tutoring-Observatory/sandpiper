@@ -3,12 +3,12 @@ import clsx from "clsx";
 import { BookCheck } from "lucide-react";
 import { Link } from "react-router";
 import getDateString from "~/modules/app/helpers/getDateString";
-import type { Prompt } from "../prompts.types";
+import { promptsUrl } from "../helpers/promptUrls";
 
 type PromptVersionItemProps = {
   name: string;
   version: number;
-  prompt: Prompt | string;
+  promptId: string;
   teamId: string;
   createdAt: string;
   isSelected: boolean;
@@ -18,7 +18,7 @@ type PromptVersionItemProps = {
 export default function PromptVersionItem({
   name,
   version,
-  prompt,
+  promptId,
   teamId,
   createdAt,
   isSelected,
@@ -30,7 +30,7 @@ export default function PromptVersionItem({
 
   return (
     <Link
-      to={`/teams/${teamId}/prompts/${prompt}/${version}`}
+      to={promptsUrl(teamId, promptId, version)}
       replace
       className={className}
     >

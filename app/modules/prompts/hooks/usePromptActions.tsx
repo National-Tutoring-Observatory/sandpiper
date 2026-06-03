@@ -4,6 +4,8 @@ import { toast } from "sonner";
 import addDialog from "~/modules/dialogs/addDialog";
 import DeletePromptDialog from "~/modules/prompts/components/deletePromptDialog";
 import EditPromptDialog from "~/modules/prompts/components/editPromptDialog";
+import getPromptTeamId from "~/modules/prompts/helpers/getPromptTeamId";
+import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 import type { Prompt } from "~/modules/prompts/prompts.types";
 
 interface UsePromptActionsOptions {
@@ -48,17 +50,7 @@ export function usePromptActions({
     }
   }, [deleteFetcher.state, deleteFetcher.data]);
 
-  const getPromptTeamId = (prompt: Prompt | { team: unknown }): string => {
-    const team = (prompt as { team: unknown }).team;
-    if (typeof team === "string") return team;
-    if (team && typeof team === "object" && "_id" in team) {
-      return (team as { _id: string })._id;
-    }
-    throw new Error("Prompt is missing a team reference");
-  };
-
   const submitEditPrompt = (prompt: Prompt) => {
-    const teamId = getPromptTeamId(prompt);
     editFetcher.submit(
       JSON.stringify({
         intent: "UPDATE_PROMPT",
@@ -68,21 +60,21 @@ export function usePromptActions({
       {
         method: "PUT",
         encType: "application/json",
-        action: `/teams/${teamId}/prompts/${prompt._id}`,
+        action: promptsUrl(getPromptTeamId(prompt), prompt._id),
       },
     );
   };
 
-  const submitDeletePrompt = (promptId: string, teamId: string) => {
+  const submitDeletePrompt = (prompt: Prompt) => {
     deleteFetcher.submit(
       JSON.stringify({
         intent: "DELETE_PROMPT",
-        entityId: promptId,
+        entityId: prompt._id,
       }),
       {
         method: "POST",
         encType: "application/json",
-        action: `/teams/${teamId}/prompts/${promptId}`,
+        action: promptsUrl(getPromptTeamId(prompt), prompt._id),
       },
     );
   };
@@ -98,13 +90,10 @@ export function usePromptActions({
   };
 
   const openDeletePromptDialog = (prompt: Prompt) => {
-    const teamId = getPromptTeamId(prompt);
     addDialog(
       <DeletePromptDialog
         prompt={prompt}
-        onDeletePromptClicked={(promptId: string) =>
-          submitDeletePrompt(promptId, teamId)
-        }
+        onDeletePromptClicked={() => submitDeletePrompt(prompt)}
         isSubmitting={deleteFetcher.state === "submitting"}
       />,
     );

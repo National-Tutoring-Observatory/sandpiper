@@ -18,7 +18,7 @@ const DeletePromptDialog = ({
   isSubmitting = false,
 }: {
   prompt: Prompt;
-  onDeletePromptClicked: (id: string) => void;
+  onDeletePromptClicked: () => void;
   isSubmitting?: boolean;
 }) => {
   const [promptName, setPromptName] = useState("");
@@ -74,7 +74,7 @@ const DeletePromptDialog = ({
             disabled={isDeleteButtonDisabled}
             variant="destructive"
             onClick={() => {
-              onDeletePromptClicked(prompt._id);
+              onDeletePromptClicked();
               setPromptName("");
             }}
           >

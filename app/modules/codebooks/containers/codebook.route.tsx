@@ -14,6 +14,7 @@ import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import CodebookAuthorization from "~/modules/codebooks/authorization";
 import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "~/modules/prompts/authorization";
+import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 import createGeneralJob from "~/modules/queues/helpers/createGeneralJob";
 import { CodebookService } from "../codebook";
 import type { Codebook as CodebookType } from "../codebooks.types";
@@ -188,7 +189,13 @@ export default function CodebookRoute() {
         toast.success("Prompt created from codebook");
         addDialog(null);
         navigate(
-          `/teams/${codebook.team}/prompts/${fetcher.data.data._id}/${fetcher.data.data.productionVersion}`,
+          promptsUrl(
+            typeof codebook.team === "string"
+              ? codebook.team
+              : codebook.team._id,
+            fetcher.data.data._id,
+            fetcher.data.data.productionVersion,
+          ),
         );
       } else if (
         fetcher.data.success &&
