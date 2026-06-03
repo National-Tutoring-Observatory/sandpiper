@@ -7,6 +7,7 @@ import {
   useNavigate,
   useOutletContext,
   useParams,
+  useSearchParams,
   useSubmit,
 } from "react-router";
 import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
@@ -122,6 +123,7 @@ export default function TeamPromptsRoute() {
   const navigate = useNavigate();
   const params = useParams();
   const teamId = params.teamId;
+  const [searchParams, setSearchParams] = useSearchParams();
 
   const { openEditPromptDialog, openDeletePromptDialog } = usePromptActions();
 
@@ -162,6 +164,20 @@ export default function TeamPromptsRoute() {
       />,
     );
   };
+
+  useEffect(() => {
+    if (searchParams.get("create") !== "1") return;
+    onCreatePromptButtonClicked();
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        next.delete("create");
+        return next;
+      },
+      { replace: true },
+    );
+     
+  }, []);
 
   const onCreateNewPromptClicked = ({
     name,
