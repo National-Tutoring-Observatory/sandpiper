@@ -90,7 +90,7 @@ test.describe("Run Sets", () => {
       /\/teams\/[a-f0-9]+\/projects\/[a-f0-9]+\/run-sets$/,
     );
     await expect(
-      page.getByRole("button", { name: "Create run set" }),
+      page.getByRole("button", { name: "Create run set" }).first(),
     ).toBeVisible();
   });
 

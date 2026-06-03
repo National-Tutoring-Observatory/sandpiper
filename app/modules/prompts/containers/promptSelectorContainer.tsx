@@ -1,7 +1,7 @@
 import find from "lodash/find";
 import get from "lodash/get";
 import { useEffect, useState } from "react";
-import { useFetcher } from "react-router";
+import { useFetcher, useParams } from "react-router";
 import type { PromptReference } from "~/modules/runSets/runSets.types";
 import PromptSelector from "../components/promptSelector";
 import type { PromptVersion } from "../prompts.types";
@@ -31,25 +31,30 @@ export default function PromptSelectorContainer({
     Record<string, PromptVersion[]>
   >({});
 
+  const { teamId } = useParams();
   const promptsFetcher = useFetcher();
   const promptVersionsFetcher = useFetcher();
 
-  const onPromptsPopoverOpened = () => {
+  const buildPromptsListUrl = () => {
     const params = new URLSearchParams();
     params.set("annotationType", annotationType);
-    promptsFetcher.load(`/api/promptsList?${params.toString()}`);
+    if (teamId) params.set("team", teamId);
+    return `/api/promptsList?${params.toString()}`;
+  };
+
+  const onPromptsPopoverOpened = () => {
+    promptsFetcher.load(buildPromptsListUrl());
   };
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    params.set("annotationType", annotationType);
-
-    promptsFetcher.load(`/api/promptsList?${params.toString()}`);
+    promptsFetcher.load(buildPromptsListUrl());
 
     if (selectedPrompt) {
-      params.set("prompt", selectedPrompt);
+      const versionParams = new URLSearchParams();
+      versionParams.set("annotationType", annotationType);
+      versionParams.set("prompt", selectedPrompt);
       promptVersionsFetcher.load(
-        `/api/promptVersionsList?${params.toString()}`,
+        `/api/promptVersionsList?${versionParams.toString()}`,
       );
     }
   }, [selectedPrompt]);

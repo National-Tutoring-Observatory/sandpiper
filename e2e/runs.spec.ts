@@ -36,12 +36,6 @@ test.describe("Runs", () => {
     await page.getByRole("option").first().click();
 
     await page
-      .getByRole("combobox")
-      .filter({ hasText: "Gemini 3 Flash" })
-      .click();
-    await page.getByRole("option").first().click();
-
-    await page
       .getByRole("row")
       .filter({ hasText: "session_001.json" })
       .first()

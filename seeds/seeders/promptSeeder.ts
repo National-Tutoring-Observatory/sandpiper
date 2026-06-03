@@ -3,60 +3,68 @@ import tokenizePromptVersion from "../../app/modules/prompts/helpers/tokenizePro
 import { PromptService } from "../../app/modules/prompts/prompt.js";
 import { PromptVersionService } from "../../app/modules/prompts/promptVersion.js";
 import { TeamService } from "../../app/modules/teams/team.js";
+import { getSeededTeams } from "./teamSeeder.js";
 
 export async function seedPrompts() {
   const personalTeams = await TeamService.find({
     match: { isPersonal: true },
   });
+  const seededTeams = await getSeededTeams();
 
-  if (personalTeams.length === 0) {
-    console.warn("  ⚠️  No personal team found. Please run team seeder first.");
+  const teams = [...personalTeams, ...seededTeams];
+
+  if (teams.length === 0) {
+    console.warn(
+      "  ⚠️  No personal or seeded teams found. Please run team seeder first.",
+    );
     return;
   }
 
-  const team = personalTeams[0];
+  for (const team of teams) {
+    for (const promptData of DEFAULT_PROMPTS) {
+      try {
+        const existing = await PromptService.find({
+          match: { name: promptData.name, team: team._id },
+        });
 
-  for (const promptData of DEFAULT_PROMPTS) {
-    try {
-      const existing = await PromptService.find({
-        match: { name: promptData.name },
-      });
+        if (existing.length > 0) {
+          console.log(
+            `  ⏭️  Prompt '${promptData.name}' already exists in '${team.name}', skipping...`,
+          );
+          continue;
+        }
 
-      if (existing.length > 0) {
+        const prompt = await PromptService.create({
+          name: promptData.name,
+          team: team._id,
+          annotationType: promptData.annotationType,
+          productionVersion: 1,
+        });
+
         console.log(
-          `  ⏭️  Prompt '${promptData.name}' already exists, skipping...`,
+          `  ✓ Created prompt in '${team.name}': ${promptData.name} (ID: ${prompt._id})`,
         );
-        continue;
+
+        const inputTokens = tokenizePromptVersion(
+          promptData.userPrompt,
+          promptData.annotationSchema,
+        );
+
+        await PromptVersionService.create({
+          name: "initial",
+          prompt: prompt._id,
+          version: 1,
+          userPrompt: promptData.userPrompt,
+          annotationSchema: promptData.annotationSchema,
+          hasBeenSaved: true,
+          inputTokens,
+        });
+
+        console.log(`    ✓ Created version 1 for prompt: ${promptData.name}`);
+      } catch (error) {
+        console.error(`  ✗ Error creating prompt ${promptData.name}:`, error);
+        throw error;
       }
-
-      const prompt = await PromptService.create({
-        name: promptData.name,
-        team: team._id,
-        annotationType: promptData.annotationType,
-        productionVersion: 1,
-      });
-
-      console.log(`  ✓ Created prompt: ${promptData.name} (ID: ${prompt._id})`);
-
-      const inputTokens = tokenizePromptVersion(
-        promptData.userPrompt,
-        promptData.annotationSchema,
-      );
-
-      await PromptVersionService.create({
-        name: "initial",
-        prompt: prompt._id,
-        version: 1,
-        userPrompt: promptData.userPrompt,
-        annotationSchema: promptData.annotationSchema,
-        hasBeenSaved: true,
-        inputTokens,
-      });
-
-      console.log(`    ✓ Created version 1 for prompt: ${promptData.name}`);
-    } catch (error) {
-      console.error(`  ✗ Error creating prompt ${promptData.name}:`, error);
-      throw error;
     }
   }
 }

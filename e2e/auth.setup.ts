@@ -33,12 +33,26 @@ async function findFixtures(): Promise<{
   const connectionString = `mongodb://${encodeURIComponent(DOCUMENT_DB_USERNAME)}:${encodeURIComponent(DOCUMENT_DB_PASSWORD)}@${DOCUMENT_DB_CONNECTION_STRING}`;
   await mongoose.connect(connectionString, { connectTimeoutMS: 10000 });
 
-  const user = await mongoose.connection
-    .collection("users")
-    .findOne({ githubId });
+  const usersCollection = mongoose.connection.collection("users");
+  const user = await usersCollection.findOne({ githubId });
   if (!user) {
     await mongoose.disconnect();
     throw new Error(`No user found with githubId ${githubId}`);
+  }
+
+  // The app routes users without completed onboarding to /onboarding before
+  // they can reach any sidebar nav. Mark the seed user onboarded so tests
+  // land on the real workspace.
+  if (!user.onboardingComplete || !user.termsAcceptedAt) {
+    await usersCollection.updateOne(
+      { _id: user._id },
+      {
+        $set: {
+          onboardingComplete: true,
+          termsAcceptedAt: user.termsAcceptedAt ?? new Date(),
+        },
+      },
+    );
   }
 
   const team = await mongoose.connection
