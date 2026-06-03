@@ -6,8 +6,12 @@ import sessionStorage from "../sessionStorage";
 dotenv.config({ path: "../.env" });
 
 const authFile = ".auth/user.json";
+const ACTIVE_TEAM_NAME = "Research Team Alpha";
 
-async function findSuperAdminId(): Promise<string> {
+async function findFixtures(): Promise<{
+  userId: string;
+  activeTeamId: string;
+}> {
   const githubId = parseInt(process.env.SUPER_ADMIN_GITHUB_ID as string);
   if (!githubId) {
     throw new Error("SUPER_ADMIN_GITHUB_ID environment variable is required.");
@@ -32,17 +36,24 @@ async function findSuperAdminId(): Promise<string> {
   const user = await mongoose.connection
     .collection("users")
     .findOne({ githubId });
-  await mongoose.disconnect();
-
   if (!user) {
+    await mongoose.disconnect();
     throw new Error(`No user found with githubId ${githubId}`);
   }
 
-  return user._id.toString();
+  const team = await mongoose.connection
+    .collection("teams")
+    .findOne({ name: ACTIVE_TEAM_NAME });
+  await mongoose.disconnect();
+  if (!team) {
+    throw new Error(`No team found with name '${ACTIVE_TEAM_NAME}'`);
+  }
+
+  return { userId: user._id.toString(), activeTeamId: team._id.toString() };
 }
 
 setup("authenticate", async ({ page }) => {
-  const userId = await findSuperAdminId();
+  const { userId, activeTeamId } = await findFixtures();
 
   const session = await sessionStorage.getSession();
   session.set("user", { _id: userId });
@@ -61,6 +72,15 @@ setup("authenticate", async ({ page }) => {
       sameSite: "Lax",
     },
   ]);
+
+  // useActiveTeam reads sandpiper.activeTeamId from localStorage before
+  // falling back to the personal team. Seed it so tests land on the
+  // seeded "Research Team Alpha" instead of the admin's personal workspace.
+  await page.goto("/");
+  await page.evaluate(
+    ({ id }) => window.localStorage.setItem("sandpiper.activeTeamId", id),
+    { id: activeTeamId },
+  );
 
   await page.context().storageState({ path: authFile });
 });
