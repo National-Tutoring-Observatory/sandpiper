@@ -206,5 +206,54 @@ describe("codebook.route action", () => {
         } as any),
       ).rejects.toThrow("Codebook not found");
     });
+
+    it("rejects CREATE_PROMPT_FROM_CODEBOOK when codebookVersionId belongs to a different codebook", async () => {
+      const team = await TeamService.create({ name: "Team" });
+      const user = await UserService.create({
+        username: "user",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+      const codebookA = await CodebookService.create({
+        name: "Codebook A",
+        description: "",
+        team: team._id,
+        productionVersion: 1,
+        createdBy: user._id,
+      });
+      const codebookB = await CodebookService.create({
+        name: "Codebook B",
+        description: "",
+        team: team._id,
+        productionVersion: 1,
+        createdBy: user._id,
+      });
+      const versionInB = await CodebookVersionService.create({
+        codebook: codebookB._id,
+        version: 1,
+        categories: [],
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      const res = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "CREATE_PROMPT_FROM_CODEBOOK",
+            entityId: codebookA._id,
+            payload: {
+              codebookVersionId: versionInB._id,
+              annotationType: "PER_UTTERANCE",
+            },
+          }),
+        }),
+        params: { teamId: team._id, codebookId: codebookA._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(res.init?.status).toBe(500);
+      expect(res.data.errors.general).toContain("Codebook version not found");
+    });
   });
 });

@@ -367,3 +367,62 @@ describe("createRun.route action - insufficient credits", () => {
     expect((res as any).data.errors.credits).toBeDefined();
   });
 });
+
+describe("createRun.route action - cross-team prompt rejection", () => {
+  it("rejects a prompt that belongs to a different team", async () => {
+    await clearDocumentDB();
+
+    const teamA = await TeamService.create({ name: "Team A" });
+    const teamB = await TeamService.create({ name: "Team B" });
+    const user = await UserService.create({
+      username: "dual",
+      teams: [
+        { team: teamA._id, role: "ADMIN" },
+        { team: teamB._id, role: "ADMIN" },
+      ],
+    });
+    const projectA = await ProjectService.create({
+      name: "Project in A",
+      createdBy: user._id,
+      team: teamA._id,
+    });
+    const session = await SessionService.create({
+      name: "S",
+      project: projectA._id,
+    });
+    const promptInB = await PromptService.create({
+      name: "Foreign Prompt",
+      annotationType: "PER_UTTERANCE",
+      team: teamB._id,
+    });
+    await PromptVersionService.create({
+      prompt: promptInB._id,
+      version: 1,
+      userPrompt: "leaked",
+      annotationSchema: [],
+    });
+    const cookieHeader = await loginUser(user._id);
+
+    const res = (await action({
+      request: new Request("http://localhost/", {
+        method: "POST",
+        headers: { cookie: cookieHeader, "content-type": "application/json" },
+        body: JSON.stringify({
+          intent: "CREATE_AND_START_RUN",
+          payload: {
+            name: "Crafted Run",
+            annotationType: "PER_UTTERANCE",
+            prompt: promptInB._id,
+            promptVersion: 1,
+            model: testModel,
+            sessions: [session._id],
+          },
+        }),
+      }),
+      params: { teamId: teamA._id, projectId: projectA._id },
+    } as any)) as any;
+
+    expect(res.init?.status).toBe(404);
+    expect(res.data.errors.prompt).toBeDefined();
+  });
+});
