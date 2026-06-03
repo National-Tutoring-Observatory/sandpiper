@@ -64,7 +64,7 @@ export default function TeamProjects({
         getItemAttributes={(item) =>
           getTeamProjectsItemAttributes(item, team._id, user)
         }
-        getItemActions={getTeamProjectsItemActions}
+        getItemActions={(item) => getTeamProjectsItemActions(item, user)}
         onActionClicked={onActionClicked}
         onItemActionClicked={onItemActionClicked}
         onSearchValueChanged={onSearchValueChanged}

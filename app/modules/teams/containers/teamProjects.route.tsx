@@ -15,6 +15,7 @@ import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import ProjectAuthorization from "~/modules/projects/authorization";
 import CreateProjectDialog from "~/modules/projects/components/createProjectDialog";
+import { useProjectActions } from "~/modules/projects/hooks/useProjectActions";
 import { ProjectService } from "~/modules/projects/project";
 import type { User } from "~/modules/users/users.types";
 import TeamAuthorization from "../authorization";
@@ -85,6 +86,9 @@ export default function TeamProjectsRoute() {
   const user = useContext(AuthenticationContext) as User;
   const teamId = params.teamId;
 
+  const { openEditProjectDialog, openDeleteProjectDialog } =
+    useProjectActions();
+
   const {
     searchValue,
     setSearchValue,
@@ -122,13 +126,21 @@ export default function TeamProjectsRoute() {
 
   const onItemActionClicked = ({
     id,
-    action: _action,
+    action,
   }: {
     id: string;
     action: string;
   }) => {
     const project = find(data.projects.data, { _id: id });
     if (!project) return null;
+    switch (action) {
+      case "EDIT":
+        openEditProjectDialog(project);
+        break;
+      case "DELETE":
+        openDeleteProjectDialog(project);
+        break;
+    }
   };
 
   const onSearchValueChanged = (searchValue: string) => {
