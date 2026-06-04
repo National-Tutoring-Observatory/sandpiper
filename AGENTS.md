@@ -6,196 +6,95 @@ Sandpiper - the National Tutoring Observatory's (NTO) React-based web applicatio
 
 **Stack**: TypeScript, React 19, React Router v7 (SSR), Vite 6, Tailwind CSS 4, shadcn/ui, Mongoose, BullMQ, Yarn
 
+## Code Change Philosophy
+
+- Prefer the smallest, simplest change that solves the problem. Avoid threading new parameters broadly, adding new abstractions, or refactoring adjacent code unless asked.
+- Before making edits to fix a 'bug', verify the bug exists by reading the code path end-to-end. The page/state may already be correct.
+- When a task seems to require many file changes, pause and confirm scope before proceeding.
+
 ## Essential Commands
 
-### Installation & Setup
-
 ```bash
-# Install dependencies (always use frozen lockfile to match CI)
-yarn install --frozen-lockfile
+# Dev
+yarn app:dev              # App on :5173
+yarn local:redis          # Redis (required for workers + Socket.IO)
+yarn workers:dev          # BullMQ workers (separate terminal)
 
-# Setup environment
-cp .env.example .env
-# Edit .env as needed
-```
-
-### Development
-
-```bash
-# Start development server (port 5173)
-yarn app:dev
-
-# Start Redis (required for workers and Socket.IO)
-yarn local:redis
-
-# Start background workers (in separate terminal)
-yarn workers:dev
-```
-
-### Build & Validation
-
-```bash
-# Type checking (required before commits)
-yarn typecheck
-
-# Lint (required before commits)
+# Validate
+yarn typecheck            # Required before commit
 yarn lint
-
-# Format (required before commits)
 yarn format
+yarn test                 # Source of truth — see guardrails below
+yarn app:build            # Required before commit
 
-# Production build
-yarn app:build
-
-# Production server
-yarn app:prod
-```
-
-### Testing
-
-```bash
-# Run all tests
-yarn test
-
-# Run tests in watch mode
-yarn test:watch
-
-# Run specific test file
-yarn test app/modules/runSets/__tests__/authorization.test.ts
-
-# Run tests with coverage
-yarn test:coverage
+# Migrations
+yarn migration:generate <Name>
+# - Only implement up() — no rollbacks
+# - Verbose console.log for debugging
+# - Return { success: failed === 0, message: string, stats: { migrated, failed } }
 ```
 
 **Testing guardrails:**
 
-- Treat `yarn test` as the source of truth for test failures. The repo already handles worker-split DB setup; do not invent a different parallel repro model and then debug against that.
-- Avoid running multiple ad hoc `vitest` commands in parallel against the same local test DB. That can create false failures that look like transaction or data-consistency bugs.
-- In shared test DB helpers, prefer clearing collection contents over `dropDatabase()` unless you have a very specific reason. `dropDatabase()` can introduce cross-worker races during test runs.
-- When architecture changes move the source of truth (for example, current billing balance now comes from `TeamBillingBalance`), update test fixtures to seed the new authoritative source instead of preserving stale expectations.
-
-### Data Migrations
-
-```bash
-# Generate new migration
-yarn migration:generate <Name Of Migration>
-# Example: yarn migration:generate Backfill User Emails
-# Creates: app/migrations/YYYYMMDDHHmmss-backfill-user-emails.ts
-
-# Migration guidelines:
-# - Only implement the up() function (no down - rollbacks not supported)
-# - Add verbose console.log statements for debugging
-# - Return { success: failed === 0, message: string, stats: { migrated, failed } }
-```
+- Treat `yarn test` as the source of truth for test failures. The repo handles worker-split DB setup; don't invent a different parallel repro model.
+- Don't run multiple ad-hoc `vitest` commands in parallel against the same local test DB — causes false transaction/data-consistency failures.
+- In shared test DB helpers, clear collection contents instead of `dropDatabase()` (latter races across workers).
+- When the source of truth moves (e.g., current balance now in `TeamBillingBalance`), update fixtures to seed the new authority, not preserve stale expectations.
 
 ### Git Commits
 
-If the current branch name starts with a number (e.g., `1404-break-force-stop-a-run-in-the-middle`), include `Fixes #NUMBER` in the commit message (e.g., `Fixes #1404`).
-
-### Pre-commit Hooks (Automatic)
-
-Formatting and linting run automatically on staged files via **husky + lint-staged**:
-
-- `prettier --write` on `*.{ts,tsx,js,jsx,json,css,md}`
-- `eslint --fix` on `*.{ts,tsx}`
-
-To skip hooks (e.g., WIP commits): `HUSKY=0 git commit -m "wip"`
+- Branch name starts with a number (e.g., `1404-...`)? Include `Fixes #NUMBER` in the commit message.
+- Pre-commit (husky + lint-staged): prettier + eslint on staged files. Skip with `HUSKY=0 git commit ...`.
 
 ### Pre-commit Checklist
 
-1. ✅ `yarn typecheck` - must pass with no errors
-2. ✅ `yarn test` - must pass with no errors
-3. ✅ `yarn app:build` - must complete successfully
+1. `yarn typecheck` passes
+2. `yarn test` passes
+3. `yarn app:build` succeeds
 
-## Architecture Overview
+## Architecture
 
-### Monorepo Structure
-
-The project is organized as a Yarn workspace monorepo:
+### Monorepo
 
 ```
 sandpiper/
-├── app/                    # Main React/Node.js application
+├── app/                    # Main app
 │   ├── modules/           # Feature modules
-│   ├── uikit/             # Reusable UI components (shadcn/ui)
-│   ├── lib/               # Database schemas, utilities
-│   ├── storageAdapters/   # Storage implementations (local, AWS S3)
-│   ├── documentsAdapters/ # Database implementations (local, DocumentDB)
-│   ├── migrations/        # Data migration files
+│   ├── uikit/             # shadcn/ui components
+│   ├── lib/               # Schemas, utilities
+│   ├── storageAdapters/   # Local, S3
+│   ├── documentsAdapters/ # Local, DocumentDB
+│   ├── migrations/        # Data migrations
 │   └── adapters.js        # Auto-generates storage imports
-├── workers/                # BullMQ worker processes (workspace)
-├── localMode/              # Local development utilities (workspace)
-├── test/                   # Test setup and helpers
-├── server.ts              # Express server entry point
-└── package.json           # Root with workspaces
+├── workers/                # BullMQ workers
+├── localMode/              # Local dev utilities
+├── test/                   # Test helpers
+└── server.ts
 ```
 
-### Data Schemas & Validation
-
-The project uses JSON Schema for defining and validating data formats. Schemas live in the codebase and are validated in tests, not at runtime.
-
-**Schema Location**:
-
-- JSON Schemas: `app/lib/schemas/json/`
-- Validation utilities: `app/lib/validation/`
-- Documentation: `documentation/schemas/`
-
-**Key Schemas**:
-
-- **Transcript Schema** (`app/lib/schemas/json/transcript.schema.json`): Defines the format for tutoring session transcripts
-  - Required fields: `transcript` array with `_id`, `role`, `content` per utterance
-  - Optional fields: timestamps, session metadata, annotations
-  - See `documentation/schemas/transcript.md` for full specification
-
-**Validation Strategy**:
-
-- ✅ **In Tests**: Validate function outputs using `validateTranscriptData()`
-- ❌ **Not in Runtime**: No validation overhead in production code
-- 📝 **In Documentation**: Human-readable specs with examples
-
-**Example Test**:
-
-```typescript
-import { validateTranscriptData } from "~/lib/validation/validateTranscript";
-
-it("returns a valid transcript", async () => {
-  const result = await convertFileToSession(input);
-  const validation = validateTranscriptData(result);
-  expect(validation.valid).toBe(true);
-});
-```
-
-**Documentation**:
-
-- [Transcript Format](documentation/schemas/transcript.md) - Input format specification
-- [Examples](documentation/schemas/examples/) - Sample transcript files
-
-### Module Organization Pattern
-
-Each feature module in `app/modules/` follows this structure:
+### Module Structure
 
 ```
 module/
 ├── containers/         # Route handlers (loaders + actions)
-├── components/         # React UI components
+├── components/         # React components (dumb, props-only)
 ├── services/          # Business logic (*.server.ts)
-├── helpers/           # Utility functions
+├── helpers/           # Pure utility functions
 ├── authorization.ts   # Permission checks
-├── module.ts          # Service class
-├── module.types.ts    # TypeScript types
-└── __tests__/        # Tests
+├── module.ts          # Service facade
+├── module.types.ts
+└── __tests__/
 ```
 
-**Core Modules**:
+**Core modules**: `projects`, `runs`, `sessions`, `runSets`, `prompts`, `annotations`, `teams`, `users`, `authentication`, `authorization`, `storage`, `queues`, `sockets`.
 
-- **Data Management**: `projects`, `runs`, `sessions`, `runSets`
-- **LLM/Annotations**: `prompts`, `annotations`
-- **Access Control**: `teams`, `users`, `authentication`, `authorization`
-- **Infrastructure**: `storage`, `queues`, `sockets`
+### Data Schemas & Validation
+
+JSON Schemas live in `app/lib/schemas/json/`; validation utils in `app/lib/validation/`; docs in `documentation/schemas/`. Validate function outputs **in tests** with `validateTranscriptData()` — no runtime validation overhead. See `documentation/schemas/transcript.md` for the transcript format.
 
 ### Service Pattern
 
-All data operations go through service classes with a consistent interface:
+Services are facades over CRUD + business operations. Routes always call the service, never the model directly.
 
 ```typescript
 export class ProjectService {
@@ -211,176 +110,57 @@ export class ProjectService {
 }
 ```
 
-**FindOptions Interface**:
+`FindOptions`: `match`, `sort`, `skip`, `limit`, `populate`.
 
-- `match`: MongoDB query object
-- `sort`: Sort criteria
-- `skip`/`limit`: Pagination
-- `populate`: Relations to expand
-
-**Service Class Structure**:
-
-The service class acts as a **facade** - a single entry point that routes use. It contains:
-
-- Basic CRUD methods (inline, ~5-10 lines each)
-- Business operation methods that delegate to service files
-
-```typescript
-// module.ts - The facade
-export class RunSetService {
-  // Basic CRUD - implemented inline
-  static async find(options?: FindOptions): Promise<RunSet[]> { ... }
-  static async findById(id: string): Promise<RunSet | null> { ... }
-
-  // Complex operations - delegate to service files
-  static async mergeRunSets(targetId: string, sourceIds: string[]) {
-    return mergeRunSetsService(targetId, sourceIds);
-  }
-}
-```
-
-**When to split into service files** (`services/*.server.ts`):
-
-- Operation has multiple steps or validation logic
-- Method would exceed ~20-30 lines
-- Logic needs to be tested in isolation
-
-**When to use helpers** (`helpers/*.ts`):
-
-- Pure functions (no side effects, no DB calls)
-- Logic shared between multiple services
-- Validation or transformation utilities
-
-```
-module/
-├── module.ts              # Facade - what's exposed to routes
-├── services/              # Complex business logic
-│   ├── mergeItems.server.ts
-│   └── processItems.server.ts
-└── helpers/               # Pure shared functions
-    ├── validateItem.ts
-    └── transformData.ts
-```
+- **Inline in `module.ts`**: basic CRUD (~5–10 lines each).
+- **Split to `services/*.server.ts`**: multi-step logic, validation chains, anything ~20+ lines, anything needing isolated tests.
+- **Use `helpers/*.ts`**: pure functions, no DB calls, shared between services.
 
 ### React Router Pattern
 
-Routes use React Router v7's loader/action pattern:
+Loaders fetch; actions mutate. Intent-based routing in actions only — **never in loaders**. Loaders return a single consistent shape; if a user interaction needs read-only data, fetch via `fetcher.submit` against the action, not query params on the loader.
 
 ```typescript
-// Data fetching on server
 export async function loader({ request, params }: Route.LoaderArgs) {
-  const user = await getUser(request)
-  if (!user) return redirect('/')
+  const user = await getUser(request);
+  if (!user) return redirect("/");
 
-  const project = await ProjectService.findById(params.projectId)
-  if (!ProjectAuthorization.canView(user, project)) {
-    throw new Error("Access denied")
-  }
+  const project = await ProjectService.findById(params.projectId);
+  if (!ProjectAuthorization.canView(user, project))
+    throw new Error("Access denied");
 
-  return { project }
+  return { project };
 }
 
-// Mutations on server
 export async function action({ request, params }: Route.ActionArgs) {
-  const user = await getUser(request)
-  if (!user) throw new Error("Authentication required")
+  const user = await getUser(request);
+  if (!user) throw new Error("Authentication required");
 
-  const payload = await request.json()
-
-  // Intent-based routing
-  if (payload.intent === 'UPDATE_PROJECT') {
-    const project = await ProjectService.updateById(params.projectId, payload.data)
-    return data({ success: true, project })
+  const payload = await request.json();
+  if (payload.intent === "UPDATE_PROJECT") {
+    const project = await ProjectService.updateById(
+      params.projectId,
+      payload.data,
+    );
+    return data({ success: true, project });
   }
-
-  return data({ errors: { general: 'Invalid intent' } }, { status: 400 })
-}
-
-// Client component
-export default function ProjectRoute() {
-  const { project } = useLoaderData<typeof loader>()
-  const submit = useSubmit()
-
-  const handleUpdate = () => {
-    submit(JSON.stringify({ intent: 'UPDATE_PROJECT', data: {...} }), {
-      method: 'POST',
-      encType: 'application/json'
-    })
-  }
+  return data({ errors: { general: "Invalid intent" } }, { status: 400 });
 }
 ```
-
-**IMPORTANT**: Never put intent-based routing in loaders. Loaders are for data fetching only — they should return a single, consistent data shape. All intent-based logic (including read-only data fetches triggered by user interaction) belongs in the action via `fetcher.submit`, not in the loader via query params.
 
 ### Container/Component Pattern
 
-Route files (`containers/*.route.tsx`) are **containers** — they handle all wiring. Components (`components/*.tsx`) are **dumb** — they receive data and callbacks as props.
+Route files (`containers/*.route.tsx`) are containers — they own all wiring (loader/action, `useFetcher`, `useNavigate`, `useLoaderData`, `useSearchQueryParams`, effects, callbacks). Components in `components/*.tsx` are dumb — props only, with local UI state allowed.
 
-**Route file (container) responsibilities:**
+Components must NOT use router hooks or `useSearchQueryParams`. The route passes `searchValue`, `currentPage`, `isSyncing`, and setters as props.
 
-- `loader` and `action` functions
-- `useFetcher` / `useSubmit` / `useNavigate` / `useLoaderData`
-- `useSearchQueryParams` hook
-- `useEffect` for side effects (toasts, navigation after action)
-- Callback functions that submit data or open dialogs
-- Passes everything to the component as props
+### `useFetcher` vs `useSubmit`
 
-**Component responsibilities:**
-
-- Receives all data and callbacks as props
-- Manages only local UI state (e.g., selected checkboxes, form inputs)
-- No router hooks (`useFetcher`, `useNavigate`, `useLoaderData`, etc.)
-- No `useSearchQueryParams` — receives values as props from the route
+Use `useFetcher` when an action needs client-side feedback (toasts, loading) before navigating. `useSubmit` triggers full navigation and the toast gets lost.
 
 ```typescript
-// ✅ Route file handles wiring
-export default function MyRoute() {
-  const { items } = useLoaderData<typeof loader>();
-  const fetcher = useFetcher();
-  const navigate = useNavigate();
-  const { searchValue, setSearchValue, currentPage, setCurrentPage, isSyncing } =
-    useSearchQueryParams({ searchValue: "", currentPage: 1 });
-
-  useEffect(() => { /* toast + navigate on fetcher.data */ }, [fetcher.state, fetcher.data]);
-
-  const submitAction = (id: string) => {
-    fetcher.submit(JSON.stringify({ intent: "DO_THING", payload: { id } }),
-      { method: "POST", encType: "application/json" });
-  };
-
-  return (
-    <MyComponent
-      items={items}
-      searchValue={searchValue}
-      currentPage={currentPage}
-      isSyncing={isSyncing}
-      onActionClicked={submitAction}
-      onSearchValueChanged={setSearchValue}
-      onPaginationChanged={setCurrentPage}
-    />
-  );
-}
-
-// ✅ Component is dumb — props only
-export default function MyComponent({ items, searchValue, onActionClicked, ... }: Props) {
-  const [selected, setSelected] = useState<string[]>([]); // Local UI state is fine
-  return <Collection items={items} ... />;
-}
-```
-
-### `useFetcher` vs `useSubmit` for Actions
-
-When an action needs **client-side feedback** (toasts, loading states) before navigating, use `useFetcher` — not `useSubmit`.
-
-- `useSubmit` triggers full page navigation, making it difficult to show toasts before redirect
-- `useFetcher` submits without navigation, so you can show a toast in a `useEffect` then call `navigate()` yourself
-- The action should return `data({ success: true, intent: "...", data: { redirectTo: "..." } })` instead of `redirect()`
-
-```typescript
-// ✅ useFetcher — clean feedback pattern
 const fetcher = useFetcher();
 const navigate = useNavigate();
-const isSubmitting = fetcher.state !== "idle";
 
 useEffect(() => {
   if (fetcher.state !== "idle") return;
@@ -395,292 +175,90 @@ const submitAction = () => {
     encType: "application/json",
   });
 };
-
-// ❌ useSubmit — causes navigation, toast gets lost
-const submit = useSubmit();
-const navigation = useNavigation();
-// Hard to show toast before redirect happens
 ```
 
-### Search, Pagination, and Querying Pattern
+Have the action return `data({ success: true, intent: "...", data: { redirectTo: "..." } })` instead of `redirect()`.
 
-**CRITICAL**: For ANY list with search or pagination, you MUST use these files:
+### Search, Pagination & Querying
+
+**Required imports for any list with search/pagination:**
 
 ```typescript
-// REQUIRED IMPORTS - use these exact files:
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import { Collection } from "@/components/ui/collection";
 ```
 
-**Checklist for adding pagination:**
+**Checklist:**
 
-- [ ] Loader imports `getQueryParamsFromRequest` and `buildQueryFromParams`
-- [ ] Loader calls `getQueryParamsFromRequest()` to extract URL params
-- [ ] Loader calls `buildQueryFromParams()` to build the database query
-- [ ] Loader calls `Service.paginate()` with the query
-- [ ] **Route file** calls `useSearchQueryParams()` hook and passes values as props to the component
-- [ ] Component uses `<Collection>` with `hasSearch` and `hasPagination` props
-- [ ] For multiple lists on same page: use `{ paramPrefix: "name" }` option
+- [ ] Loader: `getQueryParamsFromRequest()` → `buildQueryFromParams()` → `Service.paginate()`
+- [ ] `Service.paginate()` must exist and return `{ data, count, totalPages }`
+- [ ] Route file (container) calls `useSearchQueryParams()` and passes values/setters as props
+- [ ] Component renders `<Collection hasSearch hasPagination />`
+- [ ] Multiple lists on one page → namespace each with `{ paramPrefix: "name" }` on both loader and hook (must match)
+- [ ] Default sort uses `-` prefix for descending (e.g., `"-createdAt"`)
+- [ ] Helpers (`getItemAttributes`, `getItemActions`) live in `helpers/`, not inline
 
-**IMPORTANT**: `useSearchQueryParams()` always lives in the **route file** (container), never in the component. The route passes `searchValue`, `currentPage`, `isSyncing`, and the setter functions as props.
-
-**DO NOT**:
-
-- Build custom search/pagination UI
-- Write manual regex queries for search
-- Skip `buildQueryFromParams` - it handles search, sort, filters, and pagination correctly
-
-#### The Three-Part Pattern
-
-1. **Client Hook** - `useSearchQueryParams()` manages URL params and provides state
-2. **Server Helper** - `getQueryParamsFromRequest()` extracts params from request
-3. **Query Builder** - `buildQueryFromParams()` builds database query from params
-
-#### Complete Example
-
-**Loader (Server)**:
+**`buildQueryFromParams` shape:**
 
 ```typescript
-import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
-import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
-
-export async function loader({ request }: Route.LoaderArgs) {
-  const user = await getSessionUser({ request });
-  if (!user) return redirect("/");
-
-  // 1. Extract query params from URL
-  const queryParams = getQueryParamsFromRequest(request, {
-    searchValue: "",
-    currentPage: 1,
-    sort: "-createdAt", // Default sort (- prefix = descending)
-    filters: {},
-  });
-
-  // 2. Build database query
-  const query = buildQueryFromParams({
-    match: { team: user.teamId }, // Base filter
-    queryParams,
-    searchableFields: ["name", "description"], // Fields to search
-    sortableFields: ["name", "createdAt"], // Allowed sort fields
-    filterableFields: ["status"], // Optional filters
-  });
-
-  // 3. Paginate results
-  const projects = await ProjectService.paginate(query);
-
-  return { projects };
-}
-```
-
-**Component (Client)**:
-
-```typescript
-import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
-import { Collection } from "@/components/ui/collection";
-
-export default function ProjectsRoute({ loaderData }: Route.ComponentProps) {
-  const { projects } = loaderData;
-
-  // Get search/pagination state from URL
-  const {
-    searchValue,
-    setSearchValue,
-    currentPage,
-    setCurrentPage,
-    sortValue,
-    setSortValue,
-    filtersValues,
-    setFiltersValues,
-    isSyncing,
-  } = useSearchQueryParams({
-    searchValue: "",
-    currentPage: 1,
-    sortValue: "-createdAt",
-    filters: {},
-  });
-
-  return (
-    <Collection
-      items={projects.data}
-      itemsLayout="list"
-      searchValue={searchValue}
-      currentPage={currentPage}
-      totalPages={projects.totalPages}
-      sortValue={sortValue}
-      filtersValues={filtersValues}
-      isSyncing={isSyncing}
-      hasSearch
-      hasPagination
-      sortOptions={[
-        { text: "Name", value: "name" },
-        { text: "Created", value: "createdAt" },
-      ]}
-      getItemAttributes={(item) => ({
-        id: item._id,
-        title: item.name,
-        description: item.description,
-      })}
-      getItemActions={(item) => [
-        { action: "EDIT", text: "Edit" },
-        { action: "DELETE", text: "Delete", variant: "destructive" },
-      ]}
-      onSearchValueChanged={setSearchValue}
-      onPaginationChanged={setCurrentPage}
-      onSortValueChanged={setSortValue}
-      onFiltersValueChanged={setFiltersValues}
-      // ... other props
-    />
-  );
-}
-```
-
-#### Multiple Collections on Same Page
-
-Without a prefix, all collections share the same URL params (`searchValue`, `currentPage`, etc.) — searching one would affect the other. Use `{ paramPrefix: "name" }` to namespace each collection's params. The prefix must match between loader and hook.
-
-```typescript
-// Loader — second collection uses prefix
-const auditQueryParams = getQueryParamsFromRequest(
-  request,
-  { searchValue: "", currentPage: 1, sort: "-createdAt", filters: {} },
-  { paramPrefix: "audit" },
-);
-
-// Component — same prefix
-const { searchValue: auditSearchValue, ... } = useSearchQueryParams(
-  { searchValue: "", currentPage: 1, sortValue: "-createdAt", filters: {} },
-  { paramPrefix: "audit" },
-);
-```
-
-#### Collection Helpers Pattern
-
-Helper functions for Collection components belong in `helpers/` directory:
-
-```typescript
-// helpers/getItemAttributes.tsx - Shapes data for display
-import getDateString from "~/modules/app/helpers/getDateString";
-
-export default (item: ItemType): CollectionItemAttributes => ({
-  id: item._id,
-  title: item.name,
-  description: item.description,
-  meta: [
-    { text: getDateString(item.createdAt) }
-  ],
-  to: `/path/${item._id}`,  // Optional link
+const query = buildQueryFromParams({
+  match: { team: user.teamId }, // base filter
+  queryParams,
+  searchableFields: ["name", "description"], // fields full-text-searched
+  sortableFields: ["name", "createdAt"], // whitelist of sort keys
+  filterableFields: ["status"], // whitelist of filters
 });
-
-// helpers/getItemActions.tsx - Defines available actions
-export default (item: ItemType, currentUser: User): CollectionItemAction[] => [
-  { action: "EDIT", text: "Edit", icon: <PencilIcon /> },
-  { action: "DELETE", text: "Delete", variant: "destructive" },
-];
-
-// Component imports and uses helpers
-import getItemAttributes from "../helpers/getItemAttributes";
-import getItemActions from "../helpers/getItemActions";
-
-<Collection
-  getItemAttributes={getItemAttributes}
-  getItemActions={(item) => getItemActions(item, currentUser)}
-  // ...
-/>
 ```
 
-#### Key Rules
+**Don't**: build custom search/pagination UI, write manual regex queries, skip `buildQueryFromParams`.
 
-1. **Always use Collection component** for lists - never build custom search/pagination UI
-2. **Extract helpers** - `getItemAttributes` and `getItemActions` belong in `helpers/` directory, not inline in components
-3. **Use `buildQueryFromParams`** for queries - never manually build regex queries
-4. **Match prefixes** when using multiple collections on the same page
-5. **Default sorts** should use `-` prefix for descending (e.g., `"-createdAt"`)
-6. **Service.paginate()** must exist on your service (returns `{ data, count, totalPages }`)
+Canonical example: any of the existing list routes (e.g., projects, runs, teams). Mirror their shape.
 
 ### Authorization Pattern
 
-Every module has an authorization file with consistent methods:
+Every module has `authorization.ts` with `canCreate(user, ...)`, `canView(user, resource)`, `canUpdate(...)`, `canDelete(...)`.
+
+- **Loaders**: `redirect()` on auth failures.
+- **Actions**: `redirect()` on auth/authz; `data({ errors }, { status })` for business errors.
+
+**CRITICAL: Actions are not protected by the loader.** Loaders and actions are independent HTTP endpoints — a user can POST directly. Every action must independently verify auth (and authorization for team/user-scoped resources):
 
 ```typescript
-export const ProjectAuthorization = {
-  canCreate(user: User, teamId: string): boolean
-  canView(user: User, project: Project): boolean
-  canUpdate(user: User, project: Project): boolean
-  canDelete(user: User, project: Project): boolean
-}
-```
-
-Authorization checks are done in route loaders/actions:
-
-- **Loaders**: Use `redirect()` for auth failures
-- **Actions**: Use `redirect()` for auth/authorization failures; return `data({ errors: {...} }, { status: 400/403/500 })` for business logic errors
-
-**CRITICAL: Actions are not protected by the loader.** React Router loaders and actions are independent HTTP endpoints. A user can POST directly to a route without triggering the loader — so an action that relies on the loader's auth check has no auth at all. Every action must independently verify authentication (and authorization where the resource is team/user-scoped):
-
-```typescript
-// ✅ Action must check auth independently — never rely on the loader
 export async function action({ request, params }: Route.ActionArgs) {
   const user = (await getSessionUser({ request })) as User;
   if (!user) return redirect("/");
 
   const project = await ProjectService.findById(params.projectId);
-  if (!project || !ProjectAuthorization.canView(user, project)) {
+  if (!project || !ProjectAuthorization.canView(user, project))
     return redirect("/");
-  }
-
-  // ... rest of action
-}
-
-// ❌ This action has no auth — the loader's check doesn't protect it
-export async function action({ request, params }: Route.ActionArgs) {
-  const { intent } = await request.json(); // Anyone can call this
-  await RunService.deleteById(params.runId);
+  // ...
 }
 ```
 
 ### Resource Scoping (IDOR Prevention)
 
-**CRITICAL: Always scope nested resource fetches to their parent URL param.** When a route URL contains a parent ID (e.g., `:projectId`) and a child ID (e.g., `:runSetId`), fetching the child by ID alone allows any authenticated user to read or modify resources from projects they don't own — even if project auth passes — by substituting the child ID in the URL.
+**CRITICAL: Always scope nested resource fetches to their parent URL param.** When a URL has `:projectId` and `:runSetId`, fetching the child by ID alone lets any authenticated user substitute child IDs to read/modify resources from other projects.
 
-**Rule**: Never use `findById(params.childId)` when the URL also contains a `params.parentId`. Always use `findOne({ _id: params.childId, parentField: params.parentId })`.
+**Rule**: never `findById(params.childId)` when the URL has `params.parentId`. Always `findOne({ _id: params.childId, parentField: params.parentId })`.
 
 ```typescript
-// ❌ IDOR vulnerability — runSet could belong to any project
+// ❌ runSet could belong to any project
 const runSet = await RunSetService.findById(params.runSetId);
-if (!runSet) return redirect(`/projects/${params.projectId}/run-sets`);
 
-// ✅ Scoped to the project in the URL — cross-project access returns null
+// ✅ scoped — cross-project access returns null
 const runSet = await RunSetService.findOne({
   _id: params.runSetId,
   project: params.projectId,
 });
-if (!runSet) return redirect(`/projects/${params.projectId}/run-sets`);
 ```
 
-This applies in **both loaders and actions**, and to **any resource fetched for display** (breadcrumbs, labels, related data), not just resources being mutated. A resource returned as context leaks information even if it isn't written to.
+Applies in **both loaders and actions**, and to **any resource fetched for display** (breadcrumbs, labels, related data) — leaking a name still leaks information.
+
+**Validate enum inputs from client payloads.** Reject invalid roles/statuses/types explicitly — don't silently default to a safe value (masks bugs, gives unexpected permissions).
 
 ```typescript
-// ❌ Leaks runSet name from another project in breadcrumbs
-const runSet = runSetId ? await RunSetService.findById(runSetId) : null;
-
-// ✅ Null if the runSet doesn't belong to this project
-const runSet = runSetId
-  ? await RunSetService.findOne({ _id: runSetId, project: params.projectId })
-  : null;
-```
-
-**Also validate enum inputs from user payloads.** Never trust a role, status, or type value sent by the client — reject invalid values explicitly. Do not silently default to a safe value: that masks client bugs and creates confusing outcomes where the user gets a different permission than intended.
-
-```typescript
-// ❌ Arbitrary role written to DB
-teams: [{ team: teamId, role }];
-
-// ❌ Silent default — masks bugs, invitee gets wrong role with no feedback
-teams: [{ team: teamId, role: isTeamRole(role) ? role : "MEMBER" }];
-
-// ✅ Reject invalid input explicitly
 import { isTeamRole } from "../teams.types";
 if (!isTeamRole(role)) {
   return data({ errors: { role: "Invalid role" } }, { status: 400 });
@@ -690,79 +268,47 @@ teams: [{ team: teamId, role }];
 
 ### Human Runs (`isHuman: true`)
 
-Runs can be either LLM-generated or human-annotated. Human runs have `isHuman: true` and an `annotator: { name }` field instead of a prompt/model.
+Human runs have `isHuman: true` and `annotator: { name }` instead of prompt/model.
 
-**Filtering rules:**
+**Filtering:**
 
-- **Exclude human runs by default** — Any query that lists or counts runs for general display (e.g., project runs page, project dashboard count, prompt usage count) must include `isHuman: { $ne: true }` in the match.
-- **Include human runs in run sets** — When fetching runs that belong to a run set (queried by `{ _id: { $in: runSet.runs } }`), do NOT filter out human runs. They should appear alongside LLM runs.
-- **Include human runs in evaluations** — Same as run sets; evaluations operate on runs within a run set.
-- **Include human runs in the eligible runs picker** — When finding runs eligible to add to a run set, human runs should be included.
+- **Exclude by default** for general display (project runs page, dashboard counts, prompt usage). Add `isHuman: { $ne: true }` to the match.
+- **Include** when fetching runs of a run set (`{ _id: { $in: runSet.runs } }`), in evaluations, and in the eligible-runs picker.
 
-**Display rules for human runs:**
-
-- Do NOT show prompt or model information (human runs have neither).
-- Show the annotator name (`run.annotator?.name`) instead.
-- Annotation type still applies and should be displayed.
+**Display**: no prompt/model info for human runs; show `run.annotator?.name` instead. Annotation type still applies.
 
 ### Background Jobs (BullMQ + Redis)
 
-Jobs are processed by workers in the `workers/` workspace:
-
-**Job Creation Pattern**:
+Use `createTaskJob()` to enqueue work. Common job types: `ANNOTATE_RUN:START/PROCESS/FINISH`, `CONVERT_FILES_TO_SESSIONS:START/PROCESS/FINISH`, `DELETE_PROJECT:DATA/FINISH`, `RUN_MIGRATION`. Handlers live in `workers/runners/tasks.ts` or `workers/runners/general.ts`.
 
 ```typescript
 import { createTaskJob } from "~/modules/queues/helpers/createTaskJob";
 
-// Create parent job with child jobs
 await createTaskJob({
   name: "ANNOTATE_RUN:START",
   data: { runId, userId },
-  children: sessions.map((session) => ({
+  children: sessions.map((s) => ({
     name: "ANNOTATE_RUN:PROCESS",
-    data: { runId, sessionId },
+    data: { runId, sessionId: s._id },
   })),
 });
 ```
 
-**Common Job Types**:
-
-- `ANNOTATE_RUN:START/PROCESS/FINISH` - LLM annotation pipeline
-- `CONVERT_FILES_TO_SESSIONS:START/PROCESS/FINISH` - File conversion
-- `DELETE_PROJECT:DATA/FINISH` - Cascading deletion
-- `RUN_MIGRATION` - Data migrations
-
 ### Real-Time Updates (Socket.IO)
 
-Use the `useHandleSockets` hook for real-time data updates:
-
 ```typescript
-import { useHandleSockets } from "~/modules/sockets/hooks/useHandleSockets";
-
 useHandleSockets({
   event: "ANNOTATE_RUN",
   matches: [{ task: "ANNOTATE_RUN:START", status: "FINISHED" }],
-  callback: (payload) => {
-    // Revalidate route data
-    revalidator.revalidate();
-  },
+  callback: () => revalidator.revalidate(),
 });
 ```
 
 ### Storage Adapters
 
-The app uses a pluggable adapter system for file storage:
-
-- **Local Adapter**: Filesystem storage in `storage/` directory
-- **AWS S3 Adapter**: S3 bucket with presigned URLs
-
-Selected via `STORAGE_ADAPTER` environment variable.
-
-**Usage**:
+Pluggable via `STORAGE_ADAPTER` env var (local, S3). Always use `getStorageAdapter()`; never reach for an adapter directly.
 
 ```typescript
-import { getStorageAdapter } from "~/modules/storage/storage";
-
 const adapter = getStorageAdapter();
 await adapter.upload({ file, uploadPath });
 await adapter.download(path);
@@ -770,54 +316,19 @@ await adapter.remove(path);
 const url = await adapter.request(path); // Presigned URL
 ```
 
-**IMPORTANT**: `app/adapters.js` auto-generates storage adapter imports:
-
-- Runs automatically before `yarn app:build` and `yarn app:dev`
-- Scans `app/storageAdapters/` and generates `app/modules/storage/storage.ts`
-- **DO NOT edit** `app/modules/storage/storage.ts` manually
+`app/adapters.js` auto-generates `app/modules/storage/storage.ts` before `yarn app:build` / `yarn app:dev`. **Do not edit `storage.ts` manually.** To add an adapter: create dir under `app/storageAdapters/`, implement the four methods, call `registerStorageAdapter()`, run build.
 
 ### Database (MongoDB + Mongoose)
 
-**Connection**: Single connection established in `app/lib/database.ts`
+Connection in `app/lib/database.ts`. Schemas in `app/lib/schemas/`: `project`, `run`, `session`, `runSet`, `prompt`, `user`, `team`, `file`, `audit`. Always go through service classes.
 
-**Schemas**: Located in `app/lib/schemas/`
-
-- `project.schema.ts` - Projects with metadata and status
-- `run.schema.ts` - Runs: annotation tasks with sessions and prompts
-- `session.schema.ts` - Individual sessions with utterances
-- `runSet.schema.ts` - Run sets grouping multiple runs
-- `prompt.schema.ts` - Prompt templates
-- `user.schema.ts` - Users with roles and team assignments
-- `team.schema.ts` - Teams containing projects and users
-- `file.schema.ts` - File references and metadata
-- `audit.schema.ts` - Audit logs
-
-**Service Layer**: Always use service classes (e.g., `ProjectService`) instead of direct model access.
-
-**DocumentDB Compatibility**: Production uses AWS DocumentDB, which does NOT support all MongoDB aggregation stages. When writing aggregation pipelines, **do not use** the following unsupported stages:
-
-- `$facet` - Split into separate `Promise.all()` queries instead
-- `$bucket` / `$bucketAuto`
-- `$sortByCount`
-- `$unionWith`
-- `$merge`
-- `$graphLookup`
-- `$setWindowFields`
+**DocumentDB Compatibility**: production uses AWS DocumentDB, which does NOT support these aggregation stages — `$facet`, `$bucket`, `$bucketAuto`, `$sortByCount`, `$unionWith`, `$merge`, `$graphLookup`, `$setWindowFields`. Replace `$facet` with separate `Promise.all()` queries.
 
 ```typescript
-// ❌ WRONG - $facet is not supported in DocumentDB
-await Model.aggregate([
-  { $match: { ... } },
-  { $facet: {
-    result1: [{ $group: { ... } }],
-    result2: [{ $sort: { ... } }, { $limit: 1 }],
-  }},
-]);
-
-// ✅ CORRECT - Split into separate queries
+// ✅ Split into separate queries instead of $facet
 const [result1, result2] = await Promise.all([
-  Model.aggregate([{ $match: { ... } }, { $group: { ... } }]),
-  Model.aggregate([{ $match: { ... } }, { $sort: { ... } }, { $limit: 1 }]),
+  Model.aggregate([{ $match: {...} }, { $group: {...} }]),
+  Model.aggregate([{ $match: {...} }, { $sort: {...} }, { $limit: 1 }]),
 ]);
 ```
 
@@ -825,142 +336,57 @@ const [result1, result2] = await Promise.all([
 
 ```typescript
 import { Button } from "@/components/ui/button"; // @/* → ./app/uikit/*
-import { getProjects } from "~/modules/projects/queries"; // ~/* → ./app/*
+import { foo } from "~/modules/projects/foo"; // ~/* → ./app/*
 ```
 
-### `PROJECT_ROOT` for File Paths
+### `PROJECT_ROOT` for file paths
 
-**Never use `path.resolve(relativePath)` or `process.cwd()`** to locate files in the repo. The app and workers run from different working directories (the app from the repo root, workers from the `workers/` workspace), and in Docker containers `cwd` may differ again.
-
-Use `PROJECT_ROOT` from `~/helpers/projectRoot.ts` instead:
+Never use `path.resolve(relativePath)` or `process.cwd()` — app and workers run from different cwds, Docker is different again. Use `PROJECT_ROOT` from `~/helpers/projectRoot.ts`:
 
 ```typescript
 import { PROJECT_ROOT } from "~/helpers/projectRoot";
-
 const csvPath = path.join(PROJECT_ROOT, "datasets/mtm/v1.csv");
 ```
 
-`PROJECT_ROOT` resolves reliably by checking the `PROJECT_ROOT` env var first, then walking up from `cwd` to find `yarn.lock`. It works in local dev, workers, and Docker containers.
+Resolves via `PROJECT_ROOT` env var, then walks up from cwd to find `yarn.lock`.
 
 ## Code Conventions
 
-### File Naming
+### Naming
 
 - **Files**: camelCase (`userProfile.tsx`, `dataLoader.ts`)
-- **Directories**: lowercase (`components/`, `modules/`)
-- **Components**: File camelCase, export PascalCase
-  ```typescript
-  // File: jobDialog.tsx
-  export const JobDialog = () => { ... }
-  ```
+- **Directories**: lowercase
+- **Components**: file camelCase, export PascalCase (`jobDialog.tsx` → `export const JobDialog`)
 
 ### Date Formatting
 
-**ALWAYS** use the `getDateString` helper for displaying dates in the UI. Never use `new Date().toLocaleDateString()` or `dayjs().format()` directly.
+**Always** use `getDateString` from `~/modules/app/helpers/getDateString`. Never `dayjs().format()` or `new Date().toLocaleDateString()` directly.
 
 ```typescript
-// ✅ CORRECT - Use the helper
 import getDateString from "~/modules/app/helpers/getDateString";
 
-<div>{getDateString(item.createdAt)}</div>
-// Output: "Mon, Jan 27, 2025 - 3:45 PM"
-
-// ❌ WRONG - Don't use dayjs directly
-import dayjs from "dayjs";
-<div>{dayjs(item.createdAt).format("MMM D, YYYY")}</div>
-
-// ❌ WRONG - Don't use native Date methods
-<div>{new Date(item.createdAt).toLocaleDateString()}</div>
+getDateString(item.createdAt); // "Mon, Jan 27, 2025 - 3:45 PM"; fallback "--"
+getDateString(item.processedOn, "Not processed yet"); // custom fallback
 ```
 
-**The helper**:
-
-- Location: `~/modules/app/helpers/getDateString.ts`
-- Format: `"ddd, MMM D, YYYY - h:mm A"` (e.g., "Mon, Jan 27, 2025 - 3:45 PM")
-- Accepts `string | Date | undefined | null` as first parameter
-- Optional second parameter `fallback` (default: `"--"`) for custom fallback text
-
-```typescript
-// Default fallback "--"
-getDateString(item.createdAt);
-
-// Custom fallback
-getDateString(item.processedOn, "Not processed yet");
-getDateString(item.finishedAt, "In progress");
-```
+Accepts `string | Date | undefined | null`. Format: `"ddd, MMM D, YYYY - h:mm A"`.
 
 ### TypeScript Props
 
-- Don't mark props as optional (`?`) when they are always passed — it adds unnecessary `undefined` checks and obscures the contract
-- Don't use non-null assertions (`!`) to work around optional types — fix the type instead
-- If a prop is always provided by the parent, make it required
-
-```typescript
-// ✅ Required props when always passed
-onEditClicked: (item: Item) => void;
-onDeleteClicked: (item: Item) => void;
-
-// ❌ Don't make them optional then assert
-onEditClicked?: (item: Item) => void;
-// ...later: onEditClicked!(item)  // Non-null assertion
-```
+- Don't mark props as optional (`?`) when they're always passed — it obscures the contract.
+- Don't use non-null assertions (`!`) to work around optional types — fix the type.
 
 ### Comments
 
-Only comment complex logic or non-obvious behavior:
-
-```typescript
-// ✅ Good - explains WHY
-// Workaround: Safari requires explicit height for flex containers
-// See: https://bugs.webkit.org/show_bug.cgi?id=137730
-className = "h-full flex";
-
-// Rate limit: OpenAI allows 3 requests/minute for this endpoint
-await delay(20000);
-
-// ❌ Bad - states the obvious
-// Set the user name
-const userName = user.name;
-
-// Update role
-await UserService.updateById(userId, { role: "admin" });
-```
+Only when the WHY is non-obvious (a hidden constraint, a workaround, a bug ref). Don't comment what the code already says.
 
 ### Error Handling in Routes
 
-**Loaders** - Use `redirect()` for authentication failures:
+Loaders: `redirect()` on auth failures. Actions: throw / return `data({ errors: {...} }, { status: 400 })`.
+
+Client side:
 
 ```typescript
-export async function loader({ request }: Route.LoaderArgs) {
-  const user = await getUser(request);
-  if (!user) return redirect("/");
-  // ...
-}
-```
-
-**Actions** - Return explicit error responses:
-
-```typescript
-export async function action({ request }: Route.ActionArgs) {
-  const user = await getUser(request);
-  if (!user) throw new Error("Authentication required");
-
-  const payload = await request.json();
-
-  if (!payload.name) {
-    return data({ errors: { name: "Name is required" } }, { status: 400 });
-  }
-
-  // Success
-  return data({ success: true });
-}
-```
-
-**Client-side Error Handling**:
-
-```typescript
-const fetcher = useFetcher();
-
 useEffect(() => {
   if (fetcher.data?.errors) {
     toast.error(fetcher.data.errors.general || "An error occurred");
@@ -970,154 +396,57 @@ useEffect(() => {
 
 ### Dialog and Action Naming
 
-Use clear, two-part naming for dialogs in route files:
+Two-part naming: `openXxxDialog` opens the dialog and wires it to `submitXxx`; `submitXxx` is the actual server submitter.
 
 ```typescript
-// Dialog opener - opens the dialog
 const openEditProjectDialog = (project: Project) => {
-  addDialog(<EditProjectDialog
-    project={project}
-    onEditProjectClicked={submitEditProject}  // Pass the submit function
-  />)
-}
+  addDialog(<EditProjectDialog project={project} onEditProjectClicked={submitEditProject} />);
+};
 
-// Action submitter - submits to server
 const submitEditProject = (project: Project) => {
-  submit(JSON.stringify({ intent: 'UPDATE_PROJECT', project }), {
-    method: 'PUT',
-    encType: 'application/json'
-  })
-}
-
-// ❌ Avoid - confusing similar names
-const onEditProjectButtonClicked = (project: Project) => {  // Opens dialog
-  addDialog(<EditProjectDialog
-    project={project}
-    onEditProjectClicked={onEditProjectClicked}  // Wrong! May cause confusion
-  />)
-}
-
-const onEditProjectClicked = (project: Project) => {  // Submits action
-  submit(...)
-}
+  submit(JSON.stringify({ intent: "UPDATE_PROJECT", project }), {
+    method: "PUT",
+    encType: "application/json",
+  });
+};
 ```
 
-This pattern clarifies intent and prevents wiring dialogs to wrong callbacks.
+Avoid same-looking names like `onEditProjectButtonClicked` + `onEditProjectClicked` — easy to wire wrong.
 
 ## UI Components
 
-### Component Library
-
-- **Radix UI**: Headless, accessible primitives
-- **shadcn/ui**: Pre-built components in `app/uikit/components/ui/`
-- **Tailwind CSS 4**: Utility-first styling
-- **Lucide React**: Icons
-- **next-themes**: Dark/light mode
-- **Sonner**: Toast notifications
-- **Motion**: Modern animation library
-
-### Component Patterns
-
-```typescript
-// Use cn() for className merging
-import { cn } from '@/lib/utils'
-
-<div className={cn("base-styles", className)} />
-
-// Use theme-aware CSS variables
-className="bg-background text-foreground border-border"
-
-// Import icons
-import { ChevronDown } from 'lucide-react'
-<ChevronDown className="h-4 w-4" />
-```
+- **Radix UI** primitives, **shadcn/ui** in `app/uikit/components/ui/`, **Tailwind 4**, **Lucide React** icons, **next-themes**, **Sonner** for toasts, **Motion** for animations.
+- Use `cn()` from `@/lib/utils` for className merging.
+- Use theme-aware CSS vars (`bg-background`, `text-foreground`, `border-border`).
 
 ### Feature Flag Component
 
-The `<Flag>` component gates UI behind feature flags. It requires **exactly one child element** — wrap multiple children in a fragment:
+`<Flag flag="...">` requires **exactly one child**. Wrap multiple children in a fragment:
 
 ```typescript
-import Flag from "~/modules/featureFlags/components/flag";
-
-// ✅ Single child or fragment for multiple children
 <Flag flag="FEATURE_NAME">
   <>
     <DropdownMenuItem>Action 1</DropdownMenuItem>
     <DropdownMenuItem>Action 2</DropdownMenuItem>
-    <DropdownMenuSeparator />
   </>
 </Flag>
-
-// ❌ Multiple direct children — will error
-<Flag flag="FEATURE_NAME">
-  <DropdownMenuItem>Action 1</DropdownMenuItem>
-  <DropdownMenuItem>Action 2</DropdownMenuItem>
-</Flag>
 ```
 
-## Testing Patterns
+## Testing
 
-### Test Structure
+Standard vitest patterns; see the testing guardrails above. Test files in `__tests__/` next to the module. Use authorization tests as the canonical shape.
 
-```typescript
-import { describe, it, expect, beforeEach } from "vitest";
+## Security
 
-describe("ProjectAuthorization", () => {
-  let user: User;
-  let project: Project;
+- Always check auth before features that require login; verify with the module's `Authorization` object.
+- Tutoring transcripts are confidential — handle with care; never log them.
+- Validate all client inputs at the action boundary; sanitize outputs.
+- Never commit secrets — use `.env`.
 
-  beforeEach(() => {
-    user = createMockUser();
-    project = createMockProject();
-  });
+## Adding Things
 
-  it("allows team admins to create projects", () => {
-    const canCreate = ProjectAuthorization.canCreate(user, "team123");
-    expect(canCreate).toBe(true);
-  });
-});
-```
+- **New module**: create `app/modules/newFeature/` with `module.ts`, `module.types.ts`, `authorization.ts`, `containers/`, `components/`, `__tests__/`. Register route in `app/routes.ts`.
+- **Background job**: add handler in `workers/runners/tasks.ts` or `general.ts`. Enqueue via `createTaskJob()`. Emit a Socket.IO event and listen client-side with `useHandleSockets`.
+- **Storage adapter**: create `app/storageAdapters/newAdapter/`, implement `download/upload/remove/request`, call `registerStorageAdapter()`, run `yarn app:build`.
 
-## Security Considerations
-
-### Authentication & Authorization
-
-- **Always check authentication** before implementing features that require login
-- **Verify permissions** using authorization modules (e.g., `ProjectAuthorization.canView()`)
-- **Follow established patterns** - Use `redirect()` in loaders, return error responses in actions
-
-### Data Protection
-
-- **Tutoring transcripts are confidential** - Handle with appropriate care
-- **Never log sensitive information**
-- **Validate all inputs** and sanitize outputs
-- **Use .env for secrets** - Never commit credentials
-
-## Common Development Tasks
-
-### Adding a New Feature Module
-
-1. Create module directory: `app/modules/newFeature/`
-2. Add service class: `newFeature.ts` (with CRUD methods)
-3. Add types: `newFeature.types.ts`
-4. Add authorization: `authorization.ts`
-5. Create route: `containers/newFeature.route.tsx` (loader + action)
-6. Create components: `components/`
-7. Add tests: `__tests__/`
-8. Register route in `app/routes.ts`
-
-### Adding a Background Job
-
-1. Add job handler in `workers/runners/tasks.ts` or `workers/runners/general.ts`
-2. Create job with `createTaskJob()` helper
-3. Add Socket.IO event emission for real-time updates
-4. Use `useHandleSockets` hook in UI to listen for completion
-
-### Adding a New Storage Adapter
-
-1. Create directory: `app/storageAdapters/newAdapter/`
-2. Implement interface: `download`, `upload`, `remove`, `request`
-3. Call `registerStorageAdapter()` with adapter object
-4. Run `yarn app:build` - adapters.js will auto-generate imports
-
-**Bash Context Note**: Commands run in the workspace root by default. Don't pass `cwd` parameter—it's unnecessary.
+**Bash context note**: commands run in the workspace root by default — don't pass `cwd`.
