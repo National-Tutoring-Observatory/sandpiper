@@ -204,6 +204,24 @@ describe("createTeam.route", () => {
     expect(response.data.errors.general).toMatch(/Team name is required/);
   });
 
+  it("trims surrounding whitespace from the persisted team name", async () => {
+    const user = await UserService.create({
+      username: "u",
+      role: "USER",
+      teams: [],
+    });
+    const cookieHeader = await loginUser(user._id);
+
+    const response = (await postCreateTeam(
+      { intent: "CREATE_TEAM", payload: { name: "  Padded Team  " } },
+      cookieHeader,
+    )) as unknown as { data: { data: { _id: string; name: string } } };
+
+    expect(response.data.data.name).toBe("Padded Team");
+    const retrieved = await TeamService.findById(response.data.data._id);
+    expect(retrieved?.name).toBe("Padded Team");
+  });
+
   it("rejects unknown intents", async () => {
     const admin = await UserService.create({
       username: "admin",
