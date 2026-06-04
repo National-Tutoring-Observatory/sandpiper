@@ -65,7 +65,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export async function action({ request }: Route.ActionArgs) {
-  const { intent, entityId, payload = {} } = await request.json();
+  const { intent, payload = {} } = await request.json();
 
   const { name } = payload;
 
@@ -99,25 +99,6 @@ export async function action({ request }: Route.ActionArgs) {
         success: true,
         intent: "CREATE_TEAM",
         data: team,
-      });
-    }
-    case "UPDATE_TEAM": {
-      if (!TeamAuthorization.canUpdate(user, entityId)) {
-        return data(
-          {
-            errors: {
-              general:
-                "Insufficient permissions. Only team admins can update teams.",
-            },
-          },
-          { status: 403 },
-        );
-      }
-      const updated = await TeamService.updateById(entityId, { name });
-      return data({
-        success: true,
-        intent: "UPDATE_TEAM",
-        data: updated,
       });
     }
     default:
@@ -195,10 +176,13 @@ export default function TeamsRoute({ loaderData }: Route.ComponentProps) {
     fetcher.submit(
       JSON.stringify({
         intent: "UPDATE_TEAM",
-        entityId: team._id,
         payload: { name: team.name },
       }),
-      { method: "PUT", encType: "application/json" },
+      {
+        method: "PUT",
+        encType: "application/json",
+        action: `/teams/${team._id}`,
+      },
     );
   };
 

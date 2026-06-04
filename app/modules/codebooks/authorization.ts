@@ -1,4 +1,5 @@
 import type { User } from "~/modules/users/users.types";
+import { userIsSuperAdmin } from "../authorization/helpers/superAdmin";
 import {
   userIsTeamAdmin,
   userIsTeamMember,
@@ -41,6 +42,7 @@ const CodebookAuthorization = {
 
   canView(user: User | null, codebook: Codebook): boolean {
     if (!user) return false;
+    if (userIsSuperAdmin(user)) return true;
     const teamId = getTeamId(codebook);
     if (!teamId) return false;
     return userIsTeamMember(user, teamId);

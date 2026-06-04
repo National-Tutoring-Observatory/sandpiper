@@ -98,9 +98,9 @@ describe("ProjectAuthorization", () => {
       );
     });
 
-    it("denies super admins to view projects in a team", () => {
+    it("allows super admins to view projects in any team", () => {
       expect(ProjectAuthorization.canView(superAdminUser, projectInTeam1)).toBe(
-        false,
+        true,
       );
     });
 

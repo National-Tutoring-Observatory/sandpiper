@@ -107,10 +107,10 @@ describe("CodebookAuthorization", () => {
       ).toBe(true);
     });
 
-    it("denies super admins to view codebooks in a team", () => {
+    it("allows super admins to view codebooks in any team", () => {
       expect(
         CodebookAuthorization.canView(superAdminUser, codebookInTeam1),
-      ).toBe(false);
+      ).toBe(true);
     });
 
     it("denies non-members from viewing codebooks in another team", () => {
