@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { redirect, useFetcher } from "react-router";
+import { data, redirect, useFetcher } from "react-router";
 import { toast } from "sonner";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
@@ -22,6 +22,40 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     return redirect("/admin/teams");
   }
   return { team };
+}
+
+export async function action({ request, params }: Route.ActionArgs) {
+  const user = await requireAuth({ request });
+  const { intent, payload = {} } = await request.json();
+
+  switch (intent) {
+    case "UPDATE_TEAM": {
+      if (!TeamAuthorization.canUpdate(user, params.teamId)) {
+        return data(
+          {
+            errors: {
+              general:
+                "Insufficient permissions. Only team admins can update teams.",
+            },
+          },
+          { status: 403 },
+        );
+      }
+      const { name } = payload;
+      if (typeof name !== "string") {
+        return data(
+          {
+            errors: { general: "Team name is required and must be a string." },
+          },
+          { status: 400 },
+        );
+      }
+      const updated = await TeamService.updateById(params.teamId, { name });
+      return data({ success: true, intent: "UPDATE_TEAM", data: updated });
+    }
+    default:
+      return data({ errors: { general: "Invalid intent" } }, { status: 400 });
+  }
 }
 
 export function HydrateFallback() {
@@ -47,10 +81,9 @@ export default function TeamRoute({
           fetcher.submit(
             JSON.stringify({
               intent: "UPDATE_TEAM",
-              entityId: teamData._id,
               payload: { name: teamData.name },
             }),
-            { method: "PUT", encType: "application/json", action: `/teams` },
+            { method: "PUT", encType: "application/json" },
           );
         }}
       />,
@@ -58,8 +91,12 @@ export default function TeamRoute({
   };
 
   useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data) {
+    if (fetcher.state !== "idle" || !fetcher.data) return;
+    if (fetcher.data.success) {
       toast.success("Updated team");
+      addDialog(null);
+    } else if (fetcher.data.errors) {
+      toast.error(fetcher.data.errors.general || "An error occurred");
     }
   }, [fetcher.state, fetcher.data]);
 

@@ -9,12 +9,12 @@ export default function getTeamProjectsItemAttributes(
   teamId: string,
   user: User,
 ) {
-  const canCreate = ProjectAuthorization.canCreate(user, teamId);
+  const canView = ProjectAuthorization.canView(user, item);
 
   return {
     id: item._id,
     title: item.name,
-    to: canCreate ? projectUrl(teamId, item._id) : undefined,
+    to: canView ? projectUrl(teamId, item._id) : undefined,
     meta: [
       {
         text: `Created at - ${getDateString(item.createdAt)}`,

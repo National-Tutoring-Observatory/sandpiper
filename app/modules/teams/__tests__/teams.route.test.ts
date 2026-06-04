@@ -335,39 +335,4 @@ describe("teams.route", () => {
       ).toBe(true);
     });
   });
-
-  describe("action - UPDATE_TEAM", () => {
-    it("updates team when user is team admin", async () => {
-      const team = await TeamService.create({ name: "original" });
-      const user = await UserService.create({
-        username: "user1",
-        role: "USER",
-        teams: [{ team: team._id, role: "ADMIN" }],
-      });
-
-      const cookieHeader = await loginUser(user._id);
-
-      const response = (await action({
-        request: new Request("http://localhost/teams", {
-          method: "PUT",
-          headers: { cookie: cookieHeader },
-          body: JSON.stringify({
-            intent: "UPDATE_TEAM",
-            entityId: team._id,
-            payload: { name: "updated" },
-          }),
-        }),
-        params: {},
-      } as any)) as any;
-
-      const result = response.data;
-
-      expect(result.success).toBe(true);
-      expect(result.data._id).toBe(team._id);
-      expect(result.data.name).toBe("updated");
-
-      const retrieved = await TeamService.findById(team._id);
-      expect(retrieved?.name).toBe("updated");
-    });
-  });
 });

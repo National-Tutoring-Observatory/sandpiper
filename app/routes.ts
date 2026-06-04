@@ -239,9 +239,6 @@ export default [
     "api/supportArticles",
     "modules/support/containers/supportArticles.route.tsx",
   ),
-  route("api/teams", "modules/teams/containers/teams.route.tsx", {
-    id: "teams",
-  }),
   route(
     "api/teams/generateInviteToTeam",
     "modules/teams/containers/generateInviteToTeam.route.tsx",
