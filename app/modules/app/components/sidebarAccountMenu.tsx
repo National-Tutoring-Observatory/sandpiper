@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { SidebarMenuButton } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
-import { Check, ChevronsUpDown, LogOut, Shield } from "lucide-react";
+import { Check, ChevronsUpDown, LogOut, Plus, Shield } from "lucide-react";
 import type { NavMode } from "~/modules/app/helpers/getNavMode";
 import type { Team } from "~/modules/teams/teams.types";
 import type { User } from "~/modules/users/users.types";
@@ -45,6 +45,7 @@ export default function SidebarAccountMenu({
   mode,
   roleLabel,
   onSwitchTeam,
+  onCreateTeam,
   onEnterAdmin,
   onLogout,
 }: {
@@ -54,6 +55,7 @@ export default function SidebarAccountMenu({
   mode: NavMode;
   roleLabel: string;
   onSwitchTeam: (id: string) => void;
+  onCreateTeam: () => void;
   onEnterAdmin: () => void;
   onLogout: () => void;
 }) {
@@ -119,6 +121,14 @@ export default function SidebarAccountMenu({
             </DropdownMenuItem>
           );
         })}
+        <DropdownMenuItem
+          onSelect={onCreateTeam}
+          className="text-muted-foreground gap-2 rounded-md"
+          aria-label="Create a new team"
+        >
+          <Plus className="size-4 shrink-0" />
+          <span className="flex-1 truncate text-sm">Create team</span>
+        </DropdownMenuItem>
         {isSuperAdmin && (
           <>
             <DropdownMenuSeparator />

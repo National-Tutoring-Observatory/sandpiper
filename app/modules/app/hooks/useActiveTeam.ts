@@ -1,7 +1,8 @@
 import get from "lodash/get";
-import { useContext, useEffect, useMemo } from "react";
+import { useCallback, useContext, useEffect, useMemo } from "react";
 import { useFetcher, useMatch, useNavigate } from "react-router";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
+import { projectsUrl } from "~/modules/projects/helpers/projectUrls";
 import {
   readActiveTeamFromBrowser,
   writeActiveTeamToBrowser,
@@ -51,10 +52,13 @@ export default function useActiveTeam(): {
     return availableTeams.find((t) => t._id === activeTeamId) ?? null;
   }, [activeTeamId, availableTeams]);
 
-  const switchActiveTeam = (id: string) => {
-    writeActiveTeamToBrowser(id);
-    navigate(`/teams/${id}/projects`);
-  };
+  const switchActiveTeam = useCallback(
+    (id: string) => {
+      writeActiveTeamToBrowser(id);
+      navigate(projectsUrl(id));
+    },
+    [navigate],
+  );
 
   return { activeTeamId, activeTeam, availableTeams, switchActiveTeam };
 }

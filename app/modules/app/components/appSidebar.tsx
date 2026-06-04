@@ -42,6 +42,8 @@ import getNavMode from "~/modules/app/helpers/getNavMode";
 import useActiveTeam from "~/modules/app/hooks/useActiveTeam";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
 import FeatureFlag from "~/modules/featureFlags/components/flag";
+import { projectsUrl } from "~/modules/projects/helpers/projectUrls";
+import useCreateTeam from "~/modules/teams/hooks/useCreateTeam";
 import type { User } from "~/modules/users/users.types";
 
 type NavEntry = {
@@ -84,17 +86,18 @@ export default function AppSidebar() {
   const navigate = useNavigate();
   const { activeTeamId, activeTeam, availableTeams, switchActiveTeam } =
     useActiveTeam();
-  const fetcher = useFetcher();
+  const logoutFetcher = useFetcher();
+  const onCreateTeamClicked = useCreateTeam();
   const mode = getNavMode(location.pathname);
 
   useEffect(() => {
-    if (fetcher.state === "loading") {
+    if (logoutFetcher.state === "loading") {
       window.location.pathname = "/";
     }
-  }, [fetcher.state]);
+  }, [logoutFetcher.state]);
 
   const onLogoutClicked = () => {
-    fetcher.submit(
+    logoutFetcher.submit(
       {},
       {
         action: `/api/authentication`,
@@ -119,7 +122,7 @@ export default function AppSidebar() {
   const workspaceEntries: NavEntry[] = activeTeamId
     ? [
         {
-          to: `/teams/${activeTeamId}/projects`,
+          to: projectsUrl(activeTeamId),
           icon: Folder,
           label: "Projects",
         },
@@ -162,7 +165,7 @@ export default function AppSidebar() {
   ];
 
   const exitAdmin = () => {
-    if (activeTeamId) navigate(`/teams/${activeTeamId}/projects`);
+    if (activeTeamId) navigate(projectsUrl(activeTeamId));
     else navigate("/");
   };
 
@@ -195,7 +198,7 @@ export default function AppSidebar() {
             </div>
           </div>
         ) : (
-          <Link to={activeTeamId ? `/teams/${activeTeamId}/projects` : "/"}>
+          <Link to={activeTeamId ? projectsUrl(activeTeamId) : "/"}>
             <img
               src={sandpiperLogo}
               alt="Sandpiper"
@@ -282,6 +285,7 @@ export default function AppSidebar() {
                   mode={mode}
                   roleLabel={roleLabel}
                   onSwitchTeam={switchActiveTeam}
+                  onCreateTeam={onCreateTeamClicked}
                   onEnterAdmin={() => navigate("/admin/teams")}
                   onLogout={onLogoutClicked}
                 />

@@ -3,9 +3,7 @@ import { PageHeader, PageHeaderLeft } from "@/components/ui/pageHeader";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 import type { User } from "~/modules/users/users.types";
-import getTeamsActions from "../helpers/getTeamsActions";
 import getTeamsEmptyAttributes from "../helpers/getTeamsEmptyAttributes";
-import getTeamsItemActions from "../helpers/getTeamsItemActions";
 import getTeamsItemAttributes from "../helpers/getTeamsItemAttributes";
 import teamsFilters from "../helpers/teamsFilters";
 import teamsSortOptions from "../helpers/teamsSortOptions";
@@ -22,8 +20,6 @@ interface TeamsProps {
   filtersValues: Record<string, string | null>;
   sortValue: string;
   isSyncing: boolean;
-  onActionClicked: (action: string) => void;
-  onItemActionClicked: ({ id, action }: { id: string; action: string }) => void;
   onSearchValueChanged: (searchValue: string) => void;
   onPaginationChanged: (currentPage: number) => void;
   onFiltersValueChanged: (filterValue: Record<string, string | null>) => void;
@@ -32,7 +28,6 @@ interface TeamsProps {
 
 export default function Teams({
   teams,
-  user,
   balances,
   breadcrumbs,
   filtersValues,
@@ -41,8 +36,6 @@ export default function Teams({
   currentPage,
   totalPages,
   isSyncing,
-  onActionClicked,
-  onItemActionClicked,
   onSearchValueChanged,
   onPaginationChanged,
   onFiltersValueChanged,
@@ -58,7 +51,6 @@ export default function Teams({
       <Collection
         items={teams}
         itemsLayout="list"
-        actions={getTeamsActions(user)}
         filters={teamsFilters}
         sortOptions={teamsSortOptions}
         hasSearch
@@ -73,9 +65,8 @@ export default function Teams({
         getItemAttributes={(item) =>
           getTeamsItemAttributes(item, balances[item._id])
         }
-        getItemActions={(item) => getTeamsItemActions(item, user)}
-        onActionClicked={onActionClicked}
-        onItemActionClicked={onItemActionClicked}
+        getItemActions={() => []}
+        onActionClicked={() => {}}
         onSearchValueChanged={onSearchValueChanged}
         onPaginationChanged={onPaginationChanged}
         onFiltersValueChanged={onFiltersValueChanged}

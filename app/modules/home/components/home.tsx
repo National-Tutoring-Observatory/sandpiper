@@ -9,6 +9,7 @@ import {
   Link2,
   Loader2,
   PenLine,
+  Plus,
   Share2,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -28,11 +29,13 @@ export default function Home({
   isDownloading,
   initialCredits,
   activeTeamId,
+  onCreateTeamClicked,
 }: {
   onDownloadClicked: () => void;
   isDownloading: boolean;
   initialCredits: number;
-  activeTeamId: string;
+  activeTeamId: string | null;
+  onCreateTeamClicked: () => void;
 }) {
   const [agreed, setAgreed] = useState(false);
   return (
@@ -98,25 +101,43 @@ export default function Home({
       </div>
       <Card>
         <CardContent className="flex flex-col items-center gap-4 p-6">
-          <h2 className="text-xl font-semibold">Get Started</h2>
-          <div className="flex items-center gap-3">
-            <Button asChild>
-              <Link
-                to={`${projectsUrl(activeTeamId)}?${PROJECTS_CREATE_PARAM}=1`}
-              >
-                <FolderOpen className="h-4 w-4" />
-                Start a Project
-              </Link>
-            </Button>
-            <Button variant="outline" asChild>
-              <Link
-                to={`${promptsUrl(activeTeamId)}?${PROMPTS_CREATE_PARAM}=1`}
-              >
-                <PenLine className="h-4 w-4" />
-                Create a Prompt
-              </Link>
-            </Button>
-          </div>
+          {activeTeamId ? (
+            <>
+              <h2 className="text-xl font-semibold">Get Started</h2>
+              <div className="flex items-center gap-3">
+                <Button asChild>
+                  <Link
+                    to={`${projectsUrl(activeTeamId)}?${PROJECTS_CREATE_PARAM}=1`}
+                  >
+                    <FolderOpen className="h-4 w-4" />
+                    Start a Project
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link
+                    to={`${promptsUrl(activeTeamId)}?${PROMPTS_CREATE_PARAM}=1`}
+                  >
+                    <PenLine className="h-4 w-4" />
+                    Create a Prompt
+                  </Link>
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <h2 className="text-xl font-semibold">
+                Create your first team to get started
+              </h2>
+              <p className="text-muted-foreground max-w-md text-center text-sm">
+                Projects, prompts, and billing all live inside a team. Create
+                one to start annotating.
+              </p>
+              <Button onClick={onCreateTeamClicked}>
+                <Plus className="h-4 w-4" />
+                Create your first team
+              </Button>
+            </>
+          )}
         </CardContent>
       </Card>
 
