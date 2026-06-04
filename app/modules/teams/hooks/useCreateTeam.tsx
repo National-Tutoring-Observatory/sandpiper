@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useFetcher } from "react-router";
 import { toast } from "sonner";
-import useActiveTeam from "~/modules/app/hooks/useActiveTeam";
 import addDialog from "~/modules/dialogs/addDialog";
 import CreateTeamDialog from "../components/createTeamDialog";
 
@@ -12,9 +11,10 @@ type CreateTeamResponse = {
   errors?: { general?: string };
 };
 
-export default function useCreateTeam(): () => void {
+export default function useCreateTeam(
+  switchActiveTeam: (id: string) => void,
+): () => void {
   const fetcher = useFetcher<CreateTeamResponse>();
-  const { switchActiveTeam } = useActiveTeam();
 
   useEffect(() => {
     if (fetcher.state !== "idle") return;

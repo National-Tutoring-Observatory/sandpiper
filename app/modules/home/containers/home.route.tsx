@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useFetcher, useLoaderData, useRouteLoaderData } from "react-router";
+import useActiveTeam from "~/modules/app/hooks/useActiveTeam";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import { readActiveTeamFromRequest } from "~/modules/teams/helpers/activeTeamCookie";
 import useCreateTeam from "~/modules/teams/hooks/useCreateTeam";
@@ -37,7 +38,8 @@ export default function HomeRoute() {
     | undefined;
   const fetcher = useFetcher();
   const isDownloading = fetcher.state !== "idle";
-  const onCreateTeamClicked = useCreateTeam();
+  const { switchActiveTeam } = useActiveTeam();
+  const onCreateTeamClicked = useCreateTeam(switchActiveTeam);
 
   useEffect(() => {
     if (fetcher.state !== "idle") return;

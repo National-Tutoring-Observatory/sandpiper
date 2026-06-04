@@ -31,7 +31,7 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
-  const team = await TeamService.createForUser(name, user._id);
+  const team = await TeamService.createForUser(name.trim(), user._id);
   await TeamBillingService.setupTeamBilling(team._id);
 
   return data(

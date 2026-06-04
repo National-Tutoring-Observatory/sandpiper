@@ -87,7 +87,7 @@ export default function AppSidebar() {
   const { activeTeamId, activeTeam, availableTeams, switchActiveTeam } =
     useActiveTeam();
   const logoutFetcher = useFetcher();
-  const onCreateTeamClicked = useCreateTeam();
+  const onCreateTeamClicked = useCreateTeam(switchActiveTeam);
   const mode = getNavMode(location.pathname);
 
   useEffect(() => {
