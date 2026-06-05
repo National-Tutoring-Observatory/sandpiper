@@ -67,7 +67,7 @@ services:
     restart: "no"
 
   ministack:
-    image: nahuelnucera/ministack:1.1.51
+    image: nahuelnucera/ministack:1.3
     container_name: ministack-main
     ports:
       - "127.0.0.1:4566:4566"
