@@ -204,7 +204,7 @@ export default function Home({
               See Sandpiper in Action
             </h3>
             <div className="bg-sandpiper-surface flex-1 overflow-hidden rounded-lg">
-             <iframe
+              <iframe
                 src="https://www.youtube.com/embed/w7PthGY_J1c?si=2jdcG2TMJd-z5d4A"
                 title="YouTube video player"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
