@@ -15,6 +15,7 @@ import PromptAuthorization from "~/modules/prompts/authorization";
 import { usePromptActions } from "~/modules/prompts/hooks/usePromptActions";
 import { RunService } from "~/modules/runs/run";
 import Prompt from "../components/prompt";
+import { PromptPublishedError } from "../errors/promptPublishedError";
 import { promptsUrl } from "../helpers/promptUrls";
 import { PromptService } from "../prompt";
 import { PromptVersionService } from "../promptVersion";
@@ -127,9 +128,14 @@ export async function action({ request, params }: Route.ActionArgs) {
         );
       }
 
-      await PromptService.updateById(entityId, {
-        deletedAt: new Date(),
-      });
+      try {
+        await PromptService.softDelete(entityId);
+      } catch (error) {
+        if (error instanceof PromptPublishedError) {
+          return data({ errors: { general: error.message } }, { status: 400 });
+        }
+        throw error;
+      }
 
       return data({
         success: true,
