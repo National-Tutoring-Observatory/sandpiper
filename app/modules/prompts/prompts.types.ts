@@ -2,6 +2,24 @@ import type { AnnotationTypeOptions } from "~/modules/annotations/helpers/annota
 import type { Team } from "../teams/teams.types";
 import type { User } from "../users/users.types";
 
+export interface PromptPaperRef {
+  title: string;
+  url: string;
+}
+
+export interface PromptAuthor {
+  name: string;
+  affiliation?: string;
+}
+
+export interface PromptLibrary {
+  isPublished: boolean;
+  description: string;
+  authors: PromptAuthor[];
+  paperRefs: PromptPaperRef[];
+  publishedAt?: Date | string;
+}
+
 export interface Prompt {
   _id: string;
   name: string;
@@ -11,6 +29,7 @@ export interface Prompt {
   productionVersion: number;
   createdBy: User | string;
   deletedAt?: Date;
+  library?: PromptLibrary;
 }
 
 export interface PromptVersion {

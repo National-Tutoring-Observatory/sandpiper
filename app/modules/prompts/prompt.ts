@@ -1,8 +1,10 @@
+import escapeRegExp from "lodash/escapeRegExp";
 import mongoose from "mongoose";
 import { getPaginationParams, getTotalPages } from "~/helpers/pagination";
 import promptSchema from "~/lib/schemas/prompt.schema";
 import type { FindOptions, PaginateProps } from "~/modules/common/types";
-import type { Prompt } from "./prompts.types";
+import { PromptPublishedError } from "./errors/promptPublishedError";
+import type { Prompt, PromptAuthor, PromptPaperRef } from "./prompts.types";
 import { PromptVersionService } from "./promptVersion";
 import createDefaultPrompts from "./services/createDefaultPrompts.server";
 
@@ -89,7 +91,28 @@ export class PromptService {
   }
 
   static async deleteById(id: string): Promise<Prompt | null> {
+    const existing = await PromptModel.findById(id);
+    if (!existing) return null;
+    if (existing.library?.isPublished) {
+      throw new PromptPublishedError(id);
+    }
+
     const doc = await PromptModel.findByIdAndDelete(id);
+    return doc ? this.toPrompt(doc) : null;
+  }
+
+  static async softDelete(id: string): Promise<Prompt | null> {
+    const existing = await PromptModel.findById(id);
+    if (!existing) return null;
+    if (existing.library?.isPublished) {
+      throw new PromptPublishedError(id);
+    }
+
+    const doc = await PromptModel.findByIdAndUpdate(
+      id,
+      { $set: { deletedAt: new Date() } },
+      { new: true },
+    );
     return doc ? this.toPrompt(doc) : null;
   }
 
@@ -113,5 +136,133 @@ export class PromptService {
     userId: string,
   ): Promise<void> {
     return createDefaultPrompts(teamId, userId);
+  }
+
+  static async publish(
+    id: string,
+    {
+      description,
+      authors = [],
+      paperRefs,
+    }: {
+      description: string;
+      authors?: PromptAuthor[];
+      paperRefs: PromptPaperRef[];
+    },
+  ): Promise<Prompt | null> {
+    const existing = await PromptModel.findById(id);
+    if (!existing) return null;
+
+    const publishedAt = existing.library?.isPublished
+      ? existing.library.publishedAt
+      : new Date();
+
+    const doc = await PromptModel.findByIdAndUpdate(
+      id,
+      {
+        $set: {
+          library: {
+            isPublished: true,
+            description,
+            authors,
+            paperRefs,
+            publishedAt,
+          },
+        },
+      },
+      { new: true, runValidators: true },
+    );
+    return doc ? this.toPrompt(doc) : null;
+  }
+
+  static async listLibrary({
+    search,
+    annotationType,
+    page,
+    pageSize,
+    sort,
+  }: {
+    search?: string;
+    annotationType?: string;
+    page?: number;
+    pageSize?: number;
+    sort?: string | Record<string, 1 | -1> | null;
+  }): Promise<{ data: Prompt[]; count: number; totalPages: number }> {
+    const match: Record<string, unknown> = {
+      "library.isPublished": true,
+      deletedAt: { $exists: false },
+    };
+
+    if (annotationType) {
+      match.annotationType = annotationType;
+    }
+
+    if (search) {
+      const regex = new RegExp(escapeRegExp(search), "i");
+      match.$or = [
+        { name: { $regex: regex } },
+        { "library.description": { $regex: regex } },
+        { "library.authors.name": { $regex: regex } },
+        { "library.authors.affiliation": { $regex: regex } },
+      ];
+    }
+
+    return this.paginate({
+      match,
+      sort: sort ?? "-library.publishedAt",
+      page,
+      pageSize,
+    });
+  }
+
+  static async copyFromLibrary(
+    libraryPromptId: string,
+    targetTeamId: string,
+    userId: string,
+  ): Promise<Prompt | null> {
+    const source = await this.findOne({
+      _id: libraryPromptId,
+      "library.isPublished": true,
+      deletedAt: { $exists: false },
+    });
+    if (!source) return null;
+
+    const productionVersion = await PromptVersionService.findOne({
+      prompt: source._id,
+      version: source.productionVersion,
+    });
+    if (!productionVersion) return null;
+
+    const fork = await this.create({
+      name: source.name,
+      team: targetTeamId,
+      annotationType: source.annotationType,
+      productionVersion: 1,
+      createdBy: userId,
+    });
+
+    await PromptVersionService.create({
+      name: "v1",
+      prompt: fork._id,
+      version: 1,
+      userPrompt: productionVersion.userPrompt,
+      annotationSchema: productionVersion.annotationSchema,
+      hasBeenSaved: true,
+    });
+
+    return fork;
+  }
+
+  static async unpublish(id: string): Promise<Prompt | null> {
+    const existing = await PromptModel.findById(id);
+    if (!existing) return null;
+    if (!existing.library) return this.toPrompt(existing);
+
+    const doc = await PromptModel.findByIdAndUpdate(
+      id,
+      { $set: { "library.isPublished": false } },
+      { new: true },
+    );
+    return doc ? this.toPrompt(doc) : null;
   }
 }

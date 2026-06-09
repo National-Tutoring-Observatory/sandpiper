@@ -311,6 +311,47 @@ describe("prompt.route action", () => {
       ).rejects.toThrow("You do not have permission to update this prompt.");
     });
 
+    it("returns 400 when prompt is published to the library", async () => {
+      const team = await TeamService.create({ name: "team 1" });
+      const user = await UserService.create({
+        username: "test_admin",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+
+      const prompt = await PromptService.create({
+        name: "Published",
+        annotationType: "PER_UTTERANCE",
+        team: team._id,
+        createdBy: user._id,
+      });
+      await PromptService.publish(prompt._id, {
+        description: "x",
+        paperRefs: [],
+      });
+
+      const cookieHeader = await loginUser(user._id);
+
+      const response = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "DELETE_PROMPT",
+            entityId: prompt._id,
+          }),
+        }),
+        params: { teamId: team._id, promptId: prompt._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(response.init?.status).toBe(400);
+      expect(response.data?.errors?.general).toContain("Unpublish");
+
+      const stillThere = await PromptService.findById(prompt._id);
+      expect(stillThere?.deletedAt).toBeUndefined();
+    });
+
     it("returns 400 when prompt has active runs", async () => {
       const team = await TeamService.create({ name: "team 1" });
       const user = await UserService.create({
