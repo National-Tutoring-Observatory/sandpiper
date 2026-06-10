@@ -5,20 +5,32 @@ import getReferenceId from "~/helpers/getReferenceId";
 import addDialog from "~/modules/dialogs/addDialog";
 import DeletePromptDialog from "~/modules/prompts/components/deletePromptDialog";
 import EditPromptDialog from "~/modules/prompts/components/editPromptDialog";
+import PublishPromptDialog from "~/modules/prompts/components/publishPromptDialog";
+import UnpublishPromptDialog from "~/modules/prompts/components/unpublishPromptDialog";
 import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
-import type { Prompt } from "~/modules/prompts/prompts.types";
+import type {
+  Prompt,
+  PromptAuthor,
+  PromptPaperRef,
+} from "~/modules/prompts/prompts.types";
 
 interface UsePromptActionsOptions {
   onEditSuccess?: () => void;
   onDeleteSuccess?: () => void;
+  onPublishSuccess?: () => void;
+  onUnpublishSuccess?: () => void;
 }
 
 export function usePromptActions({
   onEditSuccess,
   onDeleteSuccess,
+  onPublishSuccess,
+  onUnpublishSuccess,
 }: UsePromptActionsOptions = {}) {
   const editFetcher = useFetcher();
   const deleteFetcher = useFetcher();
+  const publishFetcher = useFetcher();
+  const unpublishFetcher = useFetcher();
 
   useEffect(() => {
     if (editFetcher.state === "idle" && editFetcher.data) {
@@ -50,6 +62,38 @@ export function usePromptActions({
     }
   }, [deleteFetcher.state, deleteFetcher.data]);
 
+  useEffect(() => {
+    if (publishFetcher.state === "idle" && publishFetcher.data) {
+      if (
+        publishFetcher.data.success &&
+        publishFetcher.data.intent === "PUBLISH_PROMPT"
+      ) {
+        toast.success("Prompt published to library");
+        addDialog(null);
+        onPublishSuccess?.();
+      } else if (publishFetcher.data.errors) {
+        toast.error(publishFetcher.data.errors.general || "An error occurred");
+      }
+    }
+  }, [publishFetcher.state, publishFetcher.data]);
+
+  useEffect(() => {
+    if (unpublishFetcher.state === "idle" && unpublishFetcher.data) {
+      if (
+        unpublishFetcher.data.success &&
+        unpublishFetcher.data.intent === "UNPUBLISH_PROMPT"
+      ) {
+        toast.success("Prompt unpublished");
+        addDialog(null);
+        onUnpublishSuccess?.();
+      } else if (unpublishFetcher.data.errors) {
+        toast.error(
+          unpublishFetcher.data.errors.general || "An error occurred",
+        );
+      }
+    }
+  }, [unpublishFetcher.state, unpublishFetcher.data]);
+
   const submitEditPrompt = (prompt: Prompt) => {
     editFetcher.submit(
       JSON.stringify({
@@ -69,6 +113,42 @@ export function usePromptActions({
     deleteFetcher.submit(
       JSON.stringify({
         intent: "DELETE_PROMPT",
+        entityId: prompt._id,
+      }),
+      {
+        method: "POST",
+        encType: "application/json",
+        action: promptsUrl(getReferenceId(prompt.team), prompt._id),
+      },
+    );
+  };
+
+  const submitPublishPrompt = (
+    prompt: Prompt,
+    payload: {
+      description: string;
+      authors: PromptAuthor[];
+      paperRefs: PromptPaperRef[];
+    },
+  ) => {
+    publishFetcher.submit(
+      JSON.stringify({
+        intent: "PUBLISH_PROMPT",
+        entityId: prompt._id,
+        payload,
+      }),
+      {
+        method: "POST",
+        encType: "application/json",
+        action: promptsUrl(getReferenceId(prompt.team), prompt._id),
+      },
+    );
+  };
+
+  const submitUnpublishPrompt = (prompt: Prompt) => {
+    unpublishFetcher.submit(
+      JSON.stringify({
+        intent: "UNPUBLISH_PROMPT",
         entityId: prompt._id,
       }),
       {
@@ -99,10 +179,36 @@ export function usePromptActions({
     );
   };
 
+  const openPublishPromptDialog = (prompt: Prompt) => {
+    addDialog(
+      <PublishPromptDialog
+        prompt={prompt}
+        onPublishPromptClicked={(payload) =>
+          submitPublishPrompt(prompt, payload)
+        }
+        isSubmitting={publishFetcher.state === "submitting"}
+      />,
+    );
+  };
+
+  const openUnpublishPromptDialog = (prompt: Prompt) => {
+    addDialog(
+      <UnpublishPromptDialog
+        prompt={prompt}
+        onUnpublishPromptClicked={() => submitUnpublishPrompt(prompt)}
+        isSubmitting={unpublishFetcher.state === "submitting"}
+      />,
+    );
+  };
+
   return {
     openEditPromptDialog,
     openDeletePromptDialog,
+    openPublishPromptDialog,
+    openUnpublishPromptDialog,
     isEditing: editFetcher.state !== "idle",
     isDeleting: deleteFetcher.state !== "idle",
+    isPublishing: publishFetcher.state !== "idle",
+    isUnpublishing: unpublishFetcher.state !== "idle",
   };
 }

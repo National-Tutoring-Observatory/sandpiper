@@ -414,6 +414,213 @@ describe("prompt.route action", () => {
     });
   });
 
+  describe("PUBLISH_PROMPT", () => {
+    it("publishes when user is a super admin", async () => {
+      const team = await TeamService.create({ name: "team 1" });
+      const user = await UserService.create({
+        username: "admin",
+        role: "SUPER_ADMIN",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+      const prompt = await PromptService.create({
+        name: "To Publish",
+        annotationType: "PER_UTTERANCE",
+        team: team._id,
+        createdBy: user._id,
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      const response = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "PUBLISH_PROMPT",
+            entityId: prompt._id,
+            payload: {
+              description: "  A great prompt  ",
+              authors: [
+                { name: "  Ada Lovelace  ", affiliation: "Cornell" },
+                { name: "" },
+              ],
+              paperRefs: [
+                { title: "  Paper One  ", url: "https://example.com/1" },
+                { title: "missing url", url: "" },
+              ],
+            },
+          }),
+        }),
+        params: { teamId: team._id, promptId: prompt._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(response.data?.success).toBe(true);
+      expect(response.data?.intent).toBe("PUBLISH_PROMPT");
+
+      const updated = await PromptService.findById(prompt._id);
+      expect(updated?.library?.isPublished).toBe(true);
+      expect(updated?.library?.description).toBe("A great prompt");
+      expect(updated?.library?.authors).toEqual([
+        { name: "Ada Lovelace", affiliation: "Cornell" },
+      ]);
+      expect(updated?.library?.paperRefs).toEqual([
+        { title: "Paper One", url: "https://example.com/1" },
+      ]);
+      expect(updated?.library?.publishedAt).toBeDefined();
+    });
+
+    it("returns 403 when user is not a super admin", async () => {
+      const team = await TeamService.create({ name: "team 1" });
+      const user = await UserService.create({
+        username: "regular_admin",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+      const prompt = await PromptService.create({
+        name: "Cannot Publish",
+        annotationType: "PER_UTTERANCE",
+        team: team._id,
+        createdBy: user._id,
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      const response = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "PUBLISH_PROMPT",
+            entityId: prompt._id,
+            payload: { description: "x", authors: [], paperRefs: [] },
+          }),
+        }),
+        params: { teamId: team._id, promptId: prompt._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(response.init?.status).toBe(403);
+
+      const unchanged = await PromptService.findById(prompt._id);
+      expect(unchanged?.library?.isPublished).not.toBe(true);
+    });
+
+    it("returns 400 when description is missing", async () => {
+      const team = await TeamService.create({ name: "team 1" });
+      const user = await UserService.create({
+        username: "admin",
+        role: "SUPER_ADMIN",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+      const prompt = await PromptService.create({
+        name: "Needs Desc",
+        annotationType: "PER_UTTERANCE",
+        team: team._id,
+        createdBy: user._id,
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      const response = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "PUBLISH_PROMPT",
+            entityId: prompt._id,
+            payload: { authors: [], paperRefs: [] },
+          }),
+        }),
+        params: { teamId: team._id, promptId: prompt._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(response.init?.status).toBe(400);
+      expect(response.data?.errors?.general).toContain("Description");
+    });
+  });
+
+  describe("UNPUBLISH_PROMPT", () => {
+    it("unpublishes when user is a super admin", async () => {
+      const team = await TeamService.create({ name: "team 1" });
+      const user = await UserService.create({
+        username: "admin",
+        role: "SUPER_ADMIN",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+      const prompt = await PromptService.create({
+        name: "Will Unpublish",
+        annotationType: "PER_UTTERANCE",
+        team: team._id,
+        createdBy: user._id,
+      });
+      await PromptService.publish(prompt._id, {
+        description: "x",
+        paperRefs: [],
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      const response = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "UNPUBLISH_PROMPT",
+            entityId: prompt._id,
+          }),
+        }),
+        params: { teamId: team._id, promptId: prompt._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(response.data?.success).toBe(true);
+      expect(response.data?.intent).toBe("UNPUBLISH_PROMPT");
+
+      const updated = await PromptService.findById(prompt._id);
+      expect(updated?.library?.isPublished).toBe(false);
+    });
+
+    it("returns 403 when user is not a super admin", async () => {
+      const team = await TeamService.create({ name: "team 1" });
+      const user = await UserService.create({
+        username: "regular_admin",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+      const prompt = await PromptService.create({
+        name: "Cannot Unpublish",
+        annotationType: "PER_UTTERANCE",
+        team: team._id,
+        createdBy: user._id,
+      });
+      // publish via service (bypassing the gate)
+      await PromptService.publish(prompt._id, {
+        description: "x",
+        paperRefs: [],
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      const response = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "UNPUBLISH_PROMPT",
+            entityId: prompt._id,
+          }),
+        }),
+        params: { teamId: team._id, promptId: prompt._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(response.init?.status).toBe(403);
+
+      const stillPublished = await PromptService.findById(prompt._id);
+      expect(stillPublished?.library?.isPublished).toBe(true);
+    });
+  });
+
   describe("IDOR scoping", () => {
     it("rejects when URL teamId does not match the prompt's team", async () => {
       const teamA = await TeamService.create({ name: "Team A" });

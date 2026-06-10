@@ -13,6 +13,7 @@ import { AuthenticationContext } from "~/modules/authentication/authentication.c
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import PromptAuthorization from "~/modules/prompts/authorization";
 import { usePromptActions } from "~/modules/prompts/hooks/usePromptActions";
+import PromptLibraryAuthorization from "~/modules/prompts/promptLibraryAuthorization";
 import { RunService } from "~/modules/runs/run";
 import Prompt from "../components/prompt";
 import { PromptPublishedError } from "../errors/promptPublishedError";
@@ -99,6 +100,79 @@ export async function action({ request, params }: Route.ActionArgs) {
         data: updated,
       });
     }
+    case "PUBLISH_PROMPT": {
+      if (!PromptLibraryAuthorization.canPublish(user)) {
+        return data(
+          {
+            errors: {
+              general: "You do not have permission to publish prompts.",
+            },
+          },
+          { status: 403 },
+        );
+      }
+
+      const { description, authors, paperRefs } = payload;
+
+      if (typeof description !== "string") {
+        return data(
+          { errors: { general: "Description is required" } },
+          { status: 400 },
+        );
+      }
+
+      const cleanAuthors = Array.isArray(authors)
+        ? authors
+            .map((a) => ({
+              name: typeof a?.name === "string" ? a.name.trim() : "",
+              affiliation:
+                typeof a?.affiliation === "string"
+                  ? a.affiliation.trim()
+                  : undefined,
+            }))
+            .filter((a) => a.name)
+        : [];
+
+      const cleanPaperRefs = Array.isArray(paperRefs)
+        ? paperRefs
+            .map((p) => ({
+              title: typeof p?.title === "string" ? p.title.trim() : "",
+              url: typeof p?.url === "string" ? p.url.trim() : "",
+            }))
+            .filter((p) => p.title && p.url)
+        : [];
+
+      const published = await PromptService.publish(entityId, {
+        description: description.trim(),
+        authors: cleanAuthors,
+        paperRefs: cleanPaperRefs,
+      });
+
+      return data({
+        success: true,
+        intent: "PUBLISH_PROMPT",
+        data: published,
+      });
+    }
+    case "UNPUBLISH_PROMPT": {
+      if (!PromptLibraryAuthorization.canPublish(user)) {
+        return data(
+          {
+            errors: {
+              general: "You do not have permission to unpublish prompts.",
+            },
+          },
+          { status: 403 },
+        );
+      }
+
+      const unpublished = await PromptService.unpublish(entityId);
+      return data({
+        success: true,
+        intent: "UNPUBLISH_PROMPT",
+        data: unpublished,
+      });
+    }
     case "DELETE_PROMPT": {
       if (!PromptAuthorization.canDelete(user, prompt)) {
         return data(
@@ -158,8 +232,14 @@ export default function PromptRoute() {
   const { prompt, promptVersions } = loaderData;
   const user = useContext(AuthenticationContext);
   const canDelete = PromptAuthorization.canDelete(user, prompt);
+  const canPublish = PromptLibraryAuthorization.canPublish(user);
 
-  const { openEditPromptDialog, openDeletePromptDialog } = usePromptActions({
+  const {
+    openEditPromptDialog,
+    openDeletePromptDialog,
+    openPublishPromptDialog,
+    openUnpublishPromptDialog,
+  } = usePromptActions({
     onDeleteSuccess: () => navigate(promptsUrl(teamId!)),
   });
 
@@ -210,9 +290,12 @@ export default function PromptRoute() {
       version={Number(version)}
       breadcrumbs={breadcrumbs}
       canDelete={canDelete}
+      canPublish={canPublish}
       onCreatePromptVersionClicked={submitCreatePromptVersion}
       onEditPromptButtonClicked={openEditPromptDialog}
       onDeletePromptButtonClicked={openDeletePromptDialog}
+      onPublishPromptButtonClicked={openPublishPromptDialog}
+      onUnpublishPromptButtonClicked={openUnpublishPromptDialog}
     />
   );
 }

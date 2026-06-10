@@ -1,3 +1,5 @@
+import type { CollectionItemMeta } from "@/components/ui/collectionItemContent";
+import { CheckCircle2 } from "lucide-react";
 import getReferenceId from "~/helpers/getReferenceId";
 import { getAnnotationLabel } from "~/modules/annotations/helpers/annotationTypes";
 import getDateString from "~/modules/app/helpers/getDateString";
@@ -11,6 +13,21 @@ export default function getTeamPromptsItemAttributes(
   user: User | null,
 ) {
   const canView = PromptAuthorization.canView(user, item);
+  const meta: CollectionItemMeta[] = [
+    {
+      text: `Annotation type - ${getAnnotationLabel(item.annotationType)}`,
+    },
+    {
+      text: `Created at - ${getDateString(item.createdAt)}`,
+    },
+  ];
+
+  if (item.library?.isPublished) {
+    meta.push({
+      icon: <CheckCircle2 />,
+      text: "Published to library",
+    });
+  }
 
   return {
     id: item._id,
@@ -18,13 +35,6 @@ export default function getTeamPromptsItemAttributes(
     to: canView
       ? promptsUrl(getReferenceId(item.team), item._id, item.productionVersion)
       : undefined,
-    meta: [
-      {
-        text: `Annotation type - ${getAnnotationLabel(item.annotationType)}`,
-      },
-      {
-        text: `Created at - ${getDateString(item.createdAt)}`,
-      },
-    ],
+    meta,
   };
 }

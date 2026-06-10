@@ -12,6 +12,7 @@ import { CodebookService } from "~/modules/codebooks/codebook";
 import { CodebookVersionService } from "~/modules/codebooks/codebookVersion";
 import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "../authorization";
+import PromoteProductionVersionDialog from "../components/promoteProductionVersionDialog";
 import PromptEditor from "../components/promptEditor";
 import { SYSTEM_FIELDS } from "../helpers/defaultPrompts";
 import getSystemPrompt from "../helpers/getSystemPrompt.server";
@@ -205,7 +206,7 @@ export default function PromptEditorRoute() {
     );
   };
 
-  const onMakePromptVersionProduction = () => {
+  const submitMakePromptVersionProduction = () => {
     submit(
       JSON.stringify({
         intent: "MAKE_PROMPT_VERSION_PRODUCTION",
@@ -213,6 +214,16 @@ export default function PromptEditorRoute() {
         payload: {},
       }),
       { method: "POST", encType: "application/json" },
+    );
+  };
+
+  const onMakePromptVersionProduction = () => {
+    addDialog(
+      <PromoteProductionVersionDialog
+        prompt={prompt.data}
+        targetVersion={promptVersion.data.version}
+        onConfirmClicked={submitMakePromptVersionProduction}
+      />,
     );
   };
 

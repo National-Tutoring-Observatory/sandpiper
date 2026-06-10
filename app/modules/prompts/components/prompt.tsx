@@ -1,11 +1,24 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   PageHeader,
   PageHeaderLeft,
   PageHeaderRight,
 } from "@/components/ui/pageHeader";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import map from "lodash/map";
-import { CirclePlus, Pencil, Trash2 } from "lucide-react";
+import {
+  CheckCircle2,
+  CirclePlus,
+  Globe,
+  GlobeLock,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import { Link, Outlet } from "react-router";
 import getReferenceId from "~/helpers/getReferenceId";
 import { getAnnotationLabel } from "~/modules/annotations/helpers/annotationTypes";
@@ -20,9 +33,12 @@ type PromptProps = {
   version: number;
   breadcrumbs: Breadcrumb[];
   canDelete: boolean;
+  canPublish: boolean;
   onCreatePromptVersionClicked: () => void;
   onEditPromptButtonClicked: (prompt: Prompt) => void;
   onDeletePromptButtonClicked: (prompt: Prompt) => void;
+  onPublishPromptButtonClicked: (prompt: Prompt) => void;
+  onUnpublishPromptButtonClicked: (prompt: Prompt) => void;
 };
 
 export default function Prompt({
@@ -31,15 +47,30 @@ export default function Prompt({
   version,
   breadcrumbs,
   canDelete,
+  canPublish,
   onCreatePromptVersionClicked,
   onEditPromptButtonClicked,
   onDeletePromptButtonClicked,
+  onPublishPromptButtonClicked,
+  onUnpublishPromptButtonClicked,
 }: PromptProps) {
+  const isPublished = Boolean(prompt.library?.isPublished);
+  const isDeleteBlocked = isPublished;
+
   return (
     <div className="max-w-7xl p-8">
       <PageHeader>
         <PageHeaderLeft>
           <Breadcrumbs breadcrumbs={breadcrumbs} />
+          {isPublished ? (
+            <Badge
+              variant="secondary"
+              className="ml-2 gap-1 text-emerald-700 dark:text-emerald-300"
+            >
+              <CheckCircle2 className="size-3" />
+              Published
+            </Badge>
+          ) : null}
         </PageHeaderLeft>
         <PageHeaderRight>
           <Button
@@ -51,17 +82,70 @@ export default function Prompt({
             <Pencil />
             Edit
           </Button>
-          {canDelete && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-destructive"
-              onClick={() => onDeletePromptButtonClicked(prompt)}
-            >
-              <Trash2 />
-              Delete
-            </Button>
-          )}
+          {canPublish &&
+            (isPublished ? (
+              <>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-muted-foreground"
+                  onClick={() => onPublishPromptButtonClicked(prompt)}
+                >
+                  <Pencil />
+                  Edit library entry
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-muted-foreground"
+                  onClick={() => onUnpublishPromptButtonClicked(prompt)}
+                >
+                  <GlobeLock />
+                  Unpublish
+                </Button>
+              </>
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-muted-foreground"
+                onClick={() => onPublishPromptButtonClicked(prompt)}
+              >
+                <Globe />
+                Publish to library
+              </Button>
+            ))}
+          {canDelete &&
+            (isDeleteBlocked ? (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span tabIndex={0}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive"
+                      disabled
+                    >
+                      <Trash2 />
+                      Delete
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  Unpublish from the library before deleting.
+                </TooltipContent>
+              </Tooltip>
+            ) : (
+              <Button
+                size="sm"
+                variant="ghost"
+                className="text-destructive"
+                onClick={() => onDeletePromptButtonClicked(prompt)}
+              >
+                <Trash2 />
+                Delete
+              </Button>
+            ))}
         </PageHeaderRight>
       </PageHeader>
       <div className="mb-2">
