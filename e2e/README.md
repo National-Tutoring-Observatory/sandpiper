@@ -64,6 +64,22 @@ yarn test:e2e:headed
 - **Edit prompt title from list page** (modifies real data)
 - **Edit prompt title from detail page** (modifies real data)
 
+### Prompt Library (`promptLibrary.spec.ts`)
+
+Two serial describe blocks, each with its own setup:
+
+**Guardrails (curator-side)**
+
+- **Create + publish a prompt** (creates real data; ends with prompt unpublished)
+- Edit-while-published shows "will go live" warning
+- Delete is disabled with tooltip while published
+- Published prompt appears under `/prompt-library`
+- Unpublish re-enables Delete
+
+**Copy flow (consumer-side)**
+
+- **Create + publish a separate prompt, then copy it to the active team** (creates real data)
+
 ## Configuration
 
 ### Browser Selection
