@@ -126,13 +126,18 @@ export default function PromptLibraryPromptRoute() {
     });
   };
 
+  const breadcrumbs = [
+    { text: "Prompt Library", link: "/prompt-library" },
+    { text: prompt.name },
+  ];
+
   return (
     <PromptLibraryPrompt
       prompt={prompt}
       promptVersion={promptVersion}
+      breadcrumbs={breadcrumbs}
       isCopying={fetcher.state !== "idle"}
       onCopyPromptClicked={onCopyPromptClicked}
-      onBackClicked={() => navigate("/prompt-library")}
     />
   );
 }

@@ -1,37 +1,48 @@
+import { Button } from "@/components/ui/button";
+import {
+  PageHeader,
+  PageHeaderLeft,
+  PageHeaderRight,
+} from "@/components/ui/pageHeader";
+import { Copy } from "lucide-react";
+import type { Breadcrumb } from "~/modules/app/app.types";
+import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 import type { Prompt, PromptVersion } from "~/modules/prompts/prompts.types";
 
 interface PromptLibraryPromptProps {
   prompt: Prompt;
   promptVersion: PromptVersion;
+  breadcrumbs: Breadcrumb[];
   isCopying: boolean;
   onCopyPromptClicked: () => void;
-  onBackClicked: () => void;
 }
 
 export default function PromptLibraryPrompt({
   prompt,
   promptVersion,
+  breadcrumbs,
   isCopying,
   onCopyPromptClicked,
-  onBackClicked,
 }: PromptLibraryPromptProps) {
   const library = prompt.library;
 
   return (
-    <div className="container mx-auto space-y-4 p-6">
-      <button
-        type="button"
-        className="text-muted-foreground text-sm"
-        onClick={onBackClicked}
-      >
-        &larr; Back to library
-      </button>
-      <header>
-        <h1 className="text-2xl font-bold">{prompt.name}</h1>
-        {library?.description ? (
-          <p className="text-muted-foreground">{library.description}</p>
-        ) : null}
-      </header>
+    <div className="max-w-7xl space-y-4 p-8">
+      <PageHeader>
+        <PageHeaderLeft>
+          <Breadcrumbs breadcrumbs={breadcrumbs} />
+        </PageHeaderLeft>
+        <PageHeaderRight>
+          <Button size="sm" onClick={onCopyPromptClicked} disabled={isCopying}>
+            <Copy />
+            {isCopying ? "Copying..." : "Copy to my team"}
+          </Button>
+        </PageHeaderRight>
+      </PageHeader>
+
+      {library?.description ? (
+        <p className="text-muted-foreground">{library.description}</p>
+      ) : null}
 
       {library?.authors?.length ? (
         <section>
@@ -79,17 +90,6 @@ export default function PromptLibraryPrompt({
           {promptVersion.userPrompt}
         </pre>
       </section>
-
-      <div>
-        <button
-          type="button"
-          className="rounded border px-4 py-2"
-          onClick={onCopyPromptClicked}
-          disabled={isCopying}
-        >
-          {isCopying ? "Copying..." : "Copy to my team"}
-        </button>
-      </div>
     </div>
   );
 }

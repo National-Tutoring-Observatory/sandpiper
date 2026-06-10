@@ -143,7 +143,7 @@ export default function PromptLibraryRoute() {
     }
   }, [fetcher.state, fetcher.data, navigate]);
 
-  const onCopyPromptClicked = (promptId: string) => {
+  const submitCopyPrompt = (promptId: string) => {
     fetcher.submit(
       JSON.stringify({ intent: "COPY_PROMPT", entityId: promptId }),
       {
@@ -153,28 +153,37 @@ export default function PromptLibraryRoute() {
     );
   };
 
-  const onOpenPromptClicked = (promptId: string) => {
-    navigate(`/prompt-library/${promptId}`);
+  const onItemActionClicked = ({
+    id,
+    action,
+  }: {
+    id: string;
+    action: string;
+  }) => {
+    if (action === "COPY") {
+      submitCopyPrompt(id);
+    }
   };
+
+  const breadcrumbs = [{ text: "Prompt Library" }];
 
   return (
     <PromptLibrary
       prompts={prompts.data}
+      breadcrumbs={breadcrumbs}
       totalPages={prompts.totalPages}
       searchValue={searchValue}
       currentPage={currentPage}
       filtersValues={filtersValues}
       sortValue={sortValue}
       isSyncing={isSyncing}
-      isCopying={fetcher.state !== "idle"}
       onSearchValueChanged={setSearchValue}
       onPaginationChanged={setCurrentPage}
       onFiltersValueChanged={(filters) =>
         setFiltersValues({ ...filtersValues, ...filters })
       }
       onSortValueChanged={setSortValue}
-      onCopyPromptClicked={onCopyPromptClicked}
-      onOpenPromptClicked={onOpenPromptClicked}
+      onItemActionClicked={onItemActionClicked}
     />
   );
 }
