@@ -14,6 +14,7 @@
  *   yarn seeds --users            # Seed only users
  *   yarn seeds --teams            # Seed only teams
  *   yarn seeds --prompts          # Seed only prompts
+ *   yarn seeds --prompt-library   # Publish seeded prompts to the library
  *   yarn seeds --projects         # Seed only projects
  *   yarn seeds --billing          # Seed only billing plans
  *   yarn seeds --clean            # Clean all seeded data before seeding
@@ -35,6 +36,7 @@ const options = {
   users: args.includes("--users"),
   teams: args.includes("--teams"),
   prompts: args.includes("--prompts"),
+  promptLibrary: args.includes("--prompt-library"),
   projects: args.includes("--projects"),
   billing: args.includes("--billing"),
   dataset: args.includes("--dataset"),
@@ -84,6 +86,14 @@ async function main() {
       const { seedPrompts } = await import("./seeders/promptSeeder.js");
       await seedPrompts();
       console.log("✅ Prompts seeded\n");
+    }
+
+    if (options.all || options.promptLibrary) {
+      console.log("📚 Publishing prompts to the library...");
+      const { seedPromptLibrary } =
+        await import("./seeders/promptLibrarySeeder.js");
+      await seedPromptLibrary();
+      console.log("✅ Prompt library seeded\n");
     }
 
     if (options.all || options.projects) {
