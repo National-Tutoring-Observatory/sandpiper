@@ -1,5 +1,6 @@
 import { ToggleGroup } from "@/components/ui/toggle-group";
 import { useLocation, useNavigate } from "react-router";
+import { queuesUrl } from "../helpers/queueUrls";
 import { QueueTab } from "./queueTab";
 
 interface QueueState {
@@ -27,7 +28,7 @@ export default function QueueStateTabs({
 
   const handleValueChange = (value: string) => {
     if (value) {
-      navigate(`/queues/${queueType}/${value}`);
+      navigate(queuesUrl(queueType, value));
     }
   };
 

@@ -9,6 +9,7 @@ import CreateFeatureFlagDialog from "../components/createFeatureFlagDialog";
 import FeatureFlags from "../components/featureFlags";
 import { FeatureFlagService } from "../featureFlag";
 import type { FeatureFlag } from "../featureFlags.types";
+import { featureFlagsUrl } from "../helpers/featureFlagUrls";
 import type { Route } from "./+types/featureFlags.route";
 
 export async function loader({ request }: Route.LoaderArgs) {
@@ -66,14 +67,14 @@ export default function FeatureFlagsRoute({
 }: Route.ComponentProps) {
   const { featureFlags } = loaderData;
   const fetcher = useFetcher();
-  const match = useMatch("/admin/featureFlags");
+  const match = useMatch(featureFlagsUrl());
   const matches = useMatches();
 
   const featureFlag = get(matches, "2.data.featureFlag", {}) as FeatureFlag;
   const breadcrumbs = match
     ? [{ text: "Feature flags" }]
     : [
-        { text: "Feature flags", link: "/admin/featureFlags" },
+        { text: "Feature flags", link: featureFlagsUrl() },
         { text: featureFlag.name },
       ];
 

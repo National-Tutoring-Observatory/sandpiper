@@ -16,6 +16,7 @@ import { Link, Outlet } from "react-router";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 import type { FeatureFlag } from "../featureFlags.types";
+import { featureFlagsUrl } from "../helpers/featureFlagUrls";
 
 export default function FeatureFlags({
   featureFlags,
@@ -54,7 +55,7 @@ export default function FeatureFlags({
                       className="rounded-full"
                       asChild
                     >
-                      <Link to={`/featureFlags/${featureFlag._id}`}>
+                      <Link to={featureFlagsUrl(featureFlag._id)}>
                         <ChevronRight className="size-4" />
                       </Link>
                     </Button>

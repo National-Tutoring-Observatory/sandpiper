@@ -12,6 +12,7 @@ import DeleteFeatureFlagDialog from "../components/deleteFeatureFlagDialog";
 import FeatureFlag from "../components/featureFlag";
 import { FeatureFlagService } from "../featureFlag";
 import type { FeatureFlag as FeatureFlagType } from "../featureFlags.types";
+import { featureFlagsUrl } from "../helpers/featureFlagUrls";
 import type { Route } from "./+types/featureFlag.route";
 import AddUsersToFeatureFlagDialogContainer from "./addUsersToFeatureFlagDialog.container";
 
@@ -23,7 +24,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const featureFlag = await FeatureFlagService.findById(params.id);
   if (!featureFlag) {
-    return redirect("/admin/featureFlags");
+    return redirect(featureFlagsUrl());
   }
 
   const users = await UserService.find({
@@ -89,7 +90,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     case "DELETE_FEATURE_FLAG": {
       const featureFlag = await FeatureFlagService.findById(params.id);
       if (!featureFlag) {
-        return redirect("/admin/featureFlags");
+        return redirect(featureFlagsUrl());
       }
 
       await FeatureFlagService.deleteById(params.id);
@@ -144,7 +145,7 @@ export default function FeatureFlagRoute({
         fetcher.data.intent === "DELETE_FEATURE_FLAG"
       ) {
         toast.success("Feature flag deleted");
-        window.location.href = "/admin/featureFlags";
+        window.location.href = featureFlagsUrl();
       } else if (fetcher.data.errors) {
         toast.error(fetcher.data.errors.general || "An error occurred");
       }
