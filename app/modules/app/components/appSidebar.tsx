@@ -21,6 +21,7 @@ import {
   Database,
   Flag as FlagIcon,
   Folder,
+  Library,
   Link2,
   Notebook,
   Shield,
@@ -248,6 +249,22 @@ export default function AppSidebar() {
                                 <Notebook />
                                 <span className={isActive ? "underline" : ""}>
                                   Codebooks
+                                </span>
+                              </>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </FeatureFlag>
+                    <FeatureFlag flag="HAS_PROMPT_LIBRARY">
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <NavLink to="/prompt-library">
+                            {({ isActive }) => (
+                              <>
+                                <Library />
+                                <span className={isActive ? "underline" : ""}>
+                                  Prompt Library
                                 </span>
                               </>
                             )}
