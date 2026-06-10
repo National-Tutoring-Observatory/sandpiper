@@ -2,12 +2,13 @@ import { PageHeader, PageHeaderLeft } from "@/components/ui/pageHeader";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Outlet, useLocation, useNavigate } from "react-router";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
+import { adminBillingUrl } from "../helpers/billingUrls";
 
 const TABS = [
-  { key: "spend-overview", path: "/admin/billing", label: "Spend Overview" },
+  { key: "spend-overview", path: adminBillingUrl(), label: "Spend Overview" },
   {
     key: "active-users",
-    path: "/admin/billing/active-users",
+    path: adminBillingUrl("active-users"),
     label: "Active Teams",
   },
 ];

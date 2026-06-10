@@ -41,9 +41,16 @@ import SideBarHelpDropdown from "~/modules/app/components/sidebarHelpDropdown";
 import getNavMode from "~/modules/app/helpers/getNavMode";
 import useActiveTeam from "~/modules/app/hooks/useActiveTeam";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
+import { adminBillingUrl } from "~/modules/billing/helpers/billingUrls";
 import FeatureFlag from "~/modules/featureFlags/components/flag";
+import { featureFlagsUrl } from "~/modules/featureFlags/helpers/featureFlagUrls";
+import { migrationsUrl } from "~/modules/migrations/helpers/migrationUrls";
 import { projectsUrl } from "~/modules/projects/helpers/projectUrls";
+import { queuesUrl } from "~/modules/queues/helpers/queueUrls";
+import { maintenanceUrl } from "~/modules/systemSettings/helpers/maintenanceUrls";
+import { adminTeamsUrl } from "~/modules/teams/helpers/teamUrls";
 import useCreateTeam from "~/modules/teams/hooks/useCreateTeam";
+import { adminUsersUrl } from "~/modules/users/helpers/userUrls";
 import type { User } from "~/modules/users/users.types";
 
 type NavEntry = {
@@ -149,19 +156,19 @@ export default function AppSidebar() {
       ]
     : [];
   const organizationEntries: NavEntry[] = [
-    { to: "/admin/teams", icon: Building2, label: "Teams" },
-    { to: "/admin/users", icon: UsersRound, label: "Users" },
-    { to: "/admin/billing", icon: CircleDollarSign, label: "Billing" },
+    { to: adminTeamsUrl(), icon: Building2, label: "Teams" },
+    { to: adminUsersUrl(), icon: UsersRound, label: "Users" },
+    { to: adminBillingUrl(), icon: CircleDollarSign, label: "Billing" },
   ];
   const infrastructureEntries: NavEntry[] = [
-    { to: "/admin/featureFlags", icon: FlagIcon, label: "Feature flags" },
+    { to: featureFlagsUrl(), icon: FlagIcon, label: "Feature flags" },
     {
-      to: "/admin/queues/tasks/active",
+      to: queuesUrl("tasks", "active"),
       icon: ChartNoAxesGantt,
       label: "Queues",
     },
-    { to: "/admin/migrations", icon: Database, label: "Migrations" },
-    { to: "/admin/maintenance", icon: Construction, label: "Maintenance" },
+    { to: migrationsUrl(), icon: Database, label: "Migrations" },
+    { to: maintenanceUrl(), icon: Construction, label: "Maintenance" },
   ];
 
   const exitAdmin = () => {
@@ -286,7 +293,7 @@ export default function AppSidebar() {
                   roleLabel={roleLabel}
                   onSwitchTeam={switchActiveTeam}
                   onCreateTeam={onCreateTeamClicked}
-                  onEnterAdmin={() => navigate("/admin/teams")}
+                  onEnterAdmin={() => navigate(adminTeamsUrl())}
                   onLogout={onLogoutClicked}
                 />
               </SidebarMenuItem>

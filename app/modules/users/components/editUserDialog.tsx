@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { useEffect, useState } from "react";
 import { useFetcher } from "react-router";
 import addDialog from "~/modules/dialogs/addDialog";
+import { adminUsersUrl } from "../helpers/userUrls";
 import type { User } from "../users.types";
 
 const EditUserDialog = ({
@@ -41,7 +42,7 @@ const EditUserDialog = ({
         intent: "UPDATE_USER",
         payload: { targetUserId: user._id, name, email },
       }),
-      { method: "POST", encType: "application/json", action: "/admin/users" },
+      { method: "POST", encType: "application/json", action: adminUsersUrl() },
     );
   };
 

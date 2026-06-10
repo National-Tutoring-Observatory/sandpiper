@@ -6,6 +6,7 @@ import addDialog from "~/modules/dialogs/addDialog";
 import TeamAuthorization from "../authorization";
 import EditTeamDialog from "../components/editTeamDialog";
 import TeamComponent from "../components/team";
+import { adminTeamsUrl } from "../helpers/teamUrls";
 import { TeamService } from "../team";
 import type { Team } from "../teams.types";
 import type { Route } from "./+types/team.route";
@@ -19,7 +20,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const team = await TeamService.findById(params.teamId);
   if (!team) {
-    return redirect("/admin/teams");
+    return redirect(adminTeamsUrl());
   }
   return { team };
 }

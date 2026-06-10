@@ -34,6 +34,7 @@ import { findModelByCode } from "~/modules/llm/modelRegistry";
 import { UserService } from "~/modules/users/user";
 import TeamAuthorization from "../authorization";
 import TeamBilling from "../components/teamBilling";
+import { adminTeamsUrl } from "../helpers/teamUrls";
 import { TeamService } from "../team";
 import type { Route } from "./+types/teamBilling.route";
 
@@ -45,7 +46,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   const team = await TeamService.findById(params.teamId);
-  if (!team) return redirect("/admin/teams");
+  if (!team) return redirect(adminTeamsUrl());
 
   if (!BillingAuthorization.canViewBilling(user, team, isBillingEnabled())) {
     return redirect(`/teams/${params.teamId}/users`);
