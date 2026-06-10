@@ -9,6 +9,16 @@ import {
 export default [
   layout("modules/dashboard/containers/dashboard.route.tsx", [
     index("modules/home/containers/home.route.tsx"),
+    route(
+      "prompt-library",
+      "modules/promptLibrary/containers/promptLibrary.route.tsx",
+      { id: "promptLibrary" },
+    ),
+    route(
+      "prompt-library/:promptId",
+      "modules/promptLibrary/containers/promptLibraryPrompt.route.tsx",
+      { id: "promptLibraryPrompt" },
+    ),
   ]),
   ...prefix("teams", [
     route(

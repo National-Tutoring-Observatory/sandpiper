@@ -76,24 +76,44 @@ describe("PromptLibraryAuthorization", () => {
   });
 
   describe("canCopy", () => {
-    it("allows super admins to copy", () => {
-      expect(PromptLibraryAuthorization.canCopy(superAdminUser)).toBe(true);
+    it("allows team admins to copy into a team they belong to", () => {
+      expect(PromptLibraryAuthorization.canCopy(teamAdminUser, "team-1")).toBe(
+        true,
+      );
     });
 
-    it("allows team admins to copy", () => {
-      expect(PromptLibraryAuthorization.canCopy(teamAdminUser)).toBe(true);
+    it("allows team members to copy into a team they belong to", () => {
+      expect(PromptLibraryAuthorization.canCopy(teamMemberUser, "team-1")).toBe(
+        true,
+      );
     });
 
-    it("allows team members to copy", () => {
-      expect(PromptLibraryAuthorization.canCopy(teamMemberUser)).toBe(true);
+    it("denies copy into a team the user does not belong to", () => {
+      expect(PromptLibraryAuthorization.canCopy(teamMemberUser, "other")).toBe(
+        false,
+      );
     });
 
-    it("allows users with no team to copy (any authenticated user)", () => {
-      expect(PromptLibraryAuthorization.canCopy(teamlessUser)).toBe(true);
+    it("denies super admins from copying into a team they are not a member of", () => {
+      expect(PromptLibraryAuthorization.canCopy(superAdminUser, "team-1")).toBe(
+        false,
+      );
     });
 
-    it("denies null users from copying", () => {
-      expect(PromptLibraryAuthorization.canCopy(null)).toBe(false);
+    it("denies users with no team", () => {
+      expect(PromptLibraryAuthorization.canCopy(teamlessUser, "team-1")).toBe(
+        false,
+      );
+    });
+
+    it("denies null users", () => {
+      expect(PromptLibraryAuthorization.canCopy(null, "team-1")).toBe(false);
+    });
+
+    it("denies when target team is null", () => {
+      expect(PromptLibraryAuthorization.canCopy(teamMemberUser, null)).toBe(
+        false,
+      );
     });
   });
 });
