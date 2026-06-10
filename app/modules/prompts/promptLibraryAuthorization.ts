@@ -1,5 +1,6 @@
 import type { User } from "~/modules/users/users.types";
 import { userIsSuperAdmin } from "../authorization/helpers/superAdmin";
+import PromptAuthorization from "./authorization";
 
 const PromptLibraryAuthorization = {
   canPublish(user: User | null): boolean {
@@ -10,8 +11,9 @@ const PromptLibraryAuthorization = {
     return Boolean(user);
   },
 
-  canCopy(user: User | null): boolean {
-    return Boolean(user);
+  canCopy(user: User | null, targetTeamId: string | null | undefined): boolean {
+    if (!targetTeamId) return false;
+    return PromptAuthorization.canCreate(user, targetTeamId);
   },
 };
 
