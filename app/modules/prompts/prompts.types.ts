@@ -20,6 +20,13 @@ export interface PromptLibrary {
   publishedAt?: Date | string;
 }
 
+export interface PromptCopiedFrom {
+  prompt: string;
+  name: string;
+  version: number;
+  copiedAt: Date | string;
+}
+
 export interface Prompt {
   _id: string;
   name: string;
@@ -30,6 +37,7 @@ export interface Prompt {
   createdBy: User | string;
   deletedAt?: Date;
   library?: PromptLibrary;
+  copiedFrom?: PromptCopiedFrom;
 }
 
 export interface PromptVersion {

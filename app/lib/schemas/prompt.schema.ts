@@ -27,6 +27,16 @@ const librarySchema = new mongoose.Schema(
   { _id: false },
 );
 
+const copiedFromSchema = new mongoose.Schema(
+  {
+    prompt: { type: mongoose.Types.ObjectId, ref: "Prompt", required: true },
+    name: { type: String, required: true },
+    version: { type: Number, required: true },
+    copiedAt: { type: Date, required: true },
+  },
+  { _id: false },
+);
+
 export default new mongoose.Schema({
   team: { type: mongoose.Types.ObjectId, ref: "Team" },
   name: { type: String },
@@ -37,6 +47,7 @@ export default new mongoose.Schema({
   },
   productionVersion: { type: Number, default: 0 },
   library: { type: librarySchema, default: undefined },
+  copiedFrom: { type: copiedFromSchema, default: undefined },
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Types.ObjectId, ref: "User" },
   updatedAt: { type: Date },

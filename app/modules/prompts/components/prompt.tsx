@@ -6,7 +6,7 @@ import {
 } from "@/components/ui/pageHeader";
 import map from "lodash/map";
 import { CirclePlus, Pencil, Trash2 } from "lucide-react";
-import { Outlet } from "react-router";
+import { Link, Outlet } from "react-router";
 import getReferenceId from "~/helpers/getReferenceId";
 import { getAnnotationLabel } from "~/modules/annotations/helpers/annotationTypes";
 import type { Breadcrumb } from "~/modules/app/app.types";
@@ -68,6 +68,18 @@ export default function Prompt({
         <p className="text-muted-foreground text-sm">
           Annotation Type: {getAnnotationLabel(prompt.annotationType)}
         </p>
+        {prompt.copiedFrom ? (
+          <p className="text-muted-foreground text-sm">
+            Copied from&nbsp;
+            <Link
+              to={`/prompt-library/${prompt.copiedFrom.prompt}`}
+              className="underline"
+            >
+              {prompt.copiedFrom.name}
+            </Link>
+            &nbsp;(v{prompt.copiedFrom.version})
+          </p>
+        ) : null}
       </div>
       <div className="flex rounded-md border">
         <div className="h-full w-1/4">

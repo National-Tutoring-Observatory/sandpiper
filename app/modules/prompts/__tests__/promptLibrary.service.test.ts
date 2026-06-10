@@ -424,6 +424,56 @@ describe("PromptService.copyFromLibrary", () => {
     expect(fork!.productionVersion).toBe(1);
   });
 
+  it("stamps copiedFrom with the source's id, name, version, and timestamp", async () => {
+    const { source } = await seedLibraryPrompt();
+
+    const before = Date.now();
+    const fork = await PromptService.copyFromLibrary(
+      source._id,
+      targetTeamId,
+      targetUserId,
+    );
+    const after = Date.now();
+
+    expect(fork!.copiedFrom).toBeDefined();
+    expect(fork!.copiedFrom!.prompt).toBe(source._id);
+    expect(fork!.copiedFrom!.name).toBe("Talk Moves (curated)");
+    expect(fork!.copiedFrom!.version).toBe(2);
+    const copiedAt = new Date(fork!.copiedFrom!.copiedAt!).getTime();
+    expect(copiedAt).toBeGreaterThanOrEqual(before);
+    expect(copiedAt).toBeLessThanOrEqual(after);
+  });
+
+  it("pins copiedFrom.version to what was the production version at copy time, even if the source publishes a new version later", async () => {
+    const { source } = await seedLibraryPrompt();
+
+    const fork = await PromptService.copyFromLibrary(
+      source._id,
+      targetTeamId,
+      targetUserId,
+    );
+
+    await PromptService.updateById(source._id, { productionVersion: 3 });
+
+    const reloaded = await PromptService.findById(fork!._id);
+    expect(reloaded!.copiedFrom!.version).toBe(2);
+  });
+
+  it("preserves the snapshotted name even if the source is later renamed", async () => {
+    const { source } = await seedLibraryPrompt();
+
+    const fork = await PromptService.copyFromLibrary(
+      source._id,
+      targetTeamId,
+      targetUserId,
+    );
+
+    await PromptService.updateById(source._id, { name: "Renamed source" });
+
+    const reloaded = await PromptService.findById(fork!._id);
+    expect(reloaded!.copiedFrom!.name).toBe("Talk Moves (curated)");
+  });
+
   it("copies the source's production prompt version as v1 of the fork", async () => {
     const { source, productionVersion } = await seedLibraryPrompt();
 

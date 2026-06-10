@@ -239,6 +239,12 @@ export class PromptService {
       annotationType: source.annotationType,
       productionVersion: 1,
       createdBy: userId,
+      copiedFrom: {
+        prompt: source._id,
+        name: source.name,
+        version: source.productionVersion,
+        copiedAt: new Date(),
+      },
     });
 
     await PromptVersionService.create({
