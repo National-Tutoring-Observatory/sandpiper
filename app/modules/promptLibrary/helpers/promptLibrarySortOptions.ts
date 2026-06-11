@@ -1,4 +1,4 @@
 export default [
-  { value: "-library.publishedAt", text: "Recently published" },
+  { value: "library.publishedAt", text: "Recently published" },
   { value: "name", text: "Name" },
 ];
