@@ -1,4 +1,3 @@
-import escapeRegExp from "lodash/escapeRegExp";
 import mongoose from "mongoose";
 import { getPaginationParams, getTotalPages } from "~/helpers/pagination";
 import promptSchema from "~/lib/schemas/prompt.schema";
@@ -173,46 +172,6 @@ export class PromptService {
       { new: true, runValidators: true },
     );
     return doc ? this.toPrompt(doc) : null;
-  }
-
-  static async listLibrary({
-    search,
-    annotationType,
-    page,
-    pageSize,
-    sort,
-  }: {
-    search?: string;
-    annotationType?: string;
-    page?: number;
-    pageSize?: number;
-    sort?: string | Record<string, 1 | -1> | null;
-  }): Promise<{ data: Prompt[]; count: number; totalPages: number }> {
-    const match: Record<string, unknown> = {
-      "library.isPublished": true,
-      deletedAt: { $exists: false },
-    };
-
-    if (annotationType) {
-      match.annotationType = annotationType;
-    }
-
-    if (search) {
-      const regex = new RegExp(escapeRegExp(search), "i");
-      match.$or = [
-        { name: { $regex: regex } },
-        { "library.description": { $regex: regex } },
-        { "library.authors.name": { $regex: regex } },
-        { "library.authors.affiliation": { $regex: regex } },
-      ];
-    }
-
-    return this.paginate({
-      match,
-      sort: sort ?? "-library.publishedAt",
-      page,
-      pageSize,
-    });
   }
 
   static async copyFromLibrary(

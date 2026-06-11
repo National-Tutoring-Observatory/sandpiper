@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
+import { cleanAuthors, cleanPaperRefs } from "../helpers/cleanLibraryMetadata";
 import type { Prompt, PromptAuthor, PromptPaperRef } from "../prompts.types";
 
 interface PublishPromptDialogProps {
@@ -66,20 +67,10 @@ const PublishPromptDialog = ({
   };
 
   const submit = () => {
-    const cleanedAuthors = authors
-      .map((a) => ({
-        name: a.name.trim(),
-        affiliation: a.affiliation?.trim() || undefined,
-      }))
-      .filter((a) => a.name);
-    const cleanedPaperRefs = paperRefs
-      .map((p) => ({ title: p.title.trim(), url: p.url.trim() }))
-      .filter((p) => p.title && p.url);
-
     onPublishPromptClicked({
       description: description.trim(),
-      authors: cleanedAuthors,
-      paperRefs: cleanedPaperRefs,
+      authors: cleanAuthors(authors),
+      paperRefs: cleanPaperRefs(paperRefs),
     });
   };
 
@@ -218,7 +209,11 @@ const PublishPromptDialog = ({
           </Button>
         </DialogClose>
         <DialogClose asChild>
-          <Button type="button" disabled={isSubmitting} onClick={submit}>
+          <Button
+            type="button"
+            disabled={isSubmitting || !description.trim()}
+            onClick={submit}
+          >
             {isAlreadyPublished ? "Save changes" : "Publish to library"}
           </Button>
         </DialogClose>

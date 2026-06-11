@@ -427,6 +427,15 @@ describe("prompt.route action", () => {
         annotationType: "PER_UTTERANCE",
         team: team._id,
         createdBy: user._id,
+        productionVersion: 1,
+      });
+      await PromptVersionService.create({
+        name: "v1",
+        prompt: prompt._id,
+        version: 1,
+        userPrompt: "Annotate this utterance",
+        annotationSchema: [],
+        hasBeenSaved: true,
       });
       const cookieHeader = await loginUser(user._id);
 
@@ -537,6 +546,94 @@ describe("prompt.route action", () => {
 
       expect(response.init?.status).toBe(400);
       expect(response.data?.errors?.general).toContain("Description");
+    });
+
+    it("returns 400 when description is only whitespace", async () => {
+      const team = await TeamService.create({ name: "team 1" });
+      const user = await UserService.create({
+        username: "admin",
+        role: "SUPER_ADMIN",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+      const prompt = await PromptService.create({
+        name: "Blank Desc",
+        annotationType: "PER_UTTERANCE",
+        team: team._id,
+        createdBy: user._id,
+        productionVersion: 1,
+      });
+      await PromptVersionService.create({
+        name: "v1",
+        prompt: prompt._id,
+        version: 1,
+        userPrompt: "Annotate this utterance",
+        annotationSchema: [],
+        hasBeenSaved: true,
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      const response = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "PUBLISH_PROMPT",
+            entityId: prompt._id,
+            payload: { description: "   ", authors: [], paperRefs: [] },
+          }),
+        }),
+        params: { teamId: team._id, promptId: prompt._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(response.init?.status).toBe(400);
+      expect(response.data?.errors?.general).toContain("Description");
+
+      const unchanged = await PromptService.findById(prompt._id);
+      expect(unchanged?.library?.isPublished).not.toBe(true);
+    });
+
+    it("returns 400 when the prompt has no saved production version", async () => {
+      const team = await TeamService.create({ name: "team 1" });
+      const user = await UserService.create({
+        username: "admin",
+        role: "SUPER_ADMIN",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+      const prompt = await PromptService.create({
+        name: "No Version",
+        annotationType: "PER_UTTERANCE",
+        team: team._id,
+        createdBy: user._id,
+        productionVersion: 1,
+      });
+      const cookieHeader = await loginUser(user._id);
+
+      const response = (await action({
+        request: new Request("http://localhost/", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body: JSON.stringify({
+            intent: "PUBLISH_PROMPT",
+            entityId: prompt._id,
+            payload: {
+              description: "A great prompt",
+              authors: [],
+              paperRefs: [],
+            },
+          }),
+        }),
+        params: { teamId: team._id, promptId: prompt._id },
+        context: {},
+        unstable_pattern: "",
+      } as any)) as any;
+
+      expect(response.init?.status).toBe(400);
+      expect(response.data?.errors?.general).toContain("production version");
+
+      const unchanged = await PromptService.findById(prompt._id);
+      expect(unchanged?.library?.isPublished).not.toBe(true);
     });
   });
 
