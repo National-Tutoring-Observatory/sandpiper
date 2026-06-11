@@ -24,6 +24,7 @@ import getReferenceId from "~/helpers/getReferenceId";
 import { getAnnotationLabel } from "~/modules/annotations/helpers/annotationTypes";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
+import { promptLibraryUrl } from "~/modules/promptLibrary/helpers/promptLibraryUrls";
 import type { Prompt, PromptVersion } from "../prompts.types";
 import PromptVersionItem from "./promptVersionItem";
 
@@ -156,7 +157,7 @@ export default function Prompt({
           <p className="text-muted-foreground text-sm">
             Copied from&nbsp;
             <Link
-              to={`/prompt-library/${prompt.copiedFrom.prompt}`}
+              to={promptLibraryUrl(prompt.copiedFrom.prompt)}
               className="underline"
             >
               {prompt.copiedFrom.name}
