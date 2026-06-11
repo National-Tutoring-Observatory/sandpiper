@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useFetcher, useLoaderData, useRouteLoaderData } from "react-router";
 import useActiveTeam from "~/modules/app/hooks/useActiveTeam";
-import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import getSessionUser from "~/modules/authentication/helpers/getSessionUser";
 import { readActiveTeamFromRequest } from "~/modules/teams/helpers/activeTeamCookie";
 import useCreateTeam from "~/modules/teams/hooks/useCreateTeam";
 import { TeamService } from "~/modules/teams/team";
@@ -9,7 +9,12 @@ import Home from "../components/home";
 import type { Route } from "./+types/home.route";
 
 export async function loader({ request }: Route.LoaderArgs) {
-  const user = await requireAuth({ request });
+  // Don't requireAuth here: logged-out visitors to "/" must reach the client
+  // AuthenticationContainer, which renders the Splash page. Redirecting from
+  // the loader would send them to /signup instead.
+  const user = await getSessionUser({ request });
+  if (!user) return { activeTeamId: null };
+
   const userTeamIds = user.teams.map((t) => t.team);
   if (userTeamIds.length === 0) return { activeTeamId: null };
 
