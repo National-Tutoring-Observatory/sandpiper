@@ -25,20 +25,20 @@ When you upload a CSV of human annotations, Sandpiper validates the data, matche
     - `role` — the speaker role (e.g. Tutor, Student)
     - `content` — the utterance text
     - One annotation column per **annotator**, per **field**, per **slot**, using the naming format `annotator[<name>][<slot>]<fieldKey>` (for example, `annotator[joe][0]TUTOR_MOVE`). Each part of the name means:
-        - **`<name>`** — the annotator's name (e.g. `joe`). Each distinct name becomes its own Human Run. This is the only identifier of *who did the coding* — it is **not** tied to a tutor or student.
-        - **`<slot>`** — a zero-based index (`0`, `1`, `2`, …) that lets a **single annotator record more than one value for the same field on the same utterance**. You choose how many slots each field gets when downloading the template; a field with 2 slots produces `annotator[joe][0]TUTOR_MOVE` and `annotator[joe][1]TUTOR_MOVE`. **A slot is *not* a tutor ID** — speakers are identified by the `role` column, and each utterance by `session_id` + `sequence_id`. Most coding uses only slot `0`; extra slots exist for multi-label fields where one utterance can carry more than one code.
-        - **`<fieldKey>`** — the `fieldKey` of a field defined in your **[Prompt Schema](schema)**. Every field in the schema generates its own annotation column(s) here, and the values you enter should be that field's schema codes (e.g. `PRAISE`, `NOT_PRAISE`). Change a field in the schema and the template's columns change with it.
+      - **`<name>`** — the annotator's name (e.g. `joe`). Each distinct name becomes its own Human Run. This is the only identifier of _who did the coding_ — it is **not** tied to a tutor or student.
+      - **`<slot>`** — a zero-based index (`0`, `1`, `2`, …) that lets a **single annotator record more than one value for the same field on the same utterance**. You choose how many slots each field gets when downloading the template; a field with 2 slots produces `annotator[joe][0]TUTOR_MOVE` and `annotator[joe][1]TUTOR_MOVE`. **A slot is _not_ a tutor ID** — speakers are identified by the `role` column, and each utterance by `session_id` + `sequence_id`. Most coding uses only slot `0`; extra slots exist for multi-label fields where one utterance can carry more than one code.
+      - **`<fieldKey>`** — the `fieldKey` of a field defined in your **[Prompt Schema](schema)**. Every field in the schema generates its own annotation column(s) here, and the values you enter should be that field's schema codes (e.g. `PRAISE`, `NOT_PRAISE`). Change a field in the schema and the template's columns change with it.
 
 #### Sample template
 
 A template for annotator `joe` coding one field, `TUTOR_MOVE`, with **2 slots** looks like this:
 
-| session_id | sequence_id | role | content | annotator[joe][0]TUTOR_MOVE | annotator[joe][1]TUTOR_MOVE |
-|------------|-------------|---------|------------------------------------------------------|-----------------------------|-----------------------------|
-| sess_001 | 0 | Tutor | Let's pick up where we left off on question 3. | MANAGING | |
-| sess_001 | 1 | Student | Okay… I don't really get part b. | | |
-| sess_001 | 2 | Tutor | What do you notice about the denominator here? | PROBING_UNDERSTAND | GIVING_HINT |
-| sess_001 | 3 | Student | Oh — they have to match first. | | |
+| session_id | sequence_id | role    | content                                        | annotator[joe][0]TUTOR_MOVE | annotator[joe][1]TUTOR_MOVE |
+| ---------- | ----------- | ------- | ---------------------------------------------- | --------------------------- | --------------------------- |
+| sess_001   | 0           | Tutor   | Let's pick up where we left off on question 3. | MANAGING                    |                             |
+| sess_001   | 1           | Student | Okay… I don't really get part b.               |                             |                             |
+| sess_001   | 2           | Tutor   | What do you notice about the denominator here? | PROBING_UNDERSTAND          | GIVING_HINT                 |
+| sess_001   | 3           | Student | Oh — they have to match first.                 |                             |                             |
 
 - `session_id`, `sequence_id`, `role`, and `content` are pre-filled by the template — leave them unchanged so each row still matches the run set.
 - Fill the `annotator[...]` columns with codes from that field's schema; leave a cell blank when no code applies.
