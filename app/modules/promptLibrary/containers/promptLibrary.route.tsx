@@ -1,20 +1,14 @@
-import { useEffect } from "react";
-import {
-  data,
-  redirect,
-  useFetcher,
-  useLoaderData,
-  useNavigate,
-} from "react-router";
-import { toast } from "sonner";
+import { data, redirect, useFetcher, useLoaderData } from "react-router";
+import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
-import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 import { PromptService } from "~/modules/prompts/prompt";
 import PromptLibraryAuthorization from "~/modules/prompts/promptLibraryAuthorization";
 import resolveActiveTeam from "~/modules/teams/helpers/resolveActiveTeam.server";
 import PromptLibrary from "../components/promptLibrary";
+import copyPromptToActiveTeam from "../helpers/copyPromptToActiveTeam.server";
+import { useCopyPromptResult } from "../hooks/useCopyPromptResult";
 import type { Route } from "./+types/promptLibrary.route";
 
 const DEFAULT_SORT = "-library.publishedAt";
@@ -32,14 +26,27 @@ export async function loader({ request }: Route.LoaderArgs) {
     filters: {},
   });
 
-  const prompts = await PromptService.listLibrary({
-    search: queryParams.searchValue || undefined,
-    annotationType: queryParams.filters?.annotationType,
-    page: queryParams.currentPage,
-    sort: queryParams.sort,
+  const query = buildQueryFromParams({
+    match: { "library.isPublished": true, deletedAt: { $exists: false } },
+    queryParams,
+    searchableFields: [
+      "name",
+      "library.description",
+      "library.authors.name",
+      "library.authors.affiliation",
+    ],
+    sortableFields: ["name", "library.publishedAt"],
+    filterableFields: ["annotationType"],
   });
 
-  const activeTeamId = await resolveActiveTeam(request, user);
+  const [prompts, activeTeamId] = await Promise.all([
+    PromptService.paginate({
+      match: query.match,
+      sort: query.sort ?? DEFAULT_SORT,
+      page: query.page,
+    }),
+    resolveActiveTeam(request, user),
+  ]);
 
   return { prompts, activeTeamId };
 }
@@ -59,50 +66,13 @@ export async function action({ request }: Route.ActionArgs) {
     );
   }
 
-  const activeTeamId = await resolveActiveTeam(request, user);
-  if (!activeTeamId) {
-    return data(
-      { errors: { general: "Select a team before copying a prompt." } },
-      { status: 400 },
-    );
-  }
-  if (!PromptLibraryAuthorization.canCopy(user, activeTeamId)) {
-    return data(
-      {
-        errors: {
-          general: "You can only copy prompts into a team you belong to.",
-        },
-      },
-      { status: 403 },
-    );
-  }
-
-  const copy = await PromptService.copyFromLibrary(
-    entityId,
-    activeTeamId,
-    user._id,
-  );
-  if (!copy) {
-    return data(
-      { errors: { general: "Prompt not found in library." } },
-      { status: 404 },
-    );
-  }
-
-  return data({
-    success: true,
-    intent: "COPY_PROMPT",
-    data: {
-      prompt: copy,
-      redirectTo: promptsUrl(activeTeamId, copy._id, copy.productionVersion),
-    },
-  });
+  return copyPromptToActiveTeam(request, user, entityId);
 }
 
 export default function PromptLibraryRoute() {
   const { prompts } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
-  const navigate = useNavigate();
+  useCopyPromptResult(fetcher);
 
   const {
     searchValue,
@@ -120,29 +90,6 @@ export default function PromptLibraryRoute() {
     sortValue: DEFAULT_SORT,
     filters: {},
   });
-
-  useEffect(() => {
-    if (fetcher.state !== "idle") return;
-    const result = fetcher.data as
-      | {
-          success?: boolean;
-          intent?: string;
-          data?: { redirectTo?: string };
-          errors?: { general?: string };
-        }
-      | undefined;
-    if (!result) return;
-    if (
-      result.success &&
-      result.intent === "COPY_PROMPT" &&
-      result.data?.redirectTo
-    ) {
-      toast.success("Prompt copied to your team.");
-      navigate(result.data.redirectTo);
-    } else if (result.errors) {
-      toast.error(result.errors.general || "An error occurred");
-    }
-  }, [fetcher.state, fetcher.data, navigate]);
 
   const submitCopyPrompt = (promptId: string) => {
     fetcher.submit(

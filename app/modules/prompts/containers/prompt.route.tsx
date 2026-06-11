@@ -17,6 +17,7 @@ import PromptLibraryAuthorization from "~/modules/prompts/promptLibraryAuthoriza
 import { RunService } from "~/modules/runs/run";
 import Prompt from "../components/prompt";
 import { PromptPublishedError } from "../errors/promptPublishedError";
+import { cleanAuthors, cleanPaperRefs } from "../helpers/cleanLibraryMetadata";
 import { promptsUrl } from "../helpers/promptUrls";
 import { PromptService } from "../prompt";
 import { PromptVersionService } from "../promptVersion";
@@ -114,38 +115,32 @@ export async function action({ request, params }: Route.ActionArgs) {
 
       const { description, authors, paperRefs } = payload;
 
-      if (typeof description !== "string") {
+      if (typeof description !== "string" || !description.trim()) {
         return data(
           { errors: { general: "Description is required" } },
           { status: 400 },
         );
       }
 
-      const cleanAuthors = Array.isArray(authors)
-        ? authors
-            .map((a) => ({
-              name: typeof a?.name === "string" ? a.name.trim() : "",
-              affiliation:
-                typeof a?.affiliation === "string"
-                  ? a.affiliation.trim()
-                  : undefined,
-            }))
-            .filter((a) => a.name)
-        : [];
-
-      const cleanPaperRefs = Array.isArray(paperRefs)
-        ? paperRefs
-            .map((p) => ({
-              title: typeof p?.title === "string" ? p.title.trim() : "",
-              url: typeof p?.url === "string" ? p.url.trim() : "",
-            }))
-            .filter((p) => p.title && p.url)
-        : [];
+      const productionVersion = await PromptVersionService.findOne({
+        prompt: entityId,
+        version: prompt.productionVersion,
+      });
+      if (!productionVersion) {
+        return data(
+          {
+            errors: {
+              general: "Save a production version before publishing.",
+            },
+          },
+          { status: 400 },
+        );
+      }
 
       const published = await PromptService.publish(entityId, {
         description: description.trim(),
-        authors: cleanAuthors,
-        paperRefs: cleanPaperRefs,
+        authors: cleanAuthors(authors),
+        paperRefs: cleanPaperRefs(paperRefs),
       });
 
       return data({

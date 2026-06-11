@@ -17,9 +17,4 @@ const PromptLibraryAuthorization = {
   },
 };
 
-type PromptLibraryAuthorizationShape = {
-  [K in keyof typeof PromptLibraryAuthorization]: boolean;
-};
-
 export default PromptLibraryAuthorization;
-export type { PromptLibraryAuthorizationShape };

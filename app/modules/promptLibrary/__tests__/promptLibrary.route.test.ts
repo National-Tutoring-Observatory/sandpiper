@@ -169,6 +169,40 @@ describe("promptLibrary.route", () => {
       const ids = result.prompts.data.map((p: any) => p._id);
       expect(ids).toEqual([named._id]);
     });
+
+    it("excludes soft-deleted prompts even if still marked published", async () => {
+      const team = await TeamService.create({ name: "t" });
+      const user = await UserService.create({
+        username: "u",
+        teams: [{ team: team._id, role: "ADMIN" }],
+      });
+
+      const live = await publishedPromptFixture({
+        name: "Live",
+        description: "x",
+        teamId: team._id,
+        userId: user._id,
+      });
+      const deleted = await publishedPromptFixture({
+        name: "Deleted",
+        description: "y",
+        teamId: team._id,
+        userId: user._id,
+      });
+      await PromptService.updateById(deleted._id, { deletedAt: new Date() });
+
+      const cookieHeader = await loginUser(user._id);
+      const result = (await loader({
+        request: new Request("http://localhost/prompt-library", {
+          headers: { cookie: cookieHeader },
+        }),
+        params: {},
+        context: {},
+      } as any)) as any;
+
+      const ids = result.prompts.data.map((p: any) => p._id);
+      expect(ids).toEqual([live._id]);
+    });
   });
 
   describe("action - COPY_PROMPT", () => {
