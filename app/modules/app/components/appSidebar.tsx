@@ -47,6 +47,7 @@ import FeatureFlag from "~/modules/featureFlags/components/flag";
 import { featureFlagsUrl } from "~/modules/featureFlags/helpers/featureFlagUrls";
 import { migrationsUrl } from "~/modules/migrations/helpers/migrationUrls";
 import { projectsUrl } from "~/modules/projects/helpers/projectUrls";
+import { promptLibraryUrl } from "~/modules/promptLibrary/helpers/promptLibraryUrls";
 import { queuesUrl } from "~/modules/queues/helpers/queueUrls";
 import { maintenanceUrl } from "~/modules/systemSettings/helpers/maintenanceUrls";
 import { adminTeamsUrl } from "~/modules/teams/helpers/teamUrls";
@@ -259,7 +260,7 @@ export default function AppSidebar() {
                     <FeatureFlag flag="HAS_PROMPT_LIBRARY">
                       <SidebarMenuItem>
                         <SidebarMenuButton asChild>
-                          <NavLink to="/prompt-library">
+                          <NavLink to={promptLibraryUrl()}>
                             {({ isActive }) => (
                               <>
                                 <Library />

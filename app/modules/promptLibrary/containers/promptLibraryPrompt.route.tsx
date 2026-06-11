@@ -8,11 +8,13 @@ import {
 } from "react-router";
 import { toast } from "sonner";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 import { PromptService } from "~/modules/prompts/prompt";
 import PromptLibraryAuthorization from "~/modules/prompts/promptLibraryAuthorization";
 import { PromptVersionService } from "~/modules/prompts/promptVersion";
 import resolveActiveTeam from "~/modules/teams/helpers/resolveActiveTeam.server";
 import PromptLibraryPrompt from "../components/promptLibraryPrompt";
+import { promptLibraryUrl } from "../helpers/promptLibraryUrls";
 import type { Route } from "./+types/promptLibraryPrompt.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -27,7 +29,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     deletedAt: { $exists: false },
   });
   if (!prompt) {
-    return redirect("/prompt-library");
+    return redirect(promptLibraryUrl());
   }
 
   const promptVersion = await PromptVersionService.findOne({
@@ -35,7 +37,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     version: prompt.productionVersion,
   });
   if (!promptVersion) {
-    return redirect("/prompt-library");
+    return redirect(promptLibraryUrl());
   }
 
   const activeTeamId = await resolveActiveTeam(request, user);
@@ -86,7 +88,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     intent: "COPY_PROMPT",
     data: {
       prompt: copy,
-      redirectTo: `/teams/${activeTeamId}/prompts/${copy._id}/${copy.productionVersion}`,
+      redirectTo: promptsUrl(activeTeamId, copy._id, copy.productionVersion),
     },
   });
 }
@@ -127,7 +129,7 @@ export default function PromptLibraryPromptRoute() {
   };
 
   const breadcrumbs = [
-    { text: "Prompt Library", link: "/prompt-library" },
+    { text: "Prompt Library", link: promptLibraryUrl() },
     { text: prompt.name },
   ];
 

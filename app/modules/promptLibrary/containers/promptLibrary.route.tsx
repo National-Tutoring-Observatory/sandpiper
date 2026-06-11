@@ -10,6 +10,7 @@ import { toast } from "sonner";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 import { PromptService } from "~/modules/prompts/prompt";
 import PromptLibraryAuthorization from "~/modules/prompts/promptLibraryAuthorization";
 import resolveActiveTeam from "~/modules/teams/helpers/resolveActiveTeam.server";
@@ -93,7 +94,7 @@ export async function action({ request }: Route.ActionArgs) {
     intent: "COPY_PROMPT",
     data: {
       prompt: copy,
-      redirectTo: `/teams/${activeTeamId}/prompts/${copy._id}/${copy.productionVersion}`,
+      redirectTo: promptsUrl(activeTeamId, copy._id, copy.productionVersion),
     },
   });
 }
