@@ -1,11 +1,20 @@
-import { useFetcher } from "react-router";
-import Invite from "../components/invite";
+import { useFetcher, useSearchParams } from "react-router";
+import Signup from "~/modules/authentication/components/signup";
+import getInitialCreditsAmount from "~/modules/billing/helpers/getInitialCreditsAmount.server";
 import type { Route } from "./+types/invite.route";
 
-export default function InviteRoute({ params }: Route.LoaderArgs) {
-  const fetcher = useFetcher();
+export async function loader() {
+  return { initialCredits: getInitialCreditsAmount() };
+}
 
-  const onLoginWithGithubClicked = () => {
+export default function InviteRoute({
+  params,
+  loaderData,
+}: Route.ComponentProps) {
+  const fetcher = useFetcher();
+  const [searchParams] = useSearchParams();
+
+  const onSignupWithGithubClicked = () => {
     fetcher.submit(
       { provider: "github", inviteId: params.id },
       {
@@ -16,10 +25,18 @@ export default function InviteRoute({ params }: Route.LoaderArgs) {
     );
   };
 
+  const errorType =
+    (!fetcher.data?.ok ? fetcher.data?.error : null) ??
+    searchParams.get("error");
+
   return (
-    <Invite
-      errorMessage={!fetcher.data?.ok ? fetcher.data?.error : null}
-      onLoginWithGithubClicked={onLoginWithGithubClicked}
+    <Signup
+      onSignupWithGithubClicked={onSignupWithGithubClicked}
+      initialCredits={loaderData.initialCredits}
+      errorType={errorType}
+      title="National Tutoring Observatory"
+      description="You've been invited to the National Tutoring Observatory annotation tool."
+      showCredits={false}
     />
   );
 }

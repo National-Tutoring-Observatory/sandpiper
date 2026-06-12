@@ -1,5 +1,6 @@
-import { redirect, useFetcher } from "react-router";
-import Invite from "../components/invite";
+import { redirect, useFetcher, useSearchParams } from "react-router";
+import Signup from "~/modules/authentication/components/signup";
+import getInitialCreditsAmount from "~/modules/billing/helpers/getInitialCreditsAmount.server";
 import getTeamInviteStatus from "../helpers/getTeamInviteStatus";
 import { TeamInviteService } from "../teamInvites";
 import type { Route } from "./+types/join.route";
@@ -20,13 +21,21 @@ export async function loader({ params }: Route.LoaderArgs) {
     throw redirect(`/signup?error=${errorCode}`);
   }
 
-  return { ok: true, slug: invite.slug };
+  return {
+    ok: true,
+    slug: invite.slug,
+    initialCredits: getInitialCreditsAmount(),
+  };
 }
 
-export default function JoinRoute({ params }: Route.LoaderArgs) {
+export default function JoinRoute({
+  params,
+  loaderData,
+}: Route.ComponentProps) {
   const fetcher = useFetcher();
+  const [searchParams] = useSearchParams();
 
-  const onLoginWithGithubClicked = () => {
+  const onSignupWithGithubClicked = () => {
     fetcher.submit(
       { provider: "github", inviteSlug: params.slug },
       {
@@ -37,10 +46,19 @@ export default function JoinRoute({ params }: Route.LoaderArgs) {
     );
   };
 
+  const fetcherError = !fetcher.data?.ok ? fetcher.data?.error : null;
+  const errorType =
+    (fetcherError ? (STATUS_TO_ERROR[fetcherError] ?? fetcherError) : null) ??
+    searchParams.get("error");
+
   return (
-    <Invite
-      errorMessage={!fetcher.data?.ok ? fetcher.data?.error : null}
-      onLoginWithGithubClicked={onLoginWithGithubClicked}
+    <Signup
+      onSignupWithGithubClicked={onSignupWithGithubClicked}
+      initialCredits={loaderData.initialCredits}
+      errorType={errorType}
+      title="National Tutoring Observatory"
+      description="You've been invited to the National Tutoring Observatory annotation tool."
+      showCredits={false}
     />
   );
 }

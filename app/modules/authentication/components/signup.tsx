@@ -35,12 +35,20 @@ export default function Signup({
   onSignupWithGithubClicked,
   initialCredits,
   errorType,
+  title = "Create an account",
+  description = "Analyze tutoring transcripts with AI-powered annotation tools built for researchers.",
+  showCredits = true,
 }: {
   onSignupWithGithubClicked: () => void;
   initialCredits: number;
   errorType: string | null;
+  title?: string;
+  description?: string;
+  showCredits?: boolean;
 }) {
-  const error = errorType ? ERROR_MESSAGES[errorType] : null;
+  const error = errorType
+    ? (ERROR_MESSAGES[errorType] ?? { title: errorType, description: "" })
+    : null;
 
   return (
     <div className="flex h-screen w-screen items-center justify-center">
@@ -59,21 +67,22 @@ export default function Signup({
         </div>
         <CardHeader>
           <CardTitle className="mb-2">
-            <h1 className="text-2xl">Create an account</h1>
+            <h1 className="text-2xl">{title}</h1>
           </CardTitle>
           <CardDescription>
-            <p className="mb-3">
-              Analyze tutoring transcripts with AI-powered annotation tools
-              built for researchers.
-            </p>
-            <Badge variant="secondary" className="text-sm">
-              ${initialCredits} free credits to get started
-            </Badge>
+            <p className="mb-3">{description}</p>
+            {showCredits && (
+              <Badge variant="secondary" className="text-sm">
+                ${initialCredits} free credits to get started
+              </Badge>
+            )}
             {error && (
               <Alert variant="destructive" className="mt-2 text-left">
                 <AlertCircle />
                 <AlertTitle>{error.title}</AlertTitle>
-                <AlertDescription>{error.description}</AlertDescription>
+                {error.description && (
+                  <AlertDescription>{error.description}</AlertDescription>
+                )}
               </Alert>
             )}
           </CardDescription>
