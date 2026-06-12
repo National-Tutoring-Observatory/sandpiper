@@ -323,6 +323,15 @@ describe("prompt.route action", () => {
         annotationType: "PER_UTTERANCE",
         team: team._id,
         createdBy: user._id,
+        productionVersion: 1,
+      });
+      await PromptVersionService.create({
+        name: "production",
+        prompt: prompt._id,
+        version: 1,
+        userPrompt: "Annotate this utterance",
+        annotationSchema: [],
+        hasBeenSaved: true,
       });
       await PromptService.publish(prompt._id, {
         description: "x",
@@ -594,7 +603,7 @@ describe("prompt.route action", () => {
       expect(unchanged?.library?.isPublished).not.toBe(true);
     });
 
-    it("returns 400 when the prompt has no saved production version", async () => {
+    it("returns 400 when the prompt has no publishable production version", async () => {
       const team = await TeamService.create({ name: "team 1" });
       const user = await UserService.create({
         username: "admin",
@@ -630,7 +639,7 @@ describe("prompt.route action", () => {
       } as any)) as any;
 
       expect(response.init?.status).toBe(400);
-      expect(response.data?.errors?.general).toContain("production version");
+      expect(response.data?.errors?.general).toContain("Add prompt content");
 
       const unchanged = await PromptService.findById(prompt._id);
       expect(unchanged?.library?.isPublished).not.toBe(true);
@@ -650,6 +659,15 @@ describe("prompt.route action", () => {
         annotationType: "PER_UTTERANCE",
         team: team._id,
         createdBy: user._id,
+        productionVersion: 1,
+      });
+      await PromptVersionService.create({
+        name: "production",
+        prompt: prompt._id,
+        version: 1,
+        userPrompt: "Annotate this utterance",
+        annotationSchema: [],
+        hasBeenSaved: true,
       });
       await PromptService.publish(prompt._id, {
         description: "x",
@@ -689,6 +707,15 @@ describe("prompt.route action", () => {
         annotationType: "PER_UTTERANCE",
         team: team._id,
         createdBy: user._id,
+        productionVersion: 1,
+      });
+      await PromptVersionService.create({
+        name: "production",
+        prompt: prompt._id,
+        version: 1,
+        userPrompt: "Annotate this utterance",
+        annotationSchema: [],
+        hasBeenSaved: true,
       });
       // publish via service (bypassing the gate)
       await PromptService.publish(prompt._id, {

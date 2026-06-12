@@ -17,6 +17,7 @@ import PromptLibraryAuthorization from "~/modules/prompts/promptLibraryAuthoriza
 import { RunService } from "~/modules/runs/run";
 import Prompt from "../components/prompt";
 import { PromptPublishedError } from "../errors/promptPublishedError";
+import { PublishError } from "../errors/publishError";
 import { cleanAuthors, cleanPaperRefs } from "../helpers/cleanLibraryMetadata";
 import { promptsUrl } from "../helpers/promptUrls";
 import { PromptService } from "../prompt";
@@ -122,32 +123,24 @@ export async function action({ request, params }: Route.ActionArgs) {
         );
       }
 
-      const productionVersion = await PromptVersionService.findOne({
-        prompt: entityId,
-        version: prompt.productionVersion,
-      });
-      if (!productionVersion) {
-        return data(
-          {
-            errors: {
-              general: "Save a production version before publishing.",
-            },
-          },
-          { status: 400 },
-        );
+      try {
+        const published = await PromptService.publish(entityId, {
+          description: description.trim(),
+          authors: cleanAuthors(authors),
+          paperRefs: cleanPaperRefs(paperRefs),
+        });
+
+        return data({
+          success: true,
+          intent: "PUBLISH_PROMPT",
+          data: published,
+        });
+      } catch (error) {
+        if (error instanceof PublishError) {
+          return data({ errors: { general: error.message } }, { status: 400 });
+        }
+        throw error;
       }
-
-      const published = await PromptService.publish(entityId, {
-        description: description.trim(),
-        authors: cleanAuthors(authors),
-        paperRefs: cleanPaperRefs(paperRefs),
-      });
-
-      return data({
-        success: true,
-        intent: "PUBLISH_PROMPT",
-        data: published,
-      });
     }
     case "UNPUBLISH_PROMPT": {
       if (!PromptLibraryAuthorization.canPublish(user)) {

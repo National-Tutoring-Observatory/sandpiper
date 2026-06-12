@@ -3,6 +3,7 @@ import { getPaginationParams, getTotalPages } from "~/helpers/pagination";
 import promptSchema from "~/lib/schemas/prompt.schema";
 import type { FindOptions, PaginateProps } from "~/modules/common/types";
 import { PromptPublishedError } from "./errors/promptPublishedError";
+import { PublishError } from "./errors/publishError";
 import type { Prompt, PromptAuthor, PromptPaperRef } from "./prompts.types";
 import { PromptVersionService } from "./promptVersion";
 import createDefaultPrompts from "./services/createDefaultPrompts.server";
@@ -151,6 +152,16 @@ export class PromptService {
   ): Promise<Prompt | null> {
     const existing = await PromptModel.findById(id);
     if (!existing) return null;
+
+    const productionVersion = await PromptVersionService.findOne({
+      prompt: existing._id,
+      version: existing.productionVersion,
+    });
+    if (!productionVersion?.userPrompt?.trim()) {
+      throw new PublishError(
+        "Add prompt content before publishing to the library.",
+      );
+    }
 
     const publishedAt = existing.library?.isPublished
       ? existing.library.publishedAt

@@ -3,8 +3,24 @@ import { TeamService } from "~/modules/teams/team";
 import { UserService } from "~/modules/users/user";
 import clearDocumentDB from "../../../../test/helpers/clearDocumentDB";
 import { PromptPublishedError } from "../errors/promptPublishedError";
+import { PublishError } from "../errors/publishError";
 import { PromptService } from "../prompt";
 import { PromptVersionService } from "../promptVersion";
+
+async function seedProductionVersion(
+  promptId: string,
+  version = 1,
+  userPrompt = "Annotate each utterance with the matching talk move.",
+) {
+  await PromptVersionService.create({
+    name: "production",
+    prompt: promptId,
+    version,
+    userPrompt,
+    annotationSchema: [],
+    hasBeenSaved: true,
+  });
+}
 
 describe("PromptService — library subdoc persistence", () => {
   let teamId: string;
@@ -97,6 +113,7 @@ describe("PromptService.publish", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
 
     const before = Date.now();
     const published = await PromptService.publish(prompt._id, {
@@ -138,6 +155,7 @@ describe("PromptService.publish", () => {
         publishedAt: new Date("2026-01-01T00:00:00Z"),
       },
     });
+    await seedProductionVersion(prompt._id);
 
     const republished = await PromptService.publish(prompt._id, {
       description: "New intention",
@@ -159,6 +177,7 @@ describe("PromptService.publish", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     const first = await PromptService.publish(prompt._id, {
       description: "first",
       paperRefs: [],
@@ -185,6 +204,7 @@ describe("PromptService.publish", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     const first = await PromptService.publish(prompt._id, {
       description: "first",
       paperRefs: [],
@@ -211,6 +231,7 @@ describe("PromptService.publish", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     await expect(
       PromptService.publish(prompt._id, {
         description: "x",
@@ -227,6 +248,7 @@ describe("PromptService.publish", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     const published = await PromptService.publish(prompt._id, {
       description: "x",
       authors: [
@@ -250,6 +272,7 @@ describe("PromptService.publish", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     await expect(
       PromptService.publish(prompt._id, {
         description: "x",
@@ -267,6 +290,7 @@ describe("PromptService.publish", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     const published = await PromptService.publish(prompt._id, {
       description: "x",
       paperRefs: [],
@@ -280,6 +304,38 @@ describe("PromptService.publish", () => {
       paperRefs: [],
     });
     expect(result).toBeNull();
+  });
+
+  it("rejects publishing when the production version body is blank", async () => {
+    const prompt = await PromptService.create({
+      name: "Empty body",
+      team: teamId,
+      annotationType: "PER_UTTERANCE",
+      productionVersion: 1,
+      createdBy: userId,
+    });
+    await seedProductionVersion(prompt._id, 1, "   ");
+
+    await expect(
+      PromptService.publish(prompt._id, { description: "x", paperRefs: [] }),
+    ).rejects.toBeInstanceOf(PublishError);
+
+    const reloaded = await PromptService.findById(prompt._id);
+    expect(reloaded!.library?.isPublished).not.toBe(true);
+  });
+
+  it("rejects publishing when there is no production version", async () => {
+    const prompt = await PromptService.create({
+      name: "No version",
+      team: teamId,
+      annotationType: "PER_UTTERANCE",
+      productionVersion: 1,
+      createdBy: userId,
+    });
+
+    await expect(
+      PromptService.publish(prompt._id, { description: "x", paperRefs: [] }),
+    ).rejects.toBeInstanceOf(PublishError);
   });
 });
 
@@ -306,6 +362,7 @@ describe("PromptService.unpublish", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     await PromptService.publish(prompt._id, {
       description: "Important context",
       paperRefs: [{ title: "Paper", url: "https://example.com/p" }],
@@ -660,6 +717,7 @@ describe("PromptService.softDelete", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     await PromptService.publish(prompt._id, {
       description: "x",
       paperRefs: [],
@@ -681,6 +739,7 @@ describe("PromptService.softDelete", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     await PromptService.publish(prompt._id, {
       description: "x",
       paperRefs: [],
@@ -720,6 +779,7 @@ describe("PromptService.deleteById guard for published prompts", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     await PromptService.publish(prompt._id, {
       description: "x",
       paperRefs: [],
@@ -741,6 +801,7 @@ describe("PromptService.deleteById guard for published prompts", () => {
       productionVersion: 1,
       createdBy: userId,
     });
+    await seedProductionVersion(prompt._id);
     await PromptService.publish(prompt._id, {
       description: "x",
       paperRefs: [],
