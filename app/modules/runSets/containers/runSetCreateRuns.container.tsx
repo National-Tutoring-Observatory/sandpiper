@@ -37,7 +37,7 @@ export default function RunSetCreateRunsContainer({
 }: RunSetCreateRunsContainerProps) {
   const [selectedPrompts, setSelectedPrompts] = useState<PromptReference[]>([]);
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
-  const [shouldRunVerification, setShouldRunVerification] = useState(false);
+  const [shouldRunVerification, setShouldRunVerification] = useState(true);
   const [removedKeys, setRemovedKeys] = useState<Set<string>>(new Set());
 
   const usedKeys = buildUsedPromptModelSet(usedPromptModels);
