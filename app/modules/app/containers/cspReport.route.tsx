@@ -1,6 +1,10 @@
 import parseCspReport from "../helpers/parseCspReport";
 
 export async function action({ request }: { request: Request }) {
+  if (request.method !== "POST") {
+    return new Response(null, { status: 405 });
+  }
+
   try {
     for (const violation of parseCspReport(await request.json())) {
       console.warn(

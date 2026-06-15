@@ -13,6 +13,14 @@ function postRequest(body: unknown, contentType = "application/csp-report") {
   } as never;
 }
 
+function methodRequest(method: string) {
+  return {
+    request: new Request("http://localhost/api/csp-report", { method }),
+    params: {},
+    context: {},
+  } as never;
+}
+
 describe("cspReport.route", () => {
   it("returns 204 for a valid violation report", async () => {
     const response = await action(
@@ -33,8 +41,12 @@ describe("cspReport.route", () => {
     expect(response.status).toBe(204);
   });
 
-  it("rejects non-POST methods with 405", async () => {
-    const response = loader();
-    expect(response.status).toBe(405);
+  it("rejects GET with 405", () => {
+    expect(loader().status).toBe(405);
+  });
+
+  it("rejects other non-POST methods with 405", async () => {
+    expect((await action(methodRequest("PUT"))).status).toBe(405);
+    expect((await action(methodRequest("DELETE"))).status).toBe(405);
   });
 });

@@ -92,6 +92,11 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  // The nonce is only set during server rendering (see entry.server.tsx);
+  // on the client this context is empty by design. The browser blanks the
+  // nonce attribute once it has validated it (HTML spec, to stop CSS-selector
+  // exfiltration), so hydrating with "" matches the DOM and avoids a mismatch
+  // warning. Sending the real nonce to the client would be a leak.
   const nonce = useContext(NonceContext);
 
   return (
