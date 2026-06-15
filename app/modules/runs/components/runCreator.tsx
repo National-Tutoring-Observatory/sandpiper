@@ -163,8 +163,9 @@ export default function RunCreator({
         <CardHeader>
           <CardTitle>Verification</CardTitle>
           <CardDescription>
-            When enabled, annotations will be verified by a second LLM pass to
-            check for accuracy.
+            When enabled, annotations are verified by a second LLM pass to check
+            for accuracy. This significantly improves results but roughly
+            doubles the cost on average.
           </CardDescription>
         </CardHeader>
         <CardContent>

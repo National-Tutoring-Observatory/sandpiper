@@ -22,8 +22,9 @@ export default function RunSetCreatorVerification({
         <Label htmlFor="shouldRunVerification">Enable verification step</Label>
       </div>
       <p className="text-muted-foreground text-sm">
-        When enabled, annotations will be verified by a second LLM pass to check
-        for accuracy.
+        When enabled, annotations are verified by a second LLM pass to check for
+        accuracy. This significantly improves results but roughly doubles the
+        cost on average.
       </p>
     </div>
   );

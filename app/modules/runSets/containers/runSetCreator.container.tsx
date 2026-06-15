@@ -53,7 +53,7 @@ export default function RunSetCreatorContainer({
     prefillData?.selectedSessions || [],
   );
   const [shouldRunVerification, setShouldRunVerification] = useState(
-    prefillData?.shouldRunVerification ?? false,
+    prefillData?.shouldRunVerification ?? true,
   );
   const [removedKeys, setRemovedKeys] = useState<Set<string>>(new Set());
 

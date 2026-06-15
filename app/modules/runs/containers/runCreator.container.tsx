@@ -48,7 +48,7 @@ export default function ProjectRunCreatorContainer({
     initialRun?.sessions?.map((s) => ({ _id: s.sessionId })) || [],
   );
   const [shouldRunVerification, setShouldRunVerification] = useState(
-    initialRun?.shouldRunVerification ?? false,
+    initialRun?.shouldRunVerification ?? true,
   );
   const onSelectedAnnotationTypeChanged = (selectedAnnotationType: string) => {
     if (!isAnnotationType(selectedAnnotationType)) return;
