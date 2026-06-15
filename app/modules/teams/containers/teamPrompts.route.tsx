@@ -2,20 +2,19 @@ import find from "lodash/find";
 import { useEffect } from "react";
 import {
   redirect,
-  useActionData,
+  useFetcher,
   useLoaderData,
   useNavigate,
   useOutletContext,
   useParams,
   useSearchParams,
-  useSubmit,
 } from "react-router";
 import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
-import addDialog from "~/modules/dialogs/addDialog";
+import addDialog, { closeDialog } from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "~/modules/prompts/authorization";
 import CreatePromptDialog from "~/modules/prompts/components/createPromptDialog";
 import {
@@ -121,8 +120,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 export default function TeamPromptsRoute() {
   const data = useLoaderData<typeof loader>();
   const ctx = useOutletContext<{ team: Team }>();
-  const actionData = useActionData();
-  const submit = useSubmit();
+  const fetcher = useFetcher();
   const navigate = useNavigate();
   const params = useParams();
   const teamId = params.teamId;
@@ -148,16 +146,18 @@ export default function TeamPromptsRoute() {
   });
 
   useEffect(() => {
-    if (actionData?.intent === "CREATE_PROMPT") {
+    if (fetcher.state !== "idle" || !fetcher.data) return;
+    if (fetcher.data.intent === "CREATE_PROMPT" && fetcher.data.data) {
+      closeDialog();
       navigate(
         promptsUrl(
           teamId!,
-          actionData.data._id,
-          actionData.data.productionVersion,
+          fetcher.data.data._id,
+          fetcher.data.data.productionVersion,
         ),
       );
     }
-  }, [actionData, navigate, teamId]);
+  }, [fetcher.state, fetcher.data, navigate, teamId]);
 
   const onCreatePromptButtonClicked = () => {
     addDialog(
@@ -187,12 +187,16 @@ export default function TeamPromptsRoute() {
     name: string;
     annotationType: string;
   }) => {
-    submit(
+    fetcher.submit(
       JSON.stringify({
         intent: "CREATE_PROMPT",
         payload: { name, annotationType },
       }),
-      { method: "POST", encType: "application/json" },
+      {
+        method: "POST",
+        action: promptsUrl(teamId!),
+        encType: "application/json",
+      },
     );
   };
 

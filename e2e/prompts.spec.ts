@@ -138,6 +138,10 @@ test.describe("Prompts", () => {
 
     await expect(page).toHaveURL(/\/teams\/[a-f0-9]+\/prompts\/[a-f0-9]+\/1$/);
     await expect(page.getByText(promptName)).toBeVisible();
+
+    await expect(
+      page.getByRole("dialog", { name: "Create a new prompt" }),
+    ).toBeHidden();
   });
 
   test("should create a new version of existing prompt", async ({ page }) => {
