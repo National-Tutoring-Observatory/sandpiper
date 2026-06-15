@@ -177,6 +177,19 @@ describe("downloadRunSet.route loader", () => {
     ).rejects.toThrow("Run set not found.");
   });
 
+  it("throws error when exportType is invalid", async () => {
+    await expect(
+      loader({
+        request: new Request(
+          `http://localhost/api/downloads/${project._id}/run-sets/${runSet._id}?exportType=XML`,
+          { headers: { cookie: cookieHeader } },
+        ),
+        params: { projectId: project._id, runSetId: runSet._id },
+        context: {},
+      } as any),
+    ).rejects.toThrow("exportType must be CSV or JSONL");
+  });
+
   it("returns zip response for CSV export type", async () => {
     await uploadFakeExportFiles(runSet, "CSV");
 
@@ -198,6 +211,9 @@ describe("downloadRunSet.route loader", () => {
     );
     expect((res as Response).headers.get("Content-Disposition")).toContain(
       runSet._id,
+    );
+    expect((res as Response).headers.get("Content-Disposition")).toContain(
+      "-csv.zip",
     );
   });
 
@@ -222,6 +238,9 @@ describe("downloadRunSet.route loader", () => {
     );
     expect((res as Response).headers.get("Content-Disposition")).toContain(
       runSet._id,
+    );
+    expect((res as Response).headers.get("Content-Disposition")).toContain(
+      "-jsonl.zip",
     );
   });
 });

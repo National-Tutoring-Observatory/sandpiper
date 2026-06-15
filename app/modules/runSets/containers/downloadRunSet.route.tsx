@@ -80,7 +80,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const searchParams = url.searchParams;
   const exportType = searchParams.get("exportType");
-  if (!exportType) throw new Error("exportType is required");
+  if (exportType !== "CSV" && exportType !== "JSONL") {
+    throw new Error("exportType must be CSV or JSONL");
+  }
+
+  const formatSuffix = exportType === "CSV" ? "csv" : "jsonl";
 
   const runSet = await RunSetService.findOne({
     _id: params.runSetId,
@@ -132,11 +136,13 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const webStream = Readable.toWeb(passthroughStream);
 
+  const safeRunSetName = runSet.name.replace(/[\r\n"\\]/g, "_");
+
   return new Response(webStream as ReadableStream<Uint8Array>, {
     status: 200,
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="project-${runSet.project}-run-set-${runSet._id}-${runSet.name}.zip"`,
+      "Content-Disposition": `attachment; filename="project-${runSet.project}-run-set-${runSet._id}-${safeRunSetName}-${formatSuffix}.zip"`,
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
