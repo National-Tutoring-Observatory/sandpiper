@@ -75,6 +75,10 @@ services:
       DOCKER_HOST: unix:///var/run/docker.sock
       PERSIST_STATE: 1
       STATE_DIR: /data/ministack-state
+      # PERSIST_STATE only persists bucket metadata; object bodies need
+      # S3_PERSIST and an S3_DATA_DIR on the mounted volume to survive restarts.
+      S3_PERSIST: 1
+      S3_DATA_DIR: /data/ministack-s3
     volumes:
       - "ministack_data:/data"
       - "/var/run/docker.sock:/var/run/docker.sock"
