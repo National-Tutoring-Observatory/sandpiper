@@ -78,6 +78,12 @@ export class UserService {
   }
 
   static async create(data: Partial<User>): Promise<User> {
+    if (
+      "email" in data &&
+      (typeof data.email !== "string" || !data.email.trim())
+    ) {
+      throw new Error("Cannot create a user with an empty email");
+    }
     const doc = await UserModel.create(data);
     return this.toUser(doc);
   }
@@ -86,6 +92,12 @@ export class UserService {
     id: string,
     updates: Partial<User>,
   ): Promise<User | null> {
+    if (
+      "email" in updates &&
+      (typeof updates.email !== "string" || !updates.email.trim())
+    ) {
+      throw new Error("Cannot update a user with an empty email");
+    }
     const doc = await UserModel.findByIdAndUpdate(id, updates, {
       new: true,
     });

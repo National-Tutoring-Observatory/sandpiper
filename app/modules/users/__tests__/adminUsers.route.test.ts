@@ -539,7 +539,7 @@ describe("adminUsers.route", () => {
         payload: {
           targetUserId: "nonexistent-id",
           name: "New Name",
-          email: "",
+          email: "new@example.com",
         },
       });
 
@@ -598,6 +598,47 @@ describe("adminUsers.route", () => {
 
       const response = (result as any).data;
       expect(response?.errors?.email).toBe("Email is already in use");
+    });
+
+    it("returns error when email is empty", async () => {
+      const superAdmin = await UserService.create({
+        username: "super-admin",
+        role: "SUPER_ADMIN",
+        githubId: 1,
+      });
+
+      const targetUser = await UserService.create({
+        username: "target-user",
+        role: "USER",
+        githubId: 2,
+        email: "target@example.com",
+      });
+
+      const cookieHeader = await loginUser(superAdmin._id);
+
+      const body = JSON.stringify({
+        intent: "UPDATE_USER",
+        payload: {
+          targetUserId: targetUser._id,
+          name: "Updated User",
+          email: "   ",
+        },
+      });
+
+      const result = await action({
+        request: new Request("http://localhost/userManagement", {
+          method: "POST",
+          headers: { cookie: cookieHeader },
+          body,
+        }),
+        params: {},
+      } as any);
+
+      const response = (result as any).data;
+      expect(response?.errors?.email).toBe("Email is required");
+
+      const unchanged = await UserService.findById(targetUser._id);
+      expect(unchanged?.email).toBe("target@example.com");
     });
 
     it("successfully updates user name and email", async () => {

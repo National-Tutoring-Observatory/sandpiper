@@ -1,7 +1,7 @@
-import find from "lodash/find";
 import { redirect } from "react-router";
 import consumeTeamInvite from "~/modules/teams/services/consumeTeamInvite.server";
 import sessionStorage from "../../../../sessionStorage";
+import extractPrimaryEmail from "./extractPrimaryEmail";
 
 export default async function handleTeamInviteSignup({
   teamInviteId,
@@ -11,14 +11,11 @@ export default async function handleTeamInviteSignup({
 }: {
   teamInviteId: string;
   githubUser: { id: number; login: string; name?: string };
-  emails: Array<{ primary?: boolean; email: string }>;
+  emails: unknown;
   request: Request;
 }) {
-  const primaryEmail =
-    (
-      find(emails, (e: { primary?: boolean; email: string }) => !!e.primary) ||
-      emails[0] || { email: "" }
-    ).email || "";
+  const primaryEmail = extractPrimaryEmail(emails);
+  if (!primaryEmail) throw redirect("/signup?error=NO_EMAIL");
 
   const result = await consumeTeamInvite({
     inviteId: teamInviteId,
