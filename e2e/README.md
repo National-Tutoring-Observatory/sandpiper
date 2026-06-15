@@ -80,6 +80,16 @@ Two serial describe blocks, each with its own setup:
 
 - **Create + publish a separate prompt, then copy it to the active team** (creates real data)
 
+### Security Headers (`securityHeaders.spec.ts`)
+
+- CSP (report-only by default, enforcing with `CSP_ENFORCE=true`) carries a per-request nonce that matches the SSR `<script>` tags
+- Hardening headers present (HSTS, `X-Content-Type-Options`, `Referrer-Policy`)
+- `/api/csp-report` accepts violation reports (204) and rejects GET (405)
+
+> The headers are always on in production (CI builds + runs with
+> `NODE_ENV=production`). To run this spec against a local dev server, start it
+> with `ENABLE_SECURITY_HEADERS=true yarn app:dev`.
+
 ## Configuration
 
 ### Browser Selection

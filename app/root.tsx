@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useContext, useEffect } from "react";
 import {
   isRouteErrorResponse,
   Links,
@@ -15,6 +15,7 @@ import { NavigationProgress } from "@/components/ui/navigation-progress";
 import { toast, Toaster } from "sonner";
 import sandpiperFavicon from "~/assets/sandpiper-favicon.svg";
 import * as ga from "~/modules/analytics/analytics";
+import { NonceContext } from "~/modules/app/helpers/nonce";
 import getSessionUser from "~/modules/authentication/helpers/getSessionUser";
 import getInitialCreditsAmount from "~/modules/billing/helpers/getInitialCreditsAmount.server";
 import { SystemSettingsService } from "~/modules/systemSettings/systemSettings";
@@ -91,6 +92,8 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export function Layout({ children }: { children: React.ReactNode }) {
+  const nonce = useContext(NonceContext);
+
   return (
     <html lang="en" className="scroll-smooth">
       <head>
@@ -104,8 +107,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <AuthenticationContainer>{children}</AuthenticationContainer>
         <Toaster />
         <DialogContainer />
-        <ScrollRestoration />
-        <Scripts />
+        <ScrollRestoration nonce={nonce} />
+        <Scripts nonce={nonce} />
       </body>
     </html>
   );

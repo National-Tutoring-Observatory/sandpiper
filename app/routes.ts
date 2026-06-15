@@ -171,6 +171,7 @@ export default [
   route("signup", "modules/authentication/containers/signup.route.tsx"),
   route("onboarding", "modules/authentication/containers/onboarding.route.tsx"),
   route("api", "modules/app/containers/api.route.tsx"),
+  route("api/csp-report", "modules/app/containers/cspReport.route.tsx"),
   route(
     "api/annotations/:runId/:sessionId/:utteranceId/:annotationIndex",
     "modules/annotations/containers/annotations.route.tsx",
