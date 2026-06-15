@@ -29,6 +29,11 @@ const ERROR_MESSAGES: Record<string, { title: string; description: string }> = {
     title: "You have not been registered",
     description: "Use the Sign up button below to create an account.",
   },
+  NO_EMAIL: {
+    title: "We couldn't read an email from your GitHub account",
+    description:
+      "Make sure your GitHub account has a verified email and the email scope is granted, then try again.",
+  },
 };
 
 export default function Signup({

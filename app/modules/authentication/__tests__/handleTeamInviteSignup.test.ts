@@ -60,3 +60,50 @@ describe("handleTeamInviteSignup already_member", () => {
     expect(setCookie).toMatch(/=.+/);
   });
 });
+
+describe("handleTeamInviteSignup with no usable email", () => {
+  beforeEach(async () => {
+    await clearDocumentDB();
+  });
+
+  it("redirects to NO_EMAIL and does not create a user when GitHub returns an error object", async () => {
+    const team = await TeamService.create({ name: "Invite Team" });
+    const inviter = await UserService.create({
+      username: "inviter",
+      email: "inviter@example.com",
+      githubId: 99,
+      hasGithubSSO: true,
+      isRegistered: true,
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
+    const invite = await TeamInviteService.create({
+      team: team._id,
+      name: "Test Invite",
+      maxUses: 5,
+      createdBy: inviter._id,
+    });
+
+    const request = new Request("http://localhost/auth/github", {
+      headers: { cookie: "" },
+    });
+
+    const response = await captureThrow(
+      handleTeamInviteSignup({
+        teamInviteId: invite._id,
+        githubUser: { id: 1234, login: "newcomer", name: "Newcomer" },
+        // GitHub /user/emails can return an error object instead of an array
+        emails: {
+          message: "Bad credentials",
+          documentation_url: "https://docs.github.com",
+        } as never,
+        request,
+      }),
+    );
+
+    expect(response.status).toBe(302);
+    expect(response.headers.get("Location")).toBe("/signup?error=NO_EMAIL");
+
+    const created = await UserService.findOne({ githubId: 1234 });
+    expect(created).toBeNull();
+  });
+});

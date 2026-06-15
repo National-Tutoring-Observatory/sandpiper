@@ -8,6 +8,7 @@ import { UserService } from "~/modules/users/user";
 import type { UserTeam } from "~/modules/users/users.types";
 import sessionStorage from "../../../../sessionStorage";
 import setupNewUser from "../services/setupNewUser.server";
+import extractPrimaryEmail from "./extractPrimaryEmail";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const githubStrategy = new GitHubStrategy<any>(
@@ -95,11 +96,8 @@ const githubStrategy = new GitHubStrategy<any>(
         }
       } else {
         // Direct signup — no invite required
-        const primaryEmail = (
-          find(emails, (e: { primary: boolean; email: string }) => e.primary) ||
-          emails[0] ||
-          {}
-        ).email;
+        const primaryEmail = extractPrimaryEmail(emails);
+        if (!primaryEmail) throw redirect("/signup?error=NO_EMAIL");
         const newUser = await UserService.create({
           username: githubUser.login,
           name: githubUser.name || githubUser.login,
@@ -146,23 +144,13 @@ const githubStrategy = new GitHubStrategy<any>(
       await UserService.deleteById(invitedUser._id);
     }
 
-    let email = find(emails, (email) => {
-      if (email.primary) {
-        return email;
-      }
-    });
-
-    if (!email) {
-      if (emails.length > 0) {
-        email = emails[0];
-      } else {
-        email = {};
-      }
-    }
-
     update.username = githubUser.login;
     update.name = githubUser.name || githubUser.login;
-    update.email = email.email;
+
+    // Only update the email when GitHub returned a usable one, so a failed
+    // /user/emails response never overwrites an existing valid email with "".
+    const primaryEmail = extractPrimaryEmail(emails);
+    if (primaryEmail) update.email = primaryEmail;
 
     user = await UserService.updateById(user._id, update);
 

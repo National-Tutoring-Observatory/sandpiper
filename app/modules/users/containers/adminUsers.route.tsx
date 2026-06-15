@@ -223,6 +223,13 @@ export async function action({ request }: Route.ActionArgs) {
       const trimmedName = typeof name === "string" ? name.trim() : "";
       const trimmedEmail = typeof email === "string" ? email.trim() : "";
 
+      if (!trimmedEmail) {
+        return data(
+          { errors: { email: "Email is required" } },
+          { status: 400 },
+        );
+      }
+
       let targetUser;
       try {
         targetUser = await UserService.findById(targetUserId);

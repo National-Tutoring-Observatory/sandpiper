@@ -192,6 +192,44 @@ describe("UserService", () => {
       expect(result.username).toBe("newuser");
       expect(result.role).toBe("USER");
     });
+
+    it("rejects an empty email", async () => {
+      await expect(
+        UserService.create({
+          username: "emptyemail",
+          email: "",
+          role: "USER",
+          githubId: 100002,
+          hasGithubSSO: true,
+          isRegistered: true,
+        }),
+      ).rejects.toThrow();
+    });
+
+    it("rejects a whitespace-only email", async () => {
+      await expect(
+        UserService.create({
+          username: "spaceemail",
+          email: "   ",
+          role: "USER",
+          githubId: 100003,
+          hasGithubSSO: true,
+          isRegistered: true,
+        }),
+      ).rejects.toThrow();
+    });
+
+    it("creates an invited user without an email", async () => {
+      const result = await UserService.create({
+        username: "invited",
+        role: "USER",
+        isRegistered: false,
+        inviteId: "invite-123",
+      });
+
+      expect(result._id).toBeDefined();
+      expect(result.email).toBeUndefined();
+    });
   });
 
   describe("updateById", () => {
