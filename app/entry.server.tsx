@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import { PassThrough } from "node:stream";
 
 import { SpanStatusCode, trace } from "@opentelemetry/api";
@@ -13,6 +14,13 @@ import type {
 } from "react-router";
 import { ServerRouter } from "react-router";
 
+import buildContentSecurityPolicy, {
+  CSP_REPORT_GROUP,
+  CSP_REPORT_PATH,
+} from "./modules/app/helpers/buildContentSecurityPolicy";
+import cspEnforced from "./modules/app/helpers/cspEnforced";
+import { NonceContext } from "./modules/app/helpers/nonce";
+import securityHeadersEnabled from "./modules/app/helpers/securityHeadersEnabled";
 import createQueue, { QUEUES } from "./modules/queues/helpers/createQueue";
 import "./modules/storage/storage";
 
@@ -139,8 +147,12 @@ export default function handleRequest(
         ? "onAllReady"
         : "onShellReady";
 
+    const nonce = randomBytes(16).toString("base64");
+
     const { pipe, abort } = renderToPipeableStream(
-      <ServerRouter context={routerContext} url={request.url} />,
+      <NonceContext.Provider value={nonce}>
+        <ServerRouter context={routerContext} url={request.url} nonce={nonce} />
+      </NonceContext.Provider>,
       {
         [readyOption]() {
           shellRendered = true;
@@ -148,6 +160,23 @@ export default function handleRequest(
           const stream = createReadableStreamFromReadable(body);
 
           responseHeaders.set("Content-Type", "text/html");
+
+          if (securityHeadersEnabled()) {
+            // Reporting-Endpoints requires an absolute URL; report-uri (in the
+            // policy) accepts the relative path, but the modern report-to path
+            // would be silently dropped without this.
+            const reportUrl = new URL(CSP_REPORT_PATH, request.url).toString();
+            responseHeaders.set(
+              "Reporting-Endpoints",
+              `${CSP_REPORT_GROUP}="${reportUrl}"`,
+            );
+            responseHeaders.set(
+              cspEnforced()
+                ? "Content-Security-Policy"
+                : "Content-Security-Policy-Report-Only",
+              buildContentSecurityPolicy(nonce),
+            );
+          }
 
           resolve(
             new Response(stream, {

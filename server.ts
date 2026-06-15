@@ -4,6 +4,8 @@ import express from "express";
 import http from "http";
 import morgan from "morgan";
 import { initializeDatabase } from "./app/lib/database";
+import securityHeaders from "./app/modules/app/helpers/securityHeaders";
+import securityHeadersEnabled from "./app/modules/app/helpers/securityHeadersEnabled";
 import "./app/modules/storage/storage";
 import { UserService } from "./app/modules/users/user";
 import { setupSockets } from "./sockets";
@@ -22,6 +24,15 @@ setupSockets({ server, app });
 
 app.use(compression());
 app.disable("x-powered-by");
+
+app.use((_req, res, next) => {
+  if (securityHeadersEnabled()) {
+    for (const [header, value] of Object.entries(securityHeaders())) {
+      res.setHeader(header, value);
+    }
+  }
+  next();
+});
 
 if (DEVELOPMENT) {
   console.log("Starting development server");
