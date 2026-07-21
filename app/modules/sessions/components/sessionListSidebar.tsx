@@ -56,7 +56,7 @@ export default function SessionListSidebar({
             onChange={(e) => onSearchValueChanged(e.target.value)}
           />
         </div>
-        <div className="text-muted-foreground mt-2 flex items-center gap-1.5 text-xs">
+        <div className="text-muted-foreground text-caption mt-2 flex items-center gap-1.5">
           <span>
             {count} session{count !== 1 ? "s" : ""}
           </span>
@@ -72,8 +72,10 @@ export default function SessionListSidebar({
 
           const content = (
             <div className="py-1">
-              <div className="truncate text-sm font-medium">{session.name}</div>
-              <div className="text-muted-foreground mt-0.5 flex items-center gap-1 text-xs">
+              <div className="text-body truncate font-medium">
+                {session.name}
+              </div>
+              <div className="text-muted-foreground text-caption mt-0.5 flex items-center gap-1">
                 <span className="flex items-center gap-1 [&_svg]:size-3">
                   {statusMeta.icon}
                 </span>
@@ -123,7 +125,7 @@ export default function SessionListSidebar({
           >
             <ChevronLeft className="size-4" />
           </Button>
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-caption">
             {currentPage} / {totalPages}
           </span>
           <Button

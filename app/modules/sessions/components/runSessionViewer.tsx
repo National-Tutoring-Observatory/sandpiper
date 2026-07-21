@@ -135,7 +135,7 @@ export default function SessionViewer({
         </div>
         {sessionFile.annotations && sessionFile.annotations.length > 0 && (
           <div className="flex flex-col p-4 pb-0">
-            <div className="text-muted-foreground mb-2">
+            <div className="text-muted-foreground text-heading mb-2">
               Session annotations
             </div>
             <div>
@@ -175,8 +175,8 @@ export default function SessionViewer({
           <div className="flex flex-col p-4 pb-0">
             <div className="mb-2 flex items-center justify-between">
               <div>
-                View Annotations
-                <p className="text-muted-foreground text-xs">
+                <div className="text-heading">View Annotations</div>
+                <p className="text-muted-foreground text-caption">
                   Browse annotations in this session
                 </p>
               </div>
@@ -185,7 +185,7 @@ export default function SessionViewer({
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <Button
                   variant="outline"
-                  className="text-xs"
+                  className="text-body"
                   onClick={onJumpToFirstAnnotation}
                 >
                   First annotation
@@ -193,7 +193,7 @@ export default function SessionViewer({
                 <div
                   aria-live="polite"
                   aria-atomic="true"
-                  className="text-muted-foreground text-sm"
+                  className="text-muted-foreground text-body"
                 >
                   {hasSelectedAnnotation
                     ? `${selectedUtteranceIndex + 1}/${annotatedUtteranceCount}`

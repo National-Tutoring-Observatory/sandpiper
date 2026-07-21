@@ -37,17 +37,20 @@ export default function SessionViewerUtterance({
       <div className="flex max-w-7/8 flex-col">
         <div
           id={`session-viewer-utterance-${utterance._id}`}
-          className={clsx("break-word scroll-mt-4 rounded-4xl border p-4", {
-            "border-sandpiper-accent/30 bg-sandpiper-accent/10": isSelected,
-            "bg-sandpiper-elevated rounded-bl-none":
-              !isSelected && utterance.role === leadRole,
-            "border-sandpiper-surface bg-sandpiper-surface rounded-br-none":
-              !isSelected && utterance.role !== leadRole,
-          })}
+          className={clsx(
+            "text-body-lg break-word scroll-mt-4 rounded-4xl border p-4",
+            {
+              "border-sandpiper-accent/30 bg-sandpiper-accent/10": isSelected,
+              "bg-sandpiper-elevated rounded-bl-none":
+                !isSelected && utterance.role === leadRole,
+              "border-sandpiper-surface bg-sandpiper-surface rounded-br-none":
+                !isSelected && utterance.role !== leadRole,
+            },
+          )}
         >
           {utterance.content}
         </div>
-        <div className="text-muted-foreground mt-1 flex min-h-8 flex-wrap items-center text-xs">
+        <div className="text-caption text-muted-foreground mt-1 flex min-h-8 flex-wrap items-center">
           <div>
             #{utteranceNumber} · {getUtteranceDetails({ utterance })}
           </div>
