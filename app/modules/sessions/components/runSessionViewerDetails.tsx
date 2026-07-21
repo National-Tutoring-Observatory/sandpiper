@@ -14,11 +14,11 @@ export default function RunSessionViewerDetails({
 }: RunSessionViewerDetailsProps) {
   return (
     <div className="mb-2">
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <span className="text-muted-foreground">Started</span>
         <span className="text-right">{getDateString(session.startedAt)}</span>
       </div>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <span className="text-muted-foreground">Finished</span>
         <span className="text-right">{getDateString(session.finishedAt)}</span>
       </div>

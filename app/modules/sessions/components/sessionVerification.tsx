@@ -12,10 +12,10 @@ export default function SessionVerification({
 }) {
   return (
     <div className="py-2">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
         <span className="text-muted-foreground text-sm">Verification</span>
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-xs">
+          <span className="text-muted-foreground text-xs whitespace-nowrap">
             Show verifications
           </span>
           <Switch
