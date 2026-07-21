@@ -182,7 +182,7 @@ export default function SessionViewer({
               </div>
             </div>
             <div className="my-6">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <Button
                   variant="outline"
                   className="text-xs"
