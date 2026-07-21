@@ -118,7 +118,7 @@ export default function SessionViewer({
       <div
         id="session-annotations-panel"
         tabIndex={-1}
-        className="flex h-full w-2/5 min-w-0 flex-col pt-8"
+        className="flex h-full w-2/5 min-w-0 flex-col overflow-y-auto pt-8"
       >
         <div className="border-b px-4 pb-4">
           <SessionViewerDetails
@@ -134,11 +134,11 @@ export default function SessionViewer({
           />
         </div>
         {sessionFile.annotations && sessionFile.annotations.length > 0 && (
-          <div className="flex min-h-0 flex-1 flex-col p-4 pb-0">
+          <div className="flex flex-col p-4 pb-0">
             <div className="text-muted-foreground mb-2">
               Session annotations
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div>
               {map(sessionFile.annotations, (annotation, index) => {
                 return (
                   <SessionViewerAnnotation
@@ -172,7 +172,7 @@ export default function SessionViewer({
         )}
         {(annotatedUtteranceCount > 0 ||
           (shouldShowVerificationDetails && removedAnnotations.length > 0)) && (
-          <div className="flex min-h-0 flex-1 flex-col p-4 pb-0">
+          <div className="flex flex-col p-4 pb-0">
             <div className="mb-2 flex items-center justify-between">
               <div>
                 View Annotations
@@ -226,7 +226,7 @@ export default function SessionViewer({
                 </div>
               </div>
             </div>
-            <div className="min-h-0 flex-1 overflow-y-auto">
+            <div>
               {map(selectedUtteranceAnnotations, (annotation, index) => {
                 return (
                   <SessionViewerAnnotation
