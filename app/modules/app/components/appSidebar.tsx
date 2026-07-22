@@ -207,7 +207,7 @@ export default function AppSidebar() {
             </div>
           </div>
         ) : (
-          <Link to={activeTeamId ? projectsUrl(activeTeamId) : "/"}>
+          <Link to="/">
             <img
               src={sandpiperLogo}
               alt="Sandpiper"
