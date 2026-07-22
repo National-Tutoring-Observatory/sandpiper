@@ -33,14 +33,14 @@ export default function TermsAcceptance({
             className="h-12 object-contain"
           />
         </div>
-        <h1 className="mb-1 text-center text-2xl font-semibold">
+        <h1 className="text-display mb-1 text-center font-semibold">
           Terms of Use &amp; Privacy Policy
         </h1>
-        <p className="text-muted-foreground mb-6 text-center text-sm">
+        <p className="text-muted-foreground text-body mb-6 text-center">
           Hosted by Cornell University
         </p>
 
-        <p className="text-muted-foreground mb-5 text-sm leading-relaxed">
+        <p className="text-muted-foreground text-body mb-5">
           By using Sandpiper, you agree to our Terms of Use and Privacy Policy.
           Your data is encrypted, routed through Cornell&rsquo;s Secure AI
           Gateway, and never used to train AI models.
@@ -72,13 +72,13 @@ export default function TermsAcceptance({
           />
           <Label
             htmlFor="terms-accept"
-            className="cursor-pointer text-sm leading-relaxed font-medium"
+            className="text-body cursor-pointer font-medium"
           >
             I have read and agree to the&nbsp;
           </Label>
           <button
             type="button"
-            className="text-primary -ml-1.5 text-sm font-semibold hover:underline"
+            className="text-primary text-body -ml-1.5 font-semibold hover:underline"
             onClick={() => setTermsOpen(true)}
           >
             Terms&nbsp;of&nbsp;Use and Privacy&nbsp;Policy
@@ -107,7 +107,7 @@ function Highlight({
   children: React.ReactNode;
 }) {
   return (
-    <div className="text-muted-foreground flex items-start gap-2 text-sm">
+    <div className="text-muted-foreground text-body flex items-start gap-2">
       <span className="text-primary mt-0.5 shrink-0">{icon}</span>
       <span>{children}</span>
     </div>

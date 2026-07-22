@@ -23,8 +23,10 @@ export default function EvaluationPairwiseMatrix({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Pairwise Agreement Matrix</h2>
-        <p className="text-muted-foreground text-sm">
+        <h2 className="text-heading font-semibold">
+          Pairwise Agreement Matrix
+        </h2>
+        <p className="text-muted-foreground text-body">
           {`Cohen's Kappa between all run pairs`}
         </p>
       </div>
@@ -70,11 +72,11 @@ export default function EvaluationPairwiseMatrix({
                     )}
                   >
                     {cell.kappa !== null ? (
-                      <span className="text-sm font-medium">
+                      <span className="text-body font-medium">
                         {cell.kappa.toFixed(2)}
                       </span>
                     ) : (
-                      <span className="text-muted-foreground text-sm">—</span>
+                      <span className="text-muted-foreground text-body">—</span>
                     )}
                   </TableCell>
                 ))}

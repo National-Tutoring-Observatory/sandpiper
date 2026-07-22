@@ -179,7 +179,7 @@ export default function RunDetail({
               </Button>
             </div>
             <Progress value={runSessionsProgress} />
-            <div className="mt-1 text-right text-xs opacity-40">
+            <div className="text-caption mt-1 text-right opacity-40">
               {runStatus === "RUNNING" ? (
                 <>
                   Annotating {runSessionsStep}
@@ -301,7 +301,7 @@ export default function RunDetail({
         </div>
         <div className="mt-8">
           <div className="flex items-end justify-between">
-            <div className="text-muted-foreground text-xs">Sessions</div>
+            <div className="text-muted-foreground text-caption">Sessions</div>
             {(run.hasErrored || run.stoppedAt) && !run.isRunning && (
               <Button onClick={onReRunClicked}>Re-run</Button>
             )}

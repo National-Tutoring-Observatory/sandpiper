@@ -85,13 +85,13 @@ export default function PromptEditor({
 
   return (
     <div className="border-l">
-      <div className="flex items-center justify-between border-b p-2 text-sm">
+      <div className="text-body flex items-center justify-between border-b p-2">
         <div className="flex items-center gap-3">
           <div>{`Version: ${promptVersion.name}`}</div>
           {codebook && (
             <Link
               to={codebookUrl(codebook.teamId, codebook._id, codebook.version)}
-              className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+              className="text-muted-foreground hover:text-foreground text-caption flex items-center gap-1"
             >
               <BookOpen className="h-3 w-3" />
               Built from {codebook.name}
@@ -160,7 +160,7 @@ export default function PromptEditor({
                   href="https://docs.google.com/document/d/1Rf2p3ltWSCk3VTeuTtXTpVu7NkrAi8yNDloYLId-KU8/edit?tab=t.0"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-muted-foreground hover:text-foreground flex items-center gap-1 text-xs"
+                  className="text-muted-foreground hover:text-foreground text-caption flex items-center gap-1"
                 >
                   <ExternalLink className="h-3 w-3" />
                   Prompt writing guide
@@ -169,10 +169,10 @@ export default function PromptEditor({
               <Button
                 variant="ghost"
                 size="sm"
-                className="text-muted-foreground hover:text-foreground text-xs"
+                className="text-muted-foreground hover:text-foreground text-caption"
                 onClick={onToggleSystemPromptClicked}
               >
-                <UnfoldVertical className="h-3 w-3 text-xs" size="2" />
+                <UnfoldVertical className="h-3 w-3" size="2" />
                 {isSystemPromptVisible
                   ? `Hide system prompt`
                   : `View system prompt`}

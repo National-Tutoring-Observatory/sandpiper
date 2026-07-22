@@ -28,11 +28,11 @@ export default function AnnotationSchemaViewer({
               className="mb-4 grid grid-cols-3 gap-4 border-b pb-4"
             >
               <div>
-                <Label className="mb-0.5 text-xs">Key</Label>
+                <Label className="text-caption mb-0.5">Key</Label>
                 <Input disabled={true} value={annotationField.fieldKey} />
               </div>
               <div>
-                <Label className="mb-0.5 text-xs">Type</Label>
+                <Label className="text-caption mb-0.5">Type</Label>
                 <Select disabled={true} value={annotationField.fieldType}>
                   <SelectTrigger id="annotation-type" className="w-[180px]">
                     <SelectValue placeholder="Select a field type" />
@@ -45,7 +45,7 @@ export default function AnnotationSchemaViewer({
                 </Select>
               </div>
               <div>
-                <Label className="mb-0.5 text-xs">Default value</Label>
+                <Label className="text-caption mb-0.5">Default value</Label>
                 {(annotationField.fieldType === "boolean" && (
                   <Checkbox checked={annotationField.value} disabled={true} />
                 )) || (

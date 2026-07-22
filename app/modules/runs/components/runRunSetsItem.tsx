@@ -36,8 +36,8 @@ export default function RunRunSetsItem({
         </HoverCardTrigger>
         <HoverCardContent align="start" className="w-auto max-w-xs">
           <div className="flex flex-col gap-1">
-            <p className="text-sm font-medium">{runSet.name}</p>
-            <div className="text-muted-foreground flex items-center gap-3 text-xs">
+            <p className="text-body font-medium">{runSet.name}</p>
+            <div className="text-muted-foreground text-caption flex items-center gap-3">
               <span className="flex items-center gap-1">
                 <Zap className="h-3 w-3" />
                 {runCount} run{runCount !== 1 ? "s" : ""}

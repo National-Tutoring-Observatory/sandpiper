@@ -20,19 +20,19 @@ export default function SessionViewerAnnotationVerificationStatus({
   return (
     <div className="mb-3">
       {isChangedByVerification && (
-        <div className="flex items-center text-xs text-amber-500">
+        <div className="text-caption flex items-center text-amber-500">
           <BadgeCheck className="mr-1 size-3" />
           Changed by verification
         </div>
       )}
       {isAddedByVerification && (
-        <div className="flex items-center text-xs text-green-600">
+        <div className="text-caption flex items-center text-green-600">
           <BadgePlus className="mr-1 size-3" />
           Added by verification
         </div>
       )}
       {isRemovedByVerification && (
-        <div className="text-destructive flex items-center text-xs">
+        <div className="text-destructive text-caption flex items-center">
           <BadgeMinus className="mr-1 size-3" />
           Removed by verification
         </div>

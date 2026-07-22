@@ -58,7 +58,7 @@ export default function RunRunSets({
           <Button
             variant="link"
             size="sm"
-            className="ml-2 h-auto px-0 py-0 text-xs"
+            className="text-caption ml-2 h-auto px-0 py-0"
             onClick={openRunSetsDialog}
           >
             +{remainingCount} more

@@ -54,7 +54,7 @@ export default function SpendOverview({
           </SelectContent>
         </Select>
         <button
-          className="text-muted-foreground hover:text-foreground flex items-center gap-1.5 text-sm"
+          className="text-muted-foreground hover:text-foreground text-body flex items-center gap-1.5"
           onClick={() => {
             triggerDownload(`/api/exportSpendOverview?period=${period}`);
           }}
@@ -70,7 +70,7 @@ export default function SpendOverview({
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Spend by model</CardTitle>
+            <CardTitle className="text-heading">Spend by model</CardTitle>
           </CardHeader>
           <CardContent>
             <SpendByModelChart data={data.byModel} />
@@ -78,7 +78,7 @@ export default function SpendOverview({
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Spend by activity</CardTitle>
+            <CardTitle className="text-heading">Spend by activity</CardTitle>
           </CardHeader>
           <CardContent>
             <SpendBySourceChart data={data.bySource} />

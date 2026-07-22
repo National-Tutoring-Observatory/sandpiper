@@ -37,12 +37,12 @@ export default function TeamInviteLink({
         <PageHeaderLeft>
           <div className="flex flex-col">
             <div className="flex items-center gap-2">
-              <h2 className="text-lg font-medium">{invite.name}</h2>
+              <h2 className="text-heading font-medium">{invite.name}</h2>
               <Badge variant={isActive ? "default" : "destructive"}>
                 {status}
               </Badge>
             </div>
-            <div className="text-muted-foreground text-xs">
+            <div className="text-muted-foreground text-caption">
               {invite.usedCount} of {invite.maxUses} used · Created by{" "}
               {creatorLabel} · {getDateString(invite.createdAt)}
             </div>
@@ -61,7 +61,7 @@ export default function TeamInviteLink({
           </PageHeaderRight>
         )}
       </PageHeader>
-      <h3 className="mt-4 mb-2 text-sm font-medium">
+      <h3 className="text-body mt-4 mb-2 font-medium">
         Signups ({signups.length})
       </h3>
       <Collection

@@ -89,7 +89,7 @@ export default function Maintenance({
               {isSubmitting ? "Saving..." : "Save"}
             </Button>
             {updatedAt && (
-              <span className="text-muted-foreground text-xs">
+              <span className="text-muted-foreground text-caption">
                 Last updated: {getDateString(updatedAt)}
               </span>
             )}

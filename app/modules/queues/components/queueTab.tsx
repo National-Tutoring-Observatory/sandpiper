@@ -17,7 +17,7 @@ export function QueueTab({ value, label, count, ariaLabel }: QueueTabProps) {
     >
       <span className="font-medium">{label}</span>
       <span
-        className="bg-muted rounded-full px-2 py-1 text-xs"
+        className="bg-muted text-caption rounded-full px-2 py-1"
         aria-hidden="true"
       >
         {count}

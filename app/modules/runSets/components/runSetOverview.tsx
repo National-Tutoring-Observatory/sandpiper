@@ -74,7 +74,7 @@ export default function RunSetOverview({
 
       <div className="grid grid-cols-1 gap-6 xl:grid-cols-2">
         <div className="order-2 mt-8 xl:order-1">
-          <div className="text-muted-foreground text-xs">Sessions</div>
+          <div className="text-muted-foreground text-caption">Sessions</div>
           <div className="mt-2">
             <CollectionUI
               items={sessions}
@@ -108,7 +108,7 @@ export default function RunSetOverview({
         </div>
 
         <div className="order-1 mt-8 xl:order-2">
-          <div className="text-muted-foreground text-xs">Runs</div>
+          <div className="text-muted-foreground text-caption">Runs</div>
           <div className="mt-2">
             <CollectionUI
               items={runs}

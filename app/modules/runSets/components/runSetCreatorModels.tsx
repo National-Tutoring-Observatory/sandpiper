@@ -54,7 +54,7 @@ export default function RunSetModelsField({
                 key={model}
                 className="bg-background flex items-center justify-between rounded p-2"
               >
-                <span className="text-sm">
+                <span className="text-body">
                   {findModelByCode(model)?.name ?? model}
                 </span>
                 <Button

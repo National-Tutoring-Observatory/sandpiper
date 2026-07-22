@@ -72,7 +72,7 @@ const SavePromptVersionDialog = ({
               <AlertDescription>
                 Checking for prompt and schema alignment.
                 <br />
-                <span className="text-xs">
+                <span className="text-caption">
                   This can take a while as we check your prompt and schema.
                 </span>
               </AlertDescription>
@@ -84,7 +84,7 @@ const SavePromptVersionDialog = ({
               <AlertDescription>
                 Fetching suggestions for prompt and schema alignment.
                 <br />
-                <span className="text-xs">
+                <span className="text-caption">
                   This can take a while as we write some suggestions.
                 </span>
               </AlertDescription>
@@ -109,7 +109,7 @@ const SavePromptVersionDialog = ({
                 <AlertTitle>Prompt and schema are not aligned!</AlertTitle>
                 <AlertDescription>{reasoning}</AlertDescription>
                 {!hasRequestedSuggestions && (
-                  <AlertDescription className="mt-2 text-xs font-bold">
+                  <AlertDescription className="text-caption mt-2 font-bold">
                     Click "Get suggestions" for help on fixes to your prompt and
                     annotation schema.
                   </AlertDescription>

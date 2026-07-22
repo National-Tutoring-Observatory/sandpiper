@@ -127,13 +127,13 @@ export default function DownloadAnnotationTemplateDialog({
 
         <div className="space-y-2">
           <Label>Annotation fields</Label>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-body">
             Select which fields to include. Use multiple columns when an
             utterance may have more than one annotation (e.g. multiple tutor
             moves).
           </p>
           {availableFields.length === 0 ? (
-            <p className="text-muted-foreground text-sm italic">
+            <p className="text-muted-foreground text-body italic">
               No annotation fields found. Run at least one annotation to
               populate available fields.
             </p>
@@ -145,7 +145,7 @@ export default function DownloadAnnotationTemplateDialog({
                 return (
                   <div
                     key={field.fieldKey}
-                    className="hover:bg-accent flex h-11 items-center gap-3 rounded-md border px-3 py-2 text-sm"
+                    className="hover:bg-accent text-body flex h-11 items-center gap-3 rounded-md border px-3 py-2"
                   >
                     <Checkbox
                       checked={isSelected}
@@ -162,7 +162,7 @@ export default function DownloadAnnotationTemplateDialog({
                     </Badge>
                     {isSelected && (
                       <div className="flex items-center gap-1">
-                        <Label className="text-muted-foreground text-xs">
+                        <Label className="text-muted-foreground text-caption">
                           Columns:
                         </Label>
                         <Input

@@ -15,13 +15,13 @@ export default function SessionViewerUtteranceVerificationDetails({
   return (
     <>
       {hasChangedAnnotation && (
-        <div className="ml-2 flex items-center text-xs text-amber-500">
+        <div className="text-caption ml-2 flex items-center text-amber-500">
           <BadgeCheck className="mr-1 size-3" />
           Changed by verification
         </div>
       )}
       {hasAddedAnnotation && (
-        <div className="ml-2 flex items-center text-xs text-green-600">
+        <div className="text-caption ml-2 flex items-center text-green-600">
           <BadgePlus className="mr-1 size-3" />
           Added by verification
         </div>
@@ -33,7 +33,7 @@ export default function SessionViewerUtteranceVerificationDetails({
           className="text-destructive decoration-destructive ml-4"
           onClick={onUtteranceClicked}
         >
-          <div className="text-destructive flex items-center text-xs">
+          <div className="text-destructive text-caption flex items-center">
             <BadgeMinus className="mr-1 size-3" />
             Removed by verification
           </div>

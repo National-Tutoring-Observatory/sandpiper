@@ -89,7 +89,7 @@ export default function UploadFiles({
               )}
             </div>
             {data?.errors?.files && (
-              <div className="text-destructive space-y-1 text-sm">
+              <div className="text-destructive text-body space-y-1">
                 <p>{data.errors.files}</p>
                 <p>Check the File Instructions for the correct format.</p>
               </div>

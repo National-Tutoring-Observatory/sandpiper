@@ -51,7 +51,7 @@ function BreadcrumbElement({ breadcrumb }: { breadcrumb: BreadcrumbType }) {
       <BreadcrumbLink asChild>
         <Link
           to={breadcrumb.link}
-          className="text-xl font-normal tracking-tight text-balance"
+          className="text-title font-normal tracking-tight text-balance"
         >
           {content}
         </Link>
@@ -59,7 +59,7 @@ function BreadcrumbElement({ breadcrumb }: { breadcrumb: BreadcrumbType }) {
     );
   }
   return (
-    <BreadcrumbPage className="text-primary text-xl font-extrabold tracking-tight text-balance">
+    <BreadcrumbPage className="text-primary text-title font-extrabold tracking-tight text-balance">
       {content}
     </BreadcrumbPage>
   );

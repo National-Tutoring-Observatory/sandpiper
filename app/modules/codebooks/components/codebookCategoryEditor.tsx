@@ -97,7 +97,7 @@ export default function CodebookCategoryEditor({
 
   return (
     <div className="h-full">
-      <div className="flex items-center justify-between border-b p-2 text-sm">
+      <div className="text-body flex items-center justify-between border-b p-2">
         <div>{category.name || "Untitled"}</div>
         {!disabled && (
           <Tooltip>
@@ -147,7 +147,7 @@ export default function CodebookCategoryEditor({
 
       <div className="grid gap-3 p-4">
         <div className="overflow-hidden rounded-md border">
-          <div className="flex items-center justify-between border-b p-2 text-sm">
+          <div className="text-body flex items-center justify-between border-b p-2">
             <div>Codes</div>
             {!disabled && (
               <Button size="icon" variant="ghost" onClick={addCode}>
@@ -157,7 +157,7 @@ export default function CodebookCategoryEditor({
           </div>
 
           {category.codes.length === 0 ? (
-            <p className="text-muted-foreground p-4 text-sm">
+            <p className="text-muted-foreground text-body p-4">
               No codes yet. Add a code to this category.
             </p>
           ) : (

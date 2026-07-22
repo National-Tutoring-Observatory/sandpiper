@@ -39,7 +39,7 @@ export default function RunSetCreatorFooter({
       ) : (
         <EstimateInfoBox>
           <div className="flex items-center justify-between gap-4">
-            <p className="text-foreground text-sm">
+            <p className="text-foreground text-body">
               This will create <strong>{runsCount}</strong> run(s) across{" "}
               {selectedSessions.length} session(s)
             </p>

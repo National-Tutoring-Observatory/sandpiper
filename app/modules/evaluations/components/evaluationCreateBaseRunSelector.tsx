@@ -22,7 +22,7 @@ export default function EvaluationCreateBaseRunSelector({
 }) {
   return (
     <div className="border-r p-4">
-      <Label className="text-muted-foreground py-2 text-xs tracking-wide uppercase">
+      <Label className="text-muted-foreground text-caption py-2 tracking-wide uppercase">
         Base run
       </Label>
       <ItemGroup className="mt-3 gap-2">

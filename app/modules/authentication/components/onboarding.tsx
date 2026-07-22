@@ -75,10 +75,10 @@ export default function Onboarding({
             className="h-12 object-contain"
           />
         </div>
-        <h1 className="mb-1 text-center text-2xl font-semibold">
+        <h1 className="text-display mb-1 text-center font-semibold">
           Tell us about yourself
         </h1>
-        <p className="text-muted-foreground mb-8 text-center text-sm">
+        <p className="text-muted-foreground text-body mb-8 text-center">
           Help us understand how you plan to use the platform.
         </p>
 
@@ -102,7 +102,7 @@ export default function Onboarding({
               </Alert>
             )}
             {errors?.institution && (
-              <p className="text-destructive text-sm">{errors.institution}</p>
+              <p className="text-destructive text-body">{errors.institution}</p>
             )}
           </div>
 
@@ -121,7 +121,7 @@ export default function Onboarding({
               </SelectContent>
             </Select>
             {errors?.userRole && (
-              <p className="text-destructive text-sm">{errors.userRole}</p>
+              <p className="text-destructive text-body">{errors.userRole}</p>
             )}
           </div>
 
@@ -140,7 +140,7 @@ export default function Onboarding({
               </div>
             ))}
             {errors?.useCases && (
-              <p className="text-destructive text-sm">{errors.useCases}</p>
+              <p className="text-destructive text-body">{errors.useCases}</p>
             )}
           </div>
 
@@ -165,7 +165,7 @@ export default function Onboarding({
           </div>
 
           {errors?.general && (
-            <p className="text-destructive text-sm">{errors.general}</p>
+            <p className="text-destructive text-body">{errors.general}</p>
           )}
 
           <Button type="submit" className="w-full" disabled={!canSubmit}>

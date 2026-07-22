@@ -36,8 +36,8 @@ export default function EvaluationVerificationImpact({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Verification Impact</h2>
-        <p className="text-muted-foreground text-sm">
+        <h2 className="text-heading font-semibold">Verification Impact</h2>
+        <p className="text-muted-foreground text-body">
           How verification changed agreement with {goldLabelRunName}
         </p>
       </div>

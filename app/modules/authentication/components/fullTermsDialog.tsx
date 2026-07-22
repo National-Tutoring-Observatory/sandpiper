@@ -34,7 +34,7 @@ export default function FullTermsDialog({
           <DialogDescription>Hosted by Cornell University</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 overflow-y-auto text-sm">
+        <div className="text-body-lg space-y-4 overflow-y-auto">
           <p className="text-muted-foreground leading-relaxed">
             This Contract governing Users&rsquo; Terms of Use (TOU or Agreement)
             constitutes a legal and binding contract between you and{" "}
@@ -45,7 +45,7 @@ export default function FullTermsDialog({
             application developed by the National Tutoring Observatory (NTO).
           </p>
 
-          <div className="bg-destructive/5 border-destructive rounded-r-md border-l-[3px] px-3 py-2 text-xs leading-relaxed font-semibold text-red-700 dark:text-red-400">
+          <div className="bg-destructive/5 border-destructive text-caption rounded-r-md border-l-[3px] px-3 py-2 font-semibold text-red-700 dark:text-red-400">
             Access to Sandpiper is offered to registered and authorized users.
             Use of this licensed content requires that you carefully read and
             agree in full with all of the terms and conditions of this agreement
@@ -181,7 +181,7 @@ export default function FullTermsDialog({
           <SectionHeading num={6}>
             No Warranty and Limitation of Liability
           </SectionHeading>
-          <p className="text-muted-foreground text-xs leading-relaxed tracking-wide uppercase opacity-85">
+          <p className="text-muted-foreground text-caption tracking-wide uppercase opacity-85">
             The tool is provided &ldquo;as is&rdquo; without warranty of any
             kind, express or implied. Cornell and FreshCognate will not be
             responsible to you or your entity for any consequences, foreseeable
@@ -209,7 +209,7 @@ export default function FullTermsDialog({
             our website any changes we make to this Privacy Statement.
           </p>
 
-          <div className="text-muted-foreground border-border border-t pt-3 text-xs">
+          <div className="text-muted-foreground border-border text-caption border-t pt-3">
             Questions? Reach us at{" "}
             <a
               href="mailto:CIS-NTO-PARTNERSHIPS-L@list.cornell.edu"
@@ -236,8 +236,8 @@ function SectionHeading({
   children: React.ReactNode;
 }) {
   return (
-    <h3 className="flex items-center gap-2 pt-2 text-sm font-bold">
-      <span className="bg-primary flex size-5 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white">
+    <h3 className="text-heading flex items-center gap-2 pt-2 font-semibold">
+      <span className="bg-primary text-caption flex size-5 shrink-0 items-center justify-center rounded-full font-bold text-white">
         {num}
       </span>
       {children}
@@ -253,7 +253,7 @@ function SubHeading({
   children: React.ReactNode;
 }) {
   return (
-    <h4 className="text-foreground flex items-center gap-1.5 text-sm font-semibold">
+    <h4 className="text-foreground text-heading flex items-center gap-1.5 font-semibold">
       <span className="text-primary">{icon}</span>
       {children}
     </h4>

@@ -23,7 +23,7 @@ export default function UserSpend({
 }: UserSpendProps) {
   return (
     <div>
-      <h3 className="mb-4 text-lg font-medium">Spend by User</h3>
+      <h3 className="text-heading mb-4 font-medium">Spend by User</h3>
       <Collection
         items={rows}
         itemsLayout="list"

@@ -127,7 +127,9 @@ export default function Project({
                 </div>
               )}
               {!project.isUploadingFiles && project.isConvertingFiles && (
-                <div className="text-muted-foreground text-xs">Processing…</div>
+                <div className="text-muted-foreground text-caption">
+                  Processing…
+                </div>
               )}
             </CardContent>
           </Card>
@@ -152,14 +154,14 @@ export default function Project({
               {!project.isConvertingFiles && (
                 <div>
                   {`${sessionsCount} sessions`}
-                  <div className="text-xs opacity-40">
+                  <div className="text-caption opacity-40">
                     {convertedSessionsCount} converted
                   </div>
                 </div>
               )}
               {project.isConvertingFiles && (
                 <div className="relative">
-                  <div className="absolute top-3 right-0 text-xs opacity-40">
+                  <div className="text-caption absolute top-3 right-0 opacity-40">
                     Converting
                   </div>
                   <Progress value={convertFilesProgress} />

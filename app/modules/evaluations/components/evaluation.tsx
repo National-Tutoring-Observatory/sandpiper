@@ -58,7 +58,7 @@ export default function Evaluation({
         {adjudicationRun && (
           <div>
             <Progress value={adjudicationProgress} />
-            <div className="mt-1 text-right text-xs opacity-40">
+            <div className="text-caption mt-1 text-right opacity-40">
               Running adjudication...
             </div>
           </div>
@@ -66,7 +66,7 @@ export default function Evaluation({
         {!adjudicationRun && evaluation.isRunning && (
           <div>
             <Progress value={progress} />
-            <div className="mt-1 text-right text-xs opacity-40">
+            <div className="text-caption mt-1 text-right opacity-40">
               Processing evaluation
             </div>
           </div>
@@ -75,7 +75,7 @@ export default function Evaluation({
 
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold">{evaluation.name}</h1>
+          <h1 className="text-title font-semibold">{evaluation.name}</h1>
           <p className="text-muted-foreground">
             {runCount} run{runCount !== 1 ? "s" : ""}
           </p>
@@ -91,7 +91,7 @@ export default function Evaluation({
 
         {evaluation.isComplete && report.length > 0 && (
           <Tabs value={activeTab} onValueChange={onActiveTabChanged}>
-            <p className="text-muted-foreground mb-2 text-sm">
+            <p className="text-muted-foreground text-body mb-2">
               This shows an evaluation based upon the following annotation
               schema field:
             </p>

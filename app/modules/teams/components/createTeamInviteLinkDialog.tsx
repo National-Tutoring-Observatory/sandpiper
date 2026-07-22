@@ -72,8 +72,8 @@ export default function CreateTeamInviteLinkDialog({
         {!isCreating && !inviteLink && (
           <div className="flex flex-col gap-3">
             <div>
-              <Label className="mb-1 text-xs">Name</Label>
-              <p className="text-muted-foreground mb-2 text-xs">
+              <Label className="text-caption mb-1">Name</Label>
+              <p className="text-muted-foreground text-caption mb-2">
                 This name is used to generate an easier to remember shareable
                 URL. It can also be used to help find out which users were added
                 during an event. A random code is appended to keep each link
@@ -87,20 +87,24 @@ export default function CreateTeamInviteLinkDialog({
                 autoComplete="off"
                 autoFocus
               />
-              <div className="text-muted-foreground mt-1 text-right text-xs">
+              <div className="text-muted-foreground text-caption mt-1 text-right">
                 {name.length} / {NAME_MAX}
               </div>
-              <Label className="mt-2 mb-1 text-xs">Invite link preview</Label>
-              <div className="bg-muted rounded px-2 py-1 font-mono text-xs break-all">
+              <Label className="text-caption mt-2 mb-1">
+                Invite link preview
+              </Label>
+              <div className="bg-muted text-caption rounded px-2 py-1 font-mono break-all">
                 {origin}/join/{slugPreview}-
                 <span className="text-muted-foreground">xxxxxxxx</span>
               </div>
               {nameError && (
-                <p className="text-destructive mt-1 text-xs">{nameError}</p>
+                <p className="text-destructive text-caption mt-1">
+                  {nameError}
+                </p>
               )}
             </div>
             <div>
-              <Label className="mb-1 text-xs">Maximum uses</Label>
+              <Label className="text-caption mb-1">Maximum uses</Label>
               <Input
                 type="number"
                 min={USES_MIN}
@@ -109,7 +113,9 @@ export default function CreateTeamInviteLinkDialog({
                 onChange={(e) => onMaxUsesChanged(Number(e.target.value))}
               />
               {maxUsesError && (
-                <p className="text-destructive mt-1 text-xs">{maxUsesError}</p>
+                <p className="text-destructive text-caption mt-1">
+                  {maxUsesError}
+                </p>
               )}
             </div>
           </div>
@@ -119,7 +125,7 @@ export default function CreateTeamInviteLinkDialog({
         )}
         {inviteLink && (
           <div className="relative">
-            <div className="bg-muted rounded-2xl p-2 pr-10 text-sm break-all">
+            <div className="bg-muted text-body rounded-2xl p-2 pr-10 break-all">
               {inviteLink}
             </div>
             <Button
@@ -131,7 +137,7 @@ export default function CreateTeamInviteLinkDialog({
             >
               {hasCopied ? <CopyCheckIcon /> : <CopyIcon />}
             </Button>
-            <div className="text-muted-foreground mt-4 text-xs">
+            <div className="text-muted-foreground text-caption mt-4">
               {`This invite link will expire in ${INVITE_LINK_TTL_DAYS} days.`}
             </div>
           </div>

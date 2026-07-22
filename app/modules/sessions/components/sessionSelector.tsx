@@ -71,8 +71,8 @@ export default function SessionSelector({
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <span className="text-sm font-medium">Select All</span>
-        <span className="text-muted-foreground text-sm">
+        <span className="text-body font-medium">Select All</span>
+        <span className="text-muted-foreground text-body">
           <strong className="text-foreground">{selectedSessions.length}</strong>
           &nbsp;session(s) selected
         </span>

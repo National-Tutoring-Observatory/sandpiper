@@ -26,7 +26,7 @@ const SelectCsvStep = ({
           {isDragActive ? (
             <p>Drop the file here...</p>
           ) : (
-            <p className="text-muted-foreground text-sm">
+            <p className="text-muted-foreground text-body">
               Drag and drop a CSV file here, or click to select
             </p>
           )}

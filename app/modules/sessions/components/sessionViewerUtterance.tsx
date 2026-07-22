@@ -61,7 +61,7 @@ export default function SessionViewerUtterance({
               className="decoration-sandpiper-accent"
               onClick={() => onUtteranceClicked(utterance._id)}
             >
-              <div className="text-sandpiper-accent decoration-sandpiper-accent ml-4 flex items-center text-xs">
+              <div className="text-sandpiper-accent decoration-sandpiper-accent text-caption ml-4 flex items-center">
                 <NotebookPen className="mr-1 size-3" />
                 {utterance.annotations.length} annotation
                 {utterance.annotations.length > 1 ? "s" : ""}

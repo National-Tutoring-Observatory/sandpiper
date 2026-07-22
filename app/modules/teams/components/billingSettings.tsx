@@ -29,17 +29,19 @@ export default function BillingSettings({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">
+        <CardTitle className="text-heading">
           <Settings className="mr-1 inline h-4 w-4" />
           Billing settings
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label className="text-muted-foreground text-xs">Billing user</Label>
+          <Label className="text-muted-foreground text-caption">
+            Billing user
+          </Label>
           <div className="mt-1 flex items-center gap-2">
             <User className="text-muted-foreground h-4 w-4" />
-            <span className="text-sm">
+            <span className="text-body">
               {billingUserInfo?.username ?? "Not assigned"}
             </span>
             {BillingAuthorization.canSetBillingUser(user, teamId) && (

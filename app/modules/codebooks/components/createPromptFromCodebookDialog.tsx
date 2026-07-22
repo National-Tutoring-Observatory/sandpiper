@@ -107,7 +107,7 @@ export default function CreatePromptFromCodebookDialog({
             <Button
               variant="link"
               size="sm"
-              className="p-0 text-xs"
+              className="text-caption p-0"
               onClick={onToggleAllCategoriesClicked}
             >
               {hasAllCategoriesSelected ? "Deselect all" : "Select all"}
@@ -115,7 +115,7 @@ export default function CreatePromptFromCodebookDialog({
           )}
         </div>
         {categories.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-body">
             This codebook version has no categories.
           </p>
         ) : (
@@ -151,7 +151,7 @@ export default function CreatePromptFromCodebookDialog({
         )}
         <div className="flex flex-col gap-2">
           <Label>Flatten categories</Label>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-body">
             Flattening categories will mean that all the categories will be put
             into the prompt as one annotation field key and not multiple.
           </p>
@@ -178,7 +178,7 @@ export default function CreatePromptFromCodebookDialog({
                   onFlattenedAnnotationFieldChanged(e.target.value)
                 }
               />
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground text-caption">
                 This field will act as the main annotation field for all
                 categories.
               </p>

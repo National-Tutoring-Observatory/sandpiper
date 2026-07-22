@@ -72,12 +72,12 @@ export default function Signup({
         </div>
         <CardHeader>
           <CardTitle className="mb-2">
-            <h1 className="text-2xl">{title}</h1>
+            <h1 className="text-display">{title}</h1>
           </CardTitle>
           <CardDescription>
             <p className="mb-3">{description}</p>
             {showCredits && (
-              <Badge variant="secondary" className="text-sm">
+              <Badge variant="secondary" className="text-body">
                 ${initialCredits} free credits to get started
               </Badge>
             )}
@@ -131,7 +131,7 @@ export default function Signup({
             </svg>
             Sign up with GitHub
           </Button>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-body">
             Already have an account?{" "}
             <button
               onClick={onSignupWithGithubClicked}

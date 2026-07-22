@@ -105,7 +105,7 @@ export default function RunSetPromptsField({
                 key={`${prompt.promptId}-${prompt.version}`}
                 className="bg-background flex items-center justify-between rounded p-2"
               >
-                <span className="text-sm">
+                <span className="text-body">
                   {prompt.promptName} (v{prompt.version})
                 </span>
                 <Button

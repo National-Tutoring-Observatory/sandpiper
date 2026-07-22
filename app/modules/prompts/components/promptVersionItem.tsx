@@ -46,8 +46,8 @@ export default function PromptVersionItem({
           </Badge>
         )}
       </div>
-      <div className="text-muted-foreground text-sm">{name}</div>
-      <div className="text-muted-foreground text-xs">
+      <div className="text-muted-foreground text-body">{name}</div>
+      <div className="text-muted-foreground text-caption">
         {getDateString(createdAt)}
       </div>
     </Link>

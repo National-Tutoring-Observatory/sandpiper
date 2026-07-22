@@ -50,7 +50,7 @@ export default function PromptLibraryPrompt({
       </PageHeader>
 
       {library?.description ? (
-        <p className="text-foreground/80 max-w-prose text-base leading-relaxed">
+        <p className="text-foreground/80 text-body-lg max-w-prose">
           {library.description}
         </p>
       ) : null}
@@ -59,7 +59,7 @@ export default function PromptLibraryPrompt({
         <Card className="gap-0 py-4">
           <CardHeader className="px-4">
             <CardDescription>Annotation type</CardDescription>
-            <CardTitle className="text-base">
+            <CardTitle className="text-body">
               {getAnnotationLabel(prompt.annotationType)}
             </CardTitle>
           </CardHeader>
@@ -67,7 +67,7 @@ export default function PromptLibraryPrompt({
         <Card className="gap-0 py-4">
           <CardHeader className="px-4">
             <CardDescription>Published</CardDescription>
-            <CardTitle className="text-base">
+            <CardTitle className="text-body">
               {library?.publishedAt
                 ? getDateString(library.publishedAt as string)
                 : "—"}
@@ -77,7 +77,7 @@ export default function PromptLibraryPrompt({
         <Card className="gap-0 py-4">
           <CardHeader className="px-4">
             <CardDescription>Production version</CardDescription>
-            <CardTitle className="text-base">
+            <CardTitle className="text-body">
               v{prompt.productionVersion}
             </CardTitle>
           </CardHeader>
@@ -90,7 +90,7 @@ export default function PromptLibraryPrompt({
             <CardDescription>Authors</CardDescription>
           </CardHeader>
           <CardContent className="px-4">
-            <ul className="space-y-1 text-sm">
+            <ul className="text-body space-y-1">
               {library.authors.map((a, i) => (
                 <li key={`${a.name}-${i}`}>
                   <span className="font-medium">{a.name}</span>
@@ -112,7 +112,7 @@ export default function PromptLibraryPrompt({
             <CardDescription>Papers</CardDescription>
           </CardHeader>
           <CardContent className="px-4">
-            <ul className="space-y-2 text-sm">
+            <ul className="text-body space-y-2">
               {library.paperRefs.map((p, i) => (
                 <li key={`${p.url}-${i}`}>
                   <a
@@ -136,7 +136,7 @@ export default function PromptLibraryPrompt({
           <CardDescription>Prompt body</CardDescription>
         </CardHeader>
         <CardContent className="px-4">
-          <pre className="bg-muted text-foreground rounded-md p-4 font-mono text-sm whitespace-pre-wrap">
+          <pre className="bg-muted text-foreground text-body rounded-md p-4 font-mono whitespace-pre-wrap">
             {promptVersion.userPrompt}
           </pre>
         </CardContent>

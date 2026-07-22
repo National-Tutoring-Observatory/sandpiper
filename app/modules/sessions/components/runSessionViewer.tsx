@@ -135,7 +135,7 @@ export default function SessionViewer({
         </div>
         {sessionFile.annotations && sessionFile.annotations.length > 0 && (
           <div className="flex flex-col p-4 pb-0">
-            <div className="text-muted-foreground text-heading mb-2">
+            <div className="text-muted-foreground text-heading mb-2 font-semibold">
               Session annotations
             </div>
             <div>
@@ -175,7 +175,9 @@ export default function SessionViewer({
           <div className="flex flex-col p-4 pb-0">
             <div className="mb-2 flex items-center justify-between">
               <div>
-                <div className="text-heading">View Annotations</div>
+                <div className="text-heading font-semibold">
+                  View Annotations
+                </div>
                 <p className="text-muted-foreground text-caption">
                   Browse annotations in this session
                 </p>

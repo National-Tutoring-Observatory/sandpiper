@@ -33,7 +33,7 @@ export default function SearchSupportArticlesDialog({
           {article.title}
         </Button>
         <div
-          className="text-muted-foreground px-2 py-1 text-xs"
+          className="text-muted-foreground text-caption px-2 py-1"
           dangerouslySetInnerHTML={{ __html: article.snippet }}
         />
       </div>

@@ -36,8 +36,8 @@ export default function RunSetRunPreview({
       {hasContent ? (
         <div className="space-y-4">
           <div className="bg-background sticky top-0 rounded-t-lg border-b px-4 py-4">
-            <h3 className="mb-2 text-sm font-semibold">Run Preview</h3>
-            <p className="text-muted-foreground text-xs">
+            <h3 className="text-heading mb-2 font-semibold">Run Preview</h3>
+            <p className="text-muted-foreground text-caption">
               {runDefinitions.length} run(s) • {sessionsCount} session(s)
               {excludedDefinitions.length > 0 && (
                 <span className="text-muted-foreground">
@@ -57,7 +57,7 @@ export default function RunSetRunPreview({
             {runDefinitions.map((definition) => (
               <div
                 key={definition.key}
-                className="group bg-background relative rounded-lg border p-3 text-sm"
+                className="group bg-background text-body relative rounded-lg border p-3"
               >
                 <button
                   type="button"
@@ -66,7 +66,7 @@ export default function RunSetRunPreview({
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>
-                <p className="text-muted-foreground mb-2 text-xs font-medium">
+                <p className="text-muted-foreground text-caption mb-2 font-medium">
                   New Run
                 </p>
                 <RunDefinitionCardDetails name={name} definition={definition} />
@@ -75,7 +75,7 @@ export default function RunSetRunPreview({
             {excludedDefinitions.map((definition) => (
               <div
                 key={definition.key}
-                className="group bg-muted relative rounded-lg border border-dashed p-3 text-sm opacity-50"
+                className="group bg-muted text-body relative rounded-lg border border-dashed p-3 opacity-50"
               >
                 <button
                   type="button"
@@ -84,7 +84,7 @@ export default function RunSetRunPreview({
                 >
                   <Plus className="h-3.5 w-3.5" />
                 </button>
-                <p className="text-muted-foreground mb-2 text-xs font-medium">
+                <p className="text-muted-foreground text-caption mb-2 font-medium">
                   Excluded
                 </p>
                 <RunDefinitionCardDetails name={name} definition={definition} />
@@ -93,13 +93,13 @@ export default function RunSetRunPreview({
             {duplicateDefinitions.map((definition) => (
               <div
                 key={definition.key}
-                className="border-sandpiper-warning/20 bg-sandpiper-warning/5 rounded-lg border p-3 text-sm opacity-60"
+                className="border-sandpiper-warning/20 bg-sandpiper-warning/5 text-body rounded-lg border p-3 opacity-60"
               >
-                <div className="text-sandpiper-warning mb-2 flex items-center gap-1 text-xs">
+                <div className="text-sandpiper-warning text-caption mb-2 flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" />
                   Already exists
                 </div>
-                <p className="text-muted-foreground mb-2 text-xs font-medium">
+                <p className="text-muted-foreground text-caption mb-2 font-medium">
                   Skipped
                 </p>
                 <RunDefinitionCardDetails name={name} definition={definition} />
@@ -130,21 +130,21 @@ function RunDefinitionCardDetails({
   return (
     <div className="space-y-1">
       <div>
-        <p className="text-muted-foreground text-xs">Name</p>
-        <p className="truncate font-mono text-xs">
+        <p className="text-muted-foreground text-caption">Name</p>
+        <p className="text-caption truncate font-mono">
           {generateRunName(name, definition.prompt, definition.modelCode)}
         </p>
       </div>
       <div>
-        <p className="text-muted-foreground text-xs">Prompt</p>
-        <p className="truncate font-mono text-xs">
+        <p className="text-muted-foreground text-caption">Prompt</p>
+        <p className="text-caption truncate font-mono">
           {definition.prompt.promptName || definition.prompt.promptId} (v
           {definition.prompt.version})
         </p>
       </div>
       <div>
-        <p className="text-muted-foreground text-xs">Model</p>
-        <p className="truncate font-mono text-xs">
+        <p className="text-muted-foreground text-caption">Model</p>
+        <p className="text-caption truncate font-mono">
           {findModelByCode(definition.modelCode)?.name ?? definition.modelCode}
         </p>
       </div>
