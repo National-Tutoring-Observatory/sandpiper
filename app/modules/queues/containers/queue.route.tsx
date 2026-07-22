@@ -120,7 +120,7 @@ export default function QueueRoute() {
             isPaused={data.isPaused}
           />
         </div>
-        <p className="text-muted-foreground/50 text-right text-xs tabular-nums">
+        <p className="text-muted-foreground/50 text-caption text-right tabular-nums">
           Refreshing in {String(secondsRemaining).padStart(2, "0")}s
         </p>
       </div>

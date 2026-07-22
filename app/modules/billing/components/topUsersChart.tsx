@@ -23,7 +23,7 @@ export default function TopUsersChart({
 }) {
   if (data.length === 0) {
     return (
-      <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
+      <div className="text-muted-foreground text-body flex h-40 items-center justify-center">
         No spend data for this period
       </div>
     );
@@ -32,7 +32,7 @@ export default function TopUsersChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Top users by spend</CardTitle>
+        <CardTitle className="text-heading">Top users by spend</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={totalCostConfig} className="h-72 w-full">

@@ -64,7 +64,7 @@ export default function InviteUserToTeamDialog({
       <div>
         {!isGeneratingInviteLink && (
           <div className="flex flex-col gap-2">
-            <Label className="mb-0.5 text-xs">
+            <Label className="text-caption mb-0.5">
               Select your users role in this team
             </Label>
             <Select value={role} onValueChange={onRoleChanged}>
@@ -81,7 +81,7 @@ export default function InviteUserToTeamDialog({
                 })}
               </SelectContent>
             </Select>
-            <Label className="mb-0.5 text-xs">Who is this for</Label>
+            <Label className="text-caption mb-0.5">Who is this for</Label>
             <Input
               id="name"
               name="name"
@@ -95,7 +95,7 @@ export default function InviteUserToTeamDialog({
           <div>
             {inviteLink && (
               <div className="relative">
-                <div className="bg-muted rounded-2xl p-2 pr-10 text-sm break-all">
+                <div className="bg-muted text-body rounded-2xl p-2 pr-10 break-all">
                   {inviteLink}
                 </div>
                 <Button
@@ -115,11 +115,11 @@ export default function InviteUserToTeamDialog({
                 </Button>
                 <div
                   role="status"
-                  className="text-sandpiper-success absolute right-4 -bottom-6 text-xs"
+                  className="text-sandpiper-success text-caption absolute right-4 -bottom-6"
                 >
                   {hasCopiedInviteLink ? "Invite link copied!" : ""}
                 </div>
-                <div className="text-muted-foreground mt-4 text-xs">
+                <div className="text-muted-foreground text-caption mt-4">
                   {`This invite link will expire in ${INVITE_LINK_TTL_DAYS} days.`}
                 </div>
               </div>

@@ -71,7 +71,7 @@ export default function CodebookCodeEditor({
       </div>
       <div className="grid gap-3">
         <Label htmlFor={`definition-${code._id}`}>Description</Label>
-        <p className="text-muted-foreground text-sm">
+        <p className="text-muted-foreground text-body">
           A basic description that is not used when generating a prompt. This
           should be used as a brief overview.
         </p>
@@ -102,7 +102,7 @@ export default function CodebookCodeEditor({
           )}
         </div>
         {code.examples.length === 0 ? (
-          <p className="text-muted-foreground text-sm">No examples yet.</p>
+          <p className="text-muted-foreground text-body">No examples yet.</p>
         ) : (
           <div className="grid gap-3">
             {code.examples.map((example) => (

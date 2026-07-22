@@ -59,7 +59,7 @@ const EditCodebookDialog = ({
         <CodebookNameAlert name={updatedCodebook.name} />
         <div>
           <Label htmlFor="description-1">Intention</Label>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-body">
             State what this codebook is trying to achieve.
           </p>
         </div>

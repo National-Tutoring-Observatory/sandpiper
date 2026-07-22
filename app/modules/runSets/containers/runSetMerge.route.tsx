@@ -201,7 +201,7 @@ export default function RunSetMergeRoute({ params }: Route.ComponentProps) {
       />
       <div className="min-w-0 flex-1">
         <div className="font-medium">{rs.name}</div>
-        <div className="text-muted-foreground flex gap-4 text-sm">
+        <div className="text-muted-foreground text-body flex gap-4">
           <span>{rs.runs?.length || 0} runs</span>
           <span>{getDateString(rs.createdAt)}</span>
         </div>
@@ -235,7 +235,7 @@ export default function RunSetMergeRoute({ params }: Route.ComponentProps) {
         </PageHeaderLeft>
       </PageHeader>
       <div className="mb-8">
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+        <h1 className="text-display scroll-m-20 font-extrabold tracking-tight text-balance">
           Merge Run Sets
         </h1>
         <p className="text-muted-foreground mt-2">
@@ -247,7 +247,7 @@ export default function RunSetMergeRoute({ params }: Route.ComponentProps) {
       {totalMergeableRunSets === 0 && !searchValue ? (
         <div className="text-muted-foreground py-12 text-center">
           <p>No compatible run sets found.</p>
-          <p className="mt-2 text-sm">
+          <p className="text-body mt-2">
             Run sets must have the same sessions and annotation type.
           </p>
           <Button variant="outline" className="mt-4" onClick={onCancelClicked}>
@@ -263,7 +263,7 @@ export default function RunSetMergeRoute({ params }: Route.ComponentProps) {
                 onSelectAllToggled(Boolean(checked))
               }
             />
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-body">
               Select all ({selectedRunSets.length} of {totalMergeableRunSets}{" "}
               selected, {totalRuns} runs)
             </span>

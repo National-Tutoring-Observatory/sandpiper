@@ -197,7 +197,7 @@ export default function RunSetAddRunsRoute({ params }: Route.ComponentProps) {
       />
       <div className="min-w-0 flex-1">
         <div className="font-medium">{run.name}</div>
-        <div className="text-muted-foreground flex gap-4 text-sm">
+        <div className="text-muted-foreground text-body flex gap-4">
           <span>Model: {getRunModelDisplayName(run) || "-"}</span>
           <span>
             Status:{" "}
@@ -237,7 +237,7 @@ export default function RunSetAddRunsRoute({ params }: Route.ComponentProps) {
         </PageHeaderLeft>
       </PageHeader>
       <div className="mb-8">
-        <h1 className="scroll-m-20 text-4xl font-extrabold tracking-tight text-balance">
+        <h1 className="text-display scroll-m-20 font-extrabold tracking-tight text-balance">
           Add Runs
         </h1>
         <p className="text-muted-foreground mt-2">
@@ -248,7 +248,7 @@ export default function RunSetAddRunsRoute({ params }: Route.ComponentProps) {
       {totalEligibleRuns === 0 && !searchValue ? (
         <div className="text-muted-foreground py-12 text-center">
           <p>No eligible runs found.</p>
-          <p className="mt-2 text-sm">
+          <p className="text-body mt-2">
             Runs must have the same sessions and annotation type as this runSet.
           </p>
           <Button variant="outline" className="mt-4" onClick={onCancelClicked}>
@@ -264,7 +264,7 @@ export default function RunSetAddRunsRoute({ params }: Route.ComponentProps) {
                 onSelectAllToggled(Boolean(checked))
               }
             />
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-body">
               Select all ({selectedRuns.length} of {totalEligibleRuns} selected)
             </span>
           </div>

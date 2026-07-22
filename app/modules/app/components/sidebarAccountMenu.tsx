@@ -82,10 +82,10 @@ export default function SidebarAccountMenu({
             <TeamTile team={activeTeam} size={28} />
           )}
           <span className="flex min-w-0 flex-1 flex-col leading-tight">
-            <span className="truncate text-sm font-semibold">
+            <span className="text-body truncate font-semibold">
               {triggerTitle}
             </span>
-            <span className="text-muted-foreground truncate text-xs">
+            <span className="text-muted-foreground text-caption truncate">
               {displayName}&nbsp;·&nbsp;{roleLabel}
             </span>
           </span>
@@ -111,7 +111,7 @@ export default function SidebarAccountMenu({
               aria-label={`Switch to ${team.name}${team.isPersonal ? " (Personal)" : ""}`}
             >
               <TeamTile team={team} size={22} />
-              <span className="flex-1 truncate text-sm">{team.name}</span>
+              <span className="text-body flex-1 truncate">{team.name}</span>
               {team.isPersonal && (
                 <span className="text-muted-foreground border-border rounded-full border px-2 py-0.5 text-[9px] font-semibold tracking-wide">
                   Personal
@@ -127,7 +127,7 @@ export default function SidebarAccountMenu({
           aria-label="Create a new team"
         >
           <Plus className="size-4 shrink-0" />
-          <span className="flex-1 truncate text-sm">Create team</span>
+          <span className="text-body flex-1 truncate">Create team</span>
         </DropdownMenuItem>
         {isSuperAdmin && (
           <>

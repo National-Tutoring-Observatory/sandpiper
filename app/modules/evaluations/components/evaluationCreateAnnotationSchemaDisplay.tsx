@@ -17,7 +17,7 @@ export default function EvaluationCreateAnnotationSchemaDisplay({
   return (
     <div className="mt-4 max-w-lg space-y-2">
       <Label>Annotation schema fields</Label>
-      <p className="text-muted-foreground text-sm">
+      <p className="text-muted-foreground text-body">
         Select the annotation fields to include in this evaluation. At least one
         field must be selected.
       </p>
@@ -25,7 +25,7 @@ export default function EvaluationCreateAnnotationSchemaDisplay({
         {fieldCounts.map((field) => (
           <div
             key={field.fieldKey}
-            className="hover:bg-accent flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm"
+            className="hover:bg-accent text-body flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2"
             onClick={() => onAnnotationFieldToggled(field.fieldKey)}
           >
             <Checkbox

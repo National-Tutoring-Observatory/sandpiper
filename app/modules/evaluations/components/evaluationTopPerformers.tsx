@@ -23,8 +23,10 @@ export default function EvaluationTopPerformers({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Top Performers vs Gold Label</h2>
-        <p className="text-muted-foreground text-sm">
+        <h2 className="text-heading font-semibold">
+          Top Performers vs Gold Label
+        </h2>
+        <p className="text-muted-foreground text-body">
           Ranked by agreement with {goldLabelRunName}
         </p>
       </div>

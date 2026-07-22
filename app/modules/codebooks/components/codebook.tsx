@@ -82,15 +82,15 @@ export default function Codebook({
       </PageHeader>
       {codebook.description && (
         <div className="mb-2">
-          <p className="text-sm font-bold">Intention</p>
-          <p className="text-muted-foreground max-w-prose text-sm">
+          <p className="text-body font-medium">Intention</p>
+          <p className="text-muted-foreground text-body max-w-prose">
             {codebook.description}
           </p>
         </div>
       )}
       <div className="flex rounded-md border">
         <div className="h-full w-1/4">
-          <div className="flex items-center justify-between border-b p-2 text-sm">
+          <div className="text-body flex items-center justify-between border-b p-2">
             <div>Versions</div>
             <div>
               <Button

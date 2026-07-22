@@ -101,7 +101,7 @@ export default function AnnotationSchemaBuilder({
               className="mb-4 grid grid-cols-3 gap-4 border-b pb-4"
             >
               <div>
-                <Label className="mb-0.5 text-xs">Key</Label>
+                <Label className="text-caption mb-0.5">Key</Label>
                 <Input
                   disabled={annotationField.isSystem || hasBeenSaved}
                   value={annotationField.fieldKey}
@@ -115,7 +115,7 @@ export default function AnnotationSchemaBuilder({
                 />
               </div>
               <div>
-                <Label className="mb-0.5 text-xs">Type</Label>
+                <Label className="text-caption mb-0.5">Type</Label>
                 <Select
                   disabled={annotationField.isSystem || hasBeenSaved}
                   value={annotationField.fieldType}
@@ -138,7 +138,7 @@ export default function AnnotationSchemaBuilder({
                 </Select>
               </div>
               <div>
-                <Label className="mb-0.5 text-xs">Default value</Label>
+                <Label className="text-caption mb-0.5">Default value</Label>
                 {(annotationField.fieldType === "boolean" && (
                   <Checkbox
                     checked={annotationField.value}

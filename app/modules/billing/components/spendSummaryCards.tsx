@@ -26,7 +26,7 @@ export default function SpendSummaryCards({
       <Card>
         <CardHeader className="pb-2">
           <CardDescription>Total Spend</CardDescription>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-display">
             {formatCost(totals.totalCost)}
           </CardTitle>
         </CardHeader>
@@ -34,7 +34,7 @@ export default function SpendSummaryCards({
       <Card>
         <CardHeader className="pb-2">
           <CardDescription>User-initiated</CardDescription>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-display">
             {formatCost(totals.userInitiated)}
           </CardTitle>
           <CardDescription>{pctUser}% of total</CardDescription>
@@ -43,7 +43,7 @@ export default function SpendSummaryCards({
       <Card>
         <CardHeader className="pb-2">
           <CardDescription>System</CardDescription>
-          <CardTitle className="text-2xl">
+          <CardTitle className="text-display">
             {formatCost(totals.system)}
           </CardTitle>
           <CardDescription>{pctSystem}% of total</CardDescription>

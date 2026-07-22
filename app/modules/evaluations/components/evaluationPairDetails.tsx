@@ -13,8 +13,8 @@ export default function EvaluationPairDetails({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="text-lg font-semibold">Pair Details</h2>
-        <p className="text-muted-foreground text-sm">
+        <h2 className="text-heading font-semibold">Pair Details</h2>
+        <p className="text-muted-foreground text-body">
           Agreement metrics for each run pair
         </p>
       </div>

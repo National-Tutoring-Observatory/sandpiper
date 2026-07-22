@@ -21,7 +21,7 @@ interface SpendBySourceChartProps {
 export default function SpendBySourceChart({ data }: SpendBySourceChartProps) {
   if (data.length === 0) {
     return (
-      <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
+      <div className="text-muted-foreground text-body flex h-40 items-center justify-center">
         No spend data yet
       </div>
     );

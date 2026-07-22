@@ -26,7 +26,7 @@ export default function EstimateSummary({
         <TooltipTrigger asChild>
           <div className="text-sandpiper-info flex cursor-help items-center gap-1">
             <Clock className="h-4 w-4" />
-            <span className="text-sm">
+            <span className="text-body">
               {formatTime(estimation.estimatedTimeSeconds)}
             </span>
           </div>
@@ -44,7 +44,7 @@ export default function EstimateSummary({
         <TooltipTrigger asChild>
           <div className="text-sandpiper-info flex cursor-help items-center gap-1">
             <DollarSign className="h-4 w-4" />
-            <span className="text-sm">
+            <span className="text-body">
               {formatCost(estimation.estimatedCost)}
             </span>
           </div>
@@ -61,7 +61,7 @@ export default function EstimateSummary({
               className={`flex cursor-help items-center gap-1 ${exceedsBalance ? "text-sandpiper-warning" : "text-sandpiper-info"}`}
             >
               <Wallet className="h-4 w-4" />
-              <span className="text-sm whitespace-nowrap">
+              <span className="text-body whitespace-nowrap">
                 ${formatCost(balance)} remaining
               </span>
             </div>

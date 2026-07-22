@@ -50,14 +50,14 @@ export default function EvaluationCreateCompatibleRunsSelector({
   return (
     <div className="p-4">
       <div className="flex items-center justify-between">
-        <Label className="text-muted-foreground text-xs tracking-wide uppercase">
+        <Label className="text-muted-foreground text-caption tracking-wide uppercase">
           Compatible runs
         </Label>
         {baseRun && selectableRuns.length > 0 && (
           <Button
             variant="link"
             size="sm"
-            className="p-0 text-xs"
+            className="text-caption p-0"
             onClick={toggleSelectAll}
           >
             {allSelected ? "Deselect all" : "Select all"}

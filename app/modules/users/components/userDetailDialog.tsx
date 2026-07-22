@@ -8,7 +8,7 @@ import getDateString from "~/modules/app/helpers/getDateString";
 import type { User } from "../users.types";
 
 const Field = ({ label, value }: { label: string; value: React.ReactNode }) => (
-  <div className="grid grid-cols-[140px_1fr] gap-2 text-sm">
+  <div className="text-body grid grid-cols-[140px_1fr] gap-2">
     <span className="text-muted-foreground">{label}</span>
     <span>{value ?? "—"}</span>
   </div>
@@ -22,7 +22,7 @@ const Section = ({
   children: React.ReactNode;
 }) => (
   <div className="grid gap-2">
-    <h3 className="text-sm font-semibold">{title}</h3>
+    <h3 className="text-heading font-semibold">{title}</h3>
     {children}
   </div>
 );
@@ -117,7 +117,7 @@ const UserDetailDialog = ({
               />
             ))
           ) : (
-            <span className="text-muted-foreground text-sm">No teams</span>
+            <span className="text-muted-foreground text-body">No teams</span>
           )}
         </Section>
       </div>

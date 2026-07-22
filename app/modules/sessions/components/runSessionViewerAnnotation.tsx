@@ -64,9 +64,11 @@ export default function SessionViewerAnnotation({
 
         return (
           <div className="mb-2" key={annotationKey}>
-            <div className="text-muted-foreground text-xs">{annotationKey}</div>
+            <div className="text-muted-foreground text-caption">
+              {annotationKey}
+            </div>
             {hasChanged && (
-              <div className="text-muted-foreground text-xs line-through">
+              <div className="text-muted-foreground text-caption line-through">
                 <SessionViewerAnnotationValue value={previousValue} />
               </div>
             )}
@@ -128,7 +130,7 @@ export default function SessionViewerAnnotation({
             onChange={(e) => setReason(e.target.value)}
             disabled={isSavingReason}
             maxLength={280}
-            className="min-h-[60px] text-xs"
+            className="text-caption min-h-[60px]"
           />
           <Button
             variant="outline"

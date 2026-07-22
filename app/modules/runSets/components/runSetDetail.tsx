@@ -166,7 +166,7 @@ export default function RunSetDetail({
                 100
               }
             />
-            <div className="mt-1 text-right text-xs opacity-40">
+            <div className="text-caption mt-1 text-right opacity-40">
               {annotationProgress.completedSessions === 0 ? (
                 "Starting..."
               ) : (

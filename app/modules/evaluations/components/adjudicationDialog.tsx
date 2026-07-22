@@ -38,7 +38,7 @@ export default function AdjudicationDialog({
       </DialogHeader>
 
       <div>
-        <label className="text-sm font-medium">Adjudicator</label>
+        <label className="text-body font-medium">Adjudicator</label>
         <ModelSelectorContainer
           selectedModel={selectedModel}
           onSelectedModelChanged={onSelectedModelChanged}
@@ -78,7 +78,7 @@ export default function AdjudicationDialog({
             />
             <ItemContent>
               <ItemTitle>{performer.runName}</ItemTitle>
-              <div className="text-muted-foreground flex gap-3 text-xs">
+              <div className="text-muted-foreground text-caption flex gap-3">
                 <span>Kappa: {performer.kappa.toFixed(2)}</span>
                 {performer.precision != null && (
                   <span>Precision: {performer.precision.toFixed(2)}</span>

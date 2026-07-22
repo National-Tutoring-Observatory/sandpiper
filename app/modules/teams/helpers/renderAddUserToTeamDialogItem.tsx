@@ -28,7 +28,7 @@ export default function renderAddUserToTeamDialogItem(
         <Label htmlFor={`user-${user._id}`} className="cursor-pointer">
           {user.name || user.username}
         </Label>
-        <p className="text-muted-foreground pt-1 text-xs">
+        <p className="text-muted-foreground text-caption pt-1">
           {user.email} · {user.username}
         </p>
       </div>

@@ -79,7 +79,7 @@ export default function Migrations({
                       <ItemTitle>{migration.name}</ItemTitle>
                       <ItemDescription>{migration.description}</ItemDescription>
                       {migration.lastRun && (
-                        <div className="text-muted-foreground mt-1 space-y-1 text-xs">
+                        <div className="text-muted-foreground text-caption mt-1 space-y-1">
                           <div>
                             Last run:{" "}
                             {getDateString(migration.lastRun.startedAt)}

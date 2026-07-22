@@ -44,7 +44,7 @@ const AddCreditsDialog = ({ onAddCreditsClicked }: AddCreditsDialogProps) => {
           onChange={(e) => setAmount(e.target.value)}
         />
         {showMinimumError && (
-          <p className="text-destructive text-sm">Minimum amount is $1.</p>
+          <p className="text-destructive text-body">Minimum amount is $1.</p>
         )}
         <Label htmlFor="credit-note">Note (optional)</Label>
         <Input

@@ -15,15 +15,15 @@ export default function MtmDatasetBanner({
         <Database className="size-5 text-white" />
       </div>
       <div className="flex-1">
-        <h5 className="text-sm font-bold">
+        <h5 className="text-heading font-bold">
           Or use the Million Tutor Moves Dataset&nbsp;
           <Badge className="text-[0.6rem]">NEW</Badge>
         </h5>
-        <p className="text-muted-foreground mt-0.5 text-xs leading-relaxed">
+        <p className="text-muted-foreground text-caption mt-0.5">
           Get started instantly with real tutoring transcripts from the National
           Tutoring Observatory — no upload needed.
         </p>
-        <div className="text-primary mt-1.5 flex gap-3 text-xs font-semibold">
+        <div className="text-primary text-caption mt-1.5 flex gap-3 font-semibold">
           <span className="flex items-center gap-1">
             <MessageCircleMore className="size-3.5" />
             500 sessions

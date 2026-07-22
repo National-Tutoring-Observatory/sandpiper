@@ -82,11 +82,11 @@ const EditUserDialog = ({
             disabled={isSubmitting}
           />
           {errors?.email && (
-            <p className="text-destructive text-sm">{errors.email}</p>
+            <p className="text-destructive text-body">{errors.email}</p>
           )}
         </div>
         {errors?.general && (
-          <p className="text-destructive text-sm">{errors.general}</p>
+          <p className="text-destructive text-body">{errors.general}</p>
         )}
       </div>
       <DialogFooter className="justify-end">

@@ -59,7 +59,7 @@ export default function CreditHistory({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Credit history</CardTitle>
+        <CardTitle className="text-heading">Credit history</CardTitle>
       </CardHeader>
       <CardContent>
         <Collection

@@ -39,10 +39,10 @@ export default function RunSetCreatorFormAlerts({
 
       {Object.keys(errors).length > 0 && (
         <div className="border-sandpiper-destructive/20 bg-sandpiper-destructive/5 rounded-lg border p-4">
-          <h3 className="text-sandpiper-destructive mb-2 text-sm font-semibold">
+          <h3 className="text-sandpiper-destructive text-heading mb-2 font-semibold">
             Errors
           </h3>
-          <ul className="text-sandpiper-destructive/80 space-y-1 text-sm">
+          <ul className="text-sandpiper-destructive/80 text-body space-y-1">
             {Object.entries(errors).map(([field, message]) => (
               <li key={field}>• {message}</li>
             ))}

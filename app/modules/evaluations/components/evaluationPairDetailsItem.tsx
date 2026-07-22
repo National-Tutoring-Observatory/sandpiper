@@ -13,10 +13,10 @@ export default function EvaluationPairDetailsItem({
     <Card>
       <CardContent className="flex items-center gap-4">
         <div className="min-w-0 flex-1">
-          <div className="text-sm font-medium">
+          <div className="text-body font-medium">
             {pair.runAName} vs {pair.runBName}
           </div>
-          <div className="text-muted-foreground text-xs">
+          <div className="text-muted-foreground text-caption">
             {pair.sampleSize} samples
           </div>
         </div>
@@ -31,20 +31,24 @@ export default function EvaluationPairDetailsItem({
         <CardContent className="border-t pt-3">
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <div className="text-muted-foreground text-xs">Precision</div>
-              <div className="text-sm font-semibold">
+              <div className="text-muted-foreground text-caption">
+                Precision
+              </div>
+              <div className="text-body font-semibold">
                 {pair.precision.toFixed(2)}
               </div>
             </div>
             <div>
-              <div className="text-muted-foreground text-xs">Recall</div>
-              <div className="text-sm font-semibold">
+              <div className="text-muted-foreground text-caption">Recall</div>
+              <div className="text-body font-semibold">
                 {pair.recall.toFixed(2)}
               </div>
             </div>
             <div>
-              <div className="text-muted-foreground text-xs">F1</div>
-              <div className="text-sm font-semibold">{pair.f1.toFixed(2)}</div>
+              <div className="text-muted-foreground text-caption">F1</div>
+              <div className="text-body font-semibold">
+                {pair.f1.toFixed(2)}
+              </div>
             </div>
           </div>
         </CardContent>

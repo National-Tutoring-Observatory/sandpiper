@@ -27,7 +27,7 @@ export default function SpendOverTimeChart({
 }) {
   if (data.length === 0) {
     return (
-      <div className="text-muted-foreground flex h-40 items-center justify-center text-sm">
+      <div className="text-muted-foreground text-body flex h-40 items-center justify-center">
         No spend data for this period
       </div>
     );
@@ -36,7 +36,7 @@ export default function SpendOverTimeChart({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Spend over time</CardTitle>
+        <CardTitle className="text-heading">Spend over time</CardTitle>
       </CardHeader>
       <CardContent>
         <ChartContainer config={overTimeConfig} className="h-72 w-full">

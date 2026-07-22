@@ -194,7 +194,7 @@ export default function AppSidebar() {
             <button
               type="button"
               onClick={exitAdmin}
-              className="text-destructive hover:bg-destructive/10 flex items-center gap-2 rounded-md px-1.5 py-1 text-left text-xs font-medium"
+              className="text-destructive hover:bg-destructive/10 text-caption flex items-center gap-2 rounded-md px-1.5 py-1 text-left font-medium"
             >
               <ArrowLeft className="size-3.5" />
               <span className="truncate">
@@ -203,7 +203,7 @@ export default function AppSidebar() {
             </button>
             <div className="text-destructive flex items-center gap-2 px-1.5 py-0.5">
               <Shield className="size-4" />
-              <b className="text-sm font-bold">Platform Admin</b>
+              <b className="text-body font-bold">Platform Admin</b>
             </div>
           </div>
         ) : (

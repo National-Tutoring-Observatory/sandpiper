@@ -43,11 +43,11 @@ export default function AddSuperAdminToTeamDialog({
       </DialogHeader>
       <div>
         <div>
-          <Label className="mb-2 text-xs">Reason</Label>
+          <Label className="text-caption mb-2">Reason</Label>
           <Textarea id="reason" value={reason} onChange={onReasonChanged} />
         </div>
         <div className="mt-3">
-          <Label className="mb-2 text-xs">Assignment type</Label>
+          <Label className="text-caption mb-2">Assignment type</Label>
           <RadioGroup defaultValue={option} onValueChange={onOptionChanged}>
             {TEAM_ASSIGNMENT_OPTIONS.map((opt) => (
               <div key={opt} className="flex items-center space-x-2">

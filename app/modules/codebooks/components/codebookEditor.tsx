@@ -78,7 +78,7 @@ export default function CodebookEditor({
 
   return (
     <div className="border-l">
-      <div className="flex items-center justify-between border-b p-2 text-sm">
+      <div className="text-body flex items-center justify-between border-b p-2">
         <div>
           <div>{`Version: ${codebookVersion.name}`}</div>
         </div>
@@ -123,7 +123,7 @@ export default function CodebookEditor({
 
       <div className="flex p-8 pt-4">
         <div className="w-1/4 rounded-l-md border">
-          <div className="flex items-center justify-between border-b p-2 text-sm">
+          <div className="text-body flex items-center justify-between border-b p-2">
             <div>Categories</div>
             {!disabled && (
               <Button size="icon" variant="ghost" onClick={addCategory}>
@@ -153,7 +153,7 @@ export default function CodebookEditor({
               onCloseCodeEditor={() => setEditingCode(null)}
             />
           ) : (
-            <p className="text-muted-foreground p-4 text-sm">
+            <p className="text-muted-foreground text-body p-4">
               No categories yet. Add a category to get started.
             </p>
           )}

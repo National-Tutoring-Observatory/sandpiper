@@ -84,7 +84,7 @@ export default function RunAddToRunSet({
       />
       <div className="min-w-0 flex-1">
         <div className="font-medium">{runSet.name}</div>
-        <div className="text-muted-foreground flex gap-4 text-sm">
+        <div className="text-muted-foreground text-body flex gap-4">
           <span className="flex items-center gap-1">
             <Zap className="h-3 w-3" />
             {runSet.runs?.length || 0} run
@@ -114,7 +114,7 @@ export default function RunAddToRunSet({
       {totalEligibleRunSets === 0 && !searchValue ? (
         <div className="text-muted-foreground py-12 text-center">
           <p>No eligible run sets found.</p>
-          <p className="mt-2 text-sm">
+          <p className="text-body mt-2">
             Run sets must have the same sessions and annotation type as this
             run.
           </p>
@@ -128,7 +128,7 @@ export default function RunAddToRunSet({
                 onSelectAllToggled(Boolean(checked))
               }
             />
-            <span className="text-muted-foreground text-sm">
+            <span className="text-muted-foreground text-body">
               Select all ({selectedRunSets.length} of {totalEligibleRunSets}{" "}
               selected)
             </span>

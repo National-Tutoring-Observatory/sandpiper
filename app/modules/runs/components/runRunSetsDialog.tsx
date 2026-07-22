@@ -62,7 +62,7 @@ export default function RunRunSetsDialog({
                     <Link to={projectRunSetUrl(teamId, projectId, runSet._id)}>
                       <div className="flex flex-1 flex-col gap-1 py-2">
                         <div className="font-medium">{runSet.name}</div>
-                        <div className="text-muted-foreground flex items-center gap-4 text-xs">
+                        <div className="text-muted-foreground text-caption flex items-center gap-4">
                           <span className="flex items-center gap-1">
                             <Zap className="h-3 w-3" />
                             {runCount} run{runCount !== 1 ? "s" : ""}

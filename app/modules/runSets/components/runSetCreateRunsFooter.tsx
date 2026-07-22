@@ -53,7 +53,7 @@ export default function RunSetCreateRunsFooter({
       {footerState === "ready" && (
         <div className="border-sandpiper-info/20 bg-sandpiper-info/5 rounded-lg border p-4">
           <div className="flex items-center justify-between gap-4">
-            <p className="text-foreground text-sm">
+            <p className="text-foreground text-body">
               This will create <strong>{newRunsCount}</strong> new run(s) with{" "}
               {selectedPromptsCount} prompt(s) × {selectedModelsCount} model(s)
               across {runSet.sessions?.length || 0} session(s)

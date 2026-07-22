@@ -12,7 +12,7 @@ export default function CodebookCategoryItem({
   return (
     <div
       className={cn(
-        "cursor-pointer border-b p-2 text-sm",
+        "text-body cursor-pointer border-b p-2",
         isSelected && "bg-sandpiper-accent/10",
       )}
       onClick={onClick}

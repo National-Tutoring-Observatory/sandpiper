@@ -17,7 +17,7 @@ const PreviewCsvStep = ({
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="text-muted-foreground h-6 w-6 animate-spin" />
-        <span className="text-muted-foreground ml-2 text-sm">
+        <span className="text-muted-foreground text-body ml-2">
           Analyzing CSV...
         </span>
       </div>
@@ -30,7 +30,7 @@ const PreviewCsvStep = ({
     <div className="grid min-w-0 gap-4">
       <div className="grid gap-2">
         <Label>File</Label>
-        <p className="text-sm">{fileName}</p>
+        <p className="text-body">{fileName}</p>
       </div>
       <div className="grid gap-2">
         <Label>
@@ -46,7 +46,7 @@ const PreviewCsvStep = ({
       </div>
       <div className="grid gap-2">
         <Label>Sessions</Label>
-        <p className="text-sm">
+        <p className="text-body">
           {analysisResult.matchedSessions.length} matched
           {analysisResult.unmatchedSessionIds.length > 0 && (
             <span className="text-muted-foreground">

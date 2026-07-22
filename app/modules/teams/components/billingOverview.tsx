@@ -75,7 +75,7 @@ export default function BillingOverview({
           <CardHeader>
             <CardDescription>Balance</CardDescription>
             <CardTitle
-              className={`text-2xl ${isNegativeBalance ? "text-destructive" : isLowBalance ? "text-yellow-600" : ""}`}
+              className={`text-display ${isNegativeBalance ? "text-destructive" : isLowBalance ? "text-yellow-600" : ""}`}
             >
               ${balanceSummary.balance.toFixed(2)}
             </CardTitle>
@@ -85,7 +85,7 @@ export default function BillingOverview({
         <Card>
           <CardHeader>
             <CardDescription>Credits Added</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-display">
               ${balanceSummary.credits.toFixed(2)}
             </CardTitle>
           </CardHeader>
@@ -94,7 +94,7 @@ export default function BillingOverview({
         <Card>
           <CardHeader>
             <CardDescription>Usage</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-display">
               ${balanceSummary.markedUpCosts.toFixed(2)}
             </CardTitle>
           </CardHeader>
@@ -103,7 +103,7 @@ export default function BillingOverview({
         <Card>
           <CardHeader>
             <CardDescription>Plan</CardDescription>
-            <CardTitle className="text-2xl">
+            <CardTitle className="text-display">
               {balanceSummary.plan.name}
             </CardTitle>
             {canAssignPlan && balanceSummary.plan.markupRate != null && (
