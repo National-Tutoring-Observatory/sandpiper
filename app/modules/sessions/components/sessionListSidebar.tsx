@@ -45,7 +45,7 @@ export default function SessionListSidebar({
   }, []);
 
   return (
-    <div className="flex h-full w-[clamp(9rem,14vw,15rem)] shrink-0 flex-col border-r">
+    <div className="flex h-full w-[clamp(8rem,12vw,13rem)] shrink-0 flex-col border-r">
       <div className="border-b p-3">
         <div className="relative">
           <SearchIcon className="text-muted-foreground absolute top-2.5 left-3 size-4" />
