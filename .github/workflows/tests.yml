@@ -58,10 +58,6 @@ jobs:
     env:
       REDISMS_DISABLE_POSTINSTALL: 1
 
-    strategy:
-      matrix:
-        mongo-version: ["5", "8"]
-
     services:
       redis:
         image: redis:7
@@ -88,10 +84,8 @@ jobs:
         env:
           BULLMQ_PRO_TOKEN: ${{ secrets.BULLMQ_PRO_TOKEN }}
 
-      - name: Start MongoDB replica set (mongo:${{ matrix.mongo-version }})
+      - name: Start MongoDB replica set
         uses: ./.github/actions/start-mongodb
-        with:
-          mongo-version: ${{ matrix.mongo-version }}
 
       - name: Wait for services
         run: |

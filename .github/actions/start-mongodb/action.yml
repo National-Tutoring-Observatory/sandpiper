@@ -3,8 +3,8 @@ description: Start a MongoDB container with replica set support and create a CI 
 
 inputs:
   mongo-version:
-    description: MongoDB image tag (e.g. 5, 8)
-    default: "5"
+    description: MongoDB image tag (e.g. 8)
+    default: "8"
 
 runs:
   using: composite
