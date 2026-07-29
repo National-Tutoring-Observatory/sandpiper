@@ -419,6 +419,23 @@ Avoid same-looking names like `onEditProjectButtonClicked` + `onEditProjectClick
 - Use `cn()` from `@/lib/utils` for className merging.
 - Use theme-aware CSS vars (`bg-background`, `text-foreground`, `border-border`).
 
+### Typography
+
+Semantic type scale defined as Tailwind v4 `@utility` classes in `app/app.css`. Each role sets font-size + line-height only — layer weight (`font-*`) and color utilities alongside; keeping weight orthogonal avoids order-dependent conflicts with core `font-*` utilities.
+
+| Class          | Size     | Typical weight  | Use for                              |
+| -------------- | -------- | --------------- | ------------------------------------ |
+| `text-display` | 1.5rem   | `font-bold`     | Hero numbers, big stats              |
+| `text-title`   | 1.25rem  | `font-semibold` | Page and panel titles                |
+| `text-heading` | 1rem     | `font-semibold` | Section headings                     |
+| `text-body`    | 0.875rem | `font-normal`   | Default body/UI text — the workhorse |
+| `text-body-lg` | 1rem     | `font-normal`   | Reading content (e.g. chat bubbles)  |
+| `text-caption` | 0.75rem  | `font-normal`   | Meta, captions, muted small text     |
+
+- No raw `text-xs`/`text-sm`/`text-base`/`text-lg`/`text-xl`/`text-2xl` in new or refactored code — reference a role for size.
+- Pair the role with an explicit `font-*` weight unless the element inherits it from a base component (e.g. `CardTitle`).
+- Marketing/landing surfaces (splash pages, home, rendered support articles) stay on their own larger display type, outside this scale.
+
 ### Feature Flag Component
 
 `<Flag flag="...">` requires **exactly one child**. Wrap multiple children in a fragment:
