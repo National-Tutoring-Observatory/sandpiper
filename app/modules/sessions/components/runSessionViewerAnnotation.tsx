@@ -2,19 +2,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import clsx from "clsx";
-import map from "lodash/map";
 import { Check, ThumbsDown, ThumbsUp } from "lucide-react";
 import { useState } from "react";
+import getOrderedAnnotationKeys from "../helpers/getOrderedAnnotationKeys";
 import type { Annotation } from "../sessions.types";
 import SessionViewerAnnotationValue from "./runSessionViewerAnnotationValue";
 import SessionViewerAnnotationVerificationStatus from "./runSessionViewerAnnotationVerificationStatus";
-
-const HIDDEN_ANNOTATION_KEYS = new Set([
-  "_id",
-  "identifiedBy",
-  "markedAs",
-  "votingReason",
-]);
 
 export default function SessionViewerAnnotation({
   annotation,
@@ -51,11 +44,8 @@ export default function SessionViewerAnnotation({
         isChangedByVerification={isChangedByVerification}
         isAddedByVerification={isAddedByVerification}
       />
-      {map(annotation, (annotationValue, annotationKey) => {
-        if (HIDDEN_ANNOTATION_KEYS.has(annotationKey)) {
-          return null;
-        }
-
+      {getOrderedAnnotationKeys(annotation).map((annotationKey) => {
+        const annotationValue = annotation[annotationKey];
         const previousValue = preAnnotation?.[annotationKey];
         const hasChanged =
           isChangedByVerification &&
@@ -63,7 +53,7 @@ export default function SessionViewerAnnotation({
           String(previousValue) !== String(annotationValue);
 
         return (
-          <div className="mb-2" key={annotationKey}>
+          <div className="mb-2 break-words" key={annotationKey}>
             <div className="text-muted-foreground text-caption">
               {annotationKey}
             </div>

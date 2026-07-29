@@ -83,7 +83,7 @@ export default function SessionViewer({
       </SkipLink>
       <div
         id="session-viewer-scroll-container"
-        className="flex h-full w-3/5 min-w-0 flex-col overflow-y-scroll scroll-smooth border-r p-4"
+        className="flex h-full w-[55%] min-w-0 flex-col overflow-y-scroll scroll-smooth border-r p-4"
       >
         {map(sessionFile.transcript, (utterance: Utterance, index: number) => {
           const isSelected = selectedUtteranceId === utterance._id;
@@ -118,7 +118,7 @@ export default function SessionViewer({
       <div
         id="session-annotations-panel"
         tabIndex={-1}
-        className="flex h-full w-2/5 min-w-0 flex-col overflow-y-auto pt-8"
+        className="flex h-full w-[45%] min-w-0 flex-col overflow-y-auto pt-4"
       >
         <div className="border-b px-4 pb-4">
           <SessionViewerDetails
