@@ -109,17 +109,6 @@ export default function PromptEditor({
               Make production version
             </Button>
           )}
-          {!promptVersion.hasBeenSaved && (
-            <Button
-              variant="ghost"
-              className="hover:text-sandpiper-accent cursor-pointer"
-              disabled={!hasChanges || isLoading}
-              onClick={onSavePromptVersionClicked}
-            >
-              <Save />
-              Save prompt version
-            </Button>
-          )}
         </div>
       </div>
       <div className="grid gap-8 p-8">
@@ -197,6 +186,17 @@ export default function PromptEditor({
           />
         </div>
       </div>
+      {!promptVersion.hasBeenSaved && (
+        <div className="bg-background sticky bottom-0 z-10 flex justify-end rounded-b-md border-t px-8 py-4">
+          <Button
+            disabled={!hasChanges || isLoading}
+            onClick={onSavePromptVersionClicked}
+          >
+            <Save />
+            Save prompt version
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
