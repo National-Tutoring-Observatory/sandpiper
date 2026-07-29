@@ -22,6 +22,7 @@ describe("buildContentSecurityPolicy", () => {
     expect(scriptSrc).toContain(`'nonce-${nonce}'`);
     expect(scriptSrc).toContain("'self'");
     expect(scriptSrc).toContain("https://www.googletagmanager.com");
+    expect(scriptSrc).toContain("https://static.cloudflareinsights.com");
     expect(scriptSrc).not.toContain("'unsafe-inline'");
   });
 
@@ -53,6 +54,7 @@ describe("buildContentSecurityPolicy", () => {
 
     expect(d["connect-src"]).toContain("'self'");
     expect(d["connect-src"]).toContain("https://www.google-analytics.com");
+    expect(d["connect-src"]).toContain("https://cloudflareinsights.com");
     expect(d["font-src"]).toContain("https://fonts.gstatic.com");
     expect(d["img-src"]).toContain("data:");
   });

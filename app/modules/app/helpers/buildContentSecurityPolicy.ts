@@ -8,11 +8,17 @@ export default function buildContentSecurityPolicy(nonce: string): string {
       "'self'",
       `'nonce-${nonce}'`,
       "https://www.googletagmanager.com",
+      // Injected at the Cloudflare edge (Browser Insights), so it can't carry our nonce
+      "https://static.cloudflareinsights.com",
     ],
     "style-src": ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
     "font-src": ["'self'", "https://fonts.gstatic.com"],
     "img-src": ["'self'", "data:"],
-    "connect-src": ["'self'", "https://www.google-analytics.com"],
+    "connect-src": [
+      "'self'",
+      "https://www.google-analytics.com",
+      "https://cloudflareinsights.com",
+    ],
     "frame-src": ["'self'"],
     "frame-ancestors": ["'self'"],
     "form-action": ["'self'"],
