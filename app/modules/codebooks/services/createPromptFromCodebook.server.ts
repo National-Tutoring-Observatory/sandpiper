@@ -1,6 +1,7 @@
 import type { AnnotationTypeOptions } from "~/modules/annotations/helpers/annotationTypes";
 import handleLLMError from "~/modules/llm/helpers/handleLLMError";
 import LLM from "~/modules/llm/llm";
+import { getTaskModelCode } from "~/modules/llm/modelRegistry";
 import { PromptService } from "~/modules/prompts/prompt";
 import { PromptVersionService } from "~/modules/prompts/promptVersion";
 import { CodebookService } from "../codebook";
@@ -72,7 +73,7 @@ export default async function createPromptFromCodebook({
     };
 
     const llm = new LLM({
-      model: "anthropic.claude-4.6-opus",
+      model: getTaskModelCode("codebookImport"),
       team: teamId,
       userId,
       source: "codebook-prompt-generation",

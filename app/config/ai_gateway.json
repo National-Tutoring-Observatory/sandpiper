@@ -1,5 +1,10 @@
 {
   "defaultModel": "nto.gemini-3.1-flash-lite",
+  "taskModels": {
+    "promptAlignment": "anthropic.claude-4.6-sonnet",
+    "promptSuggestions": "anthropic.claude-4.6-sonnet",
+    "codebookImport": "anthropic.claude-4.6-opus"
+  },
   "providers": [
     {
       "name": "Google",

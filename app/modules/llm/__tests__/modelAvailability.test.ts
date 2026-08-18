@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import aiGatewayConfig from "~/config/ai_gateway.json";
 import { getAvailableModels, getDefaultModelCode } from "../modelRegistry";
 import gatewayModels from "./gatewayModels.fixture.json";
 
@@ -43,6 +44,23 @@ describe("model availability", () => {
       codes,
       `defaultModel "${getDefaultModelCode()}" is deprecated or missing, which breaks session uploads`,
     ).toContain(getDefaultModelCode());
+  });
+
+  it("every task model is selectable and served by the gateway", () => {
+    const codes = new Set(getAvailableModels().map((model) => model.code));
+
+    for (const [role, code] of Object.entries(aiGatewayConfig.taskModels)) {
+      expect(
+        codes.has(code),
+        `taskModels.${role} is "${code}", which is deprecated or missing from the config`,
+      ).toBe(true);
+
+      const gatewayId = resolveGatewayId(code);
+      expect(
+        gatewayIds.has(gatewayId),
+        `taskModels.${role} resolves to "${gatewayId}", which the gateway no longer serves`,
+      ).toBe(true);
+    }
   });
 
   it("has no alias entries for models the config dropped", () => {
