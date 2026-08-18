@@ -128,6 +128,9 @@ async function main() {
           utteranceId,
           runId,
           headers,
+          // This script never reads the database, so it has no annotation
+          // schema to type against and every value stays a string
+          {},
         );
         runAnnotationCount += annotations.length;
         return {

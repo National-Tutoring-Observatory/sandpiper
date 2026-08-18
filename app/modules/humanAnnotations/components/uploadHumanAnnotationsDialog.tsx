@@ -47,7 +47,11 @@ const UploadHumanAnnotationsDialog = ({
     analyzeFetcher.submit(
       JSON.stringify({
         intent: "ANALYZE_HUMAN_CSV",
-        payload: { headers: meta.headers, sessionIds: meta.sessionIds },
+        payload: {
+          headers: meta.headers,
+          sessionIds: meta.sessionIds,
+          valuesByField: meta.valuesByField,
+        },
       }),
       {
         method: "POST",
@@ -105,7 +109,8 @@ const UploadHumanAnnotationsDialog = ({
                 isAnalyzing ||
                 !analysisResult ||
                 analysisResult.matchedSessions.length === 0 ||
-                analysisResult.missingSessionNames.length > 0
+                analysisResult.missingSessionNames.length > 0 ||
+                analysisResult.invalidValues.length > 0
               }
               onClick={() => {
                 if (csvFile && csvMeta) {

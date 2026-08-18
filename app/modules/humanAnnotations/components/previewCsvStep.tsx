@@ -97,10 +97,36 @@ const PreviewCsvStep = ({
           {analysisResult.annotationFields.map((field) => (
             <Badge key={field} variant="outline">
               {field}
+              {analysisResult.fieldTypes[field] && (
+                <span className="text-muted-foreground">
+                  &nbsp;· {analysisResult.fieldTypes[field]}
+                </span>
+              )}
             </Badge>
           ))}
         </div>
       </div>
+      {analysisResult.invalidValues.length > 0 && (
+        <Alert variant="destructive">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            <div className="grid gap-1">
+              <span>
+                Some values do not match the field types used by the runs in
+                this run set. Fix them in the CSV and upload again.
+              </span>
+              {analysisResult.invalidValues.map((field) => (
+                <span key={field.fieldKey} className="wrap-break-word">
+                  <strong>{field.fieldKey}</strong>
+                  &nbsp;expects&nbsp;{field.fieldType}
+                  &nbsp;values but the CSV contains:&nbsp;
+                  {field.values.join(", ")}
+                </span>
+              ))}
+            </div>
+          </AlertDescription>
+        </Alert>
+      )}
     </div>
   );
 };

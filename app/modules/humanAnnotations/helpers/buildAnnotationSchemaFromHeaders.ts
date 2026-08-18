@@ -1,8 +1,15 @@
 import type { AnnotationSchemaItem } from "~/modules/prompts/prompts.types";
 import parseAnnotationColumn from "./parseAnnotationColumns";
 
+function getDefaultValue(fieldType: string): unknown {
+  if (fieldType === "boolean") return false;
+  if (fieldType === "number") return 0;
+  return "";
+}
+
 export default function buildAnnotationSchemaFromHeaders(
   headers: string[],
+  fieldTypes: Record<string, string>,
 ): AnnotationSchemaItem[] {
   const fieldSet = new Set<string>();
 
@@ -12,9 +19,14 @@ export default function buildAnnotationSchemaFromHeaders(
     fieldSet.add(parsed.field);
   }
 
-  return Array.from(fieldSet).map((fieldKey) => ({
-    fieldKey,
-    value: "",
-    isSystem: false,
-  }));
+  return Array.from(fieldSet).map((fieldKey) => {
+    const fieldType = fieldTypes[fieldKey] ?? "string";
+
+    return {
+      fieldKey,
+      fieldType,
+      value: getDefaultValue(fieldType),
+      isSystem: false,
+    };
+  });
 }

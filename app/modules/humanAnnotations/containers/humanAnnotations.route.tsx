@@ -37,6 +37,7 @@ export async function action({ request, params }: Route.ActionArgs) {
       const result = await analyzeHumanCsv({
         headers: payload.headers,
         sessionIds: payload.sessionIds,
+        valuesByField: payload.valuesByField,
         runSetId: params.runSetId,
       });
       return data({ success: true, intent, data: result });
@@ -60,6 +61,8 @@ export async function action({ request, params }: Route.ActionArgs) {
 
       const { headers, annotators } = body.payload;
 
+      const csvBuffer = Buffer.from(await file.arrayBuffer());
+
       const analysis = await analyzeHumanCsv({
         headers,
         sessionIds: body.payload.sessionIds,
@@ -78,7 +81,6 @@ export async function action({ request, params }: Route.ActionArgs) {
         );
       }
 
-      const csvBuffer = Buffer.from(await file.arrayBuffer());
       const csvPath = `storage/${runSet.project}/uploads/${path.basename(file.name)}`;
       const storage = getStorageAdapter();
       await storage.upload({
@@ -90,7 +92,10 @@ export async function action({ request, params }: Route.ActionArgs) {
         uploadPath: csvPath,
       });
 
-      const annotationSchema = buildAnnotationSchemaFromHeaders(headers);
+      const annotationSchema = buildAnnotationSchemaFromHeaders(
+        headers,
+        analysis.fieldTypes,
+      );
 
       const matchedSessionIds = analysis.matchedSessions.map((s) => s._id);
       const runIds: string[] = [];
@@ -123,6 +128,7 @@ export async function action({ request, params }: Route.ActionArgs) {
         runIds,
         annotators,
         headers,
+        fieldTypes: analysis.fieldTypes,
         csvPath,
         projectId: runSet.project,
         matchedSessions: analysis.matchedSessions,

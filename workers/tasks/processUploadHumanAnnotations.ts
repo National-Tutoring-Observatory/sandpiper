@@ -16,6 +16,7 @@ export default async function processUploadHumanAnnotations(job: Job) {
     sessionName,
     annotator,
     headers,
+    fieldTypes,
     csvPath,
     inputFile,
     outputFolder,
@@ -73,6 +74,8 @@ export default async function processUploadHumanAnnotations(job: Job) {
         utterance._id,
         annotator,
         headers,
+        // Jobs already queued when this deployed have no fieldTypes in their data
+        fieldTypes ?? {},
       );
 
       utterance.annotations = [

@@ -11,6 +11,11 @@ import { action } from "../containers/humanAnnotations.route";
 
 const mockUpload = vi.fn().mockResolvedValue(undefined);
 
+const mocks = vi.hoisted(() => ({
+  analyzeHumanCsv: vi.fn(),
+  createHumanRun: vi.fn(),
+}));
+
 vi.mock("~/modules/storage/helpers/getStorageAdapter", () => ({
   default: () => ({
     upload: mockUpload,
@@ -21,13 +26,11 @@ vi.mock("~/modules/storage/helpers/getStorageAdapter", () => ({
 }));
 
 vi.mock("~/modules/humanAnnotations/services/analyzeHumanCsv.server", () => ({
-  default: vi
-    .fn()
-    .mockResolvedValue({ missingSessionNames: [], matchedSessions: [] }),
+  default: mocks.analyzeHumanCsv,
 }));
 
 vi.mock("~/modules/humanAnnotations/services/createHumanRun.server", () => ({
-  default: vi.fn().mockResolvedValue({ _id: new Types.ObjectId().toString() }),
+  default: mocks.createHumanRun,
 }));
 
 vi.mock(
@@ -41,9 +44,20 @@ describe("humanAnnotations.route action - UPLOAD_HUMAN_CSV", () => {
   beforeEach(async () => {
     await clearDocumentDB();
     mockUpload.mockClear();
+    mocks.analyzeHumanCsv.mockReset().mockResolvedValue({
+      missingSessionNames: [],
+      matchedSessions: [],
+      fieldTypes: {},
+    });
+    mocks.createHumanRun
+      .mockReset()
+      .mockResolvedValue({ _id: new Types.ObjectId().toString() });
   });
 
-  async function setupAndUpload(filename: string) {
+  async function setupAndUpload(
+    filename: string,
+    csvContent = "col1,col2\nval1,val2",
+  ) {
     const team = await TeamService.create({ name: "Team" });
     const user = await UserService.create({
       username: "admin",
@@ -77,10 +91,10 @@ describe("humanAnnotations.route action - UPLOAD_HUMAN_CSV", () => {
     );
     formData.append(
       "file",
-      new File(["col1,col2\nval1,val2"], filename, { type: "text/csv" }),
+      new File([csvContent], filename, { type: "text/csv" }),
     );
 
-    await action({
+    const response = await action({
       request: new Request(
         "http://localhost/api/humanAnnotations/" + runSet._id,
         {
@@ -92,7 +106,7 @@ describe("humanAnnotations.route action - UPLOAD_HUMAN_CSV", () => {
       params: { runSetId: runSet._id },
     } as any);
 
-    return { runSet };
+    return { runSet, response };
   }
 
   it("sanitizes path traversal sequences in the uploaded filename", async () => {
@@ -114,5 +128,20 @@ describe("humanAnnotations.route action - UPLOAD_HUMAN_CSV", () => {
 
     expect(path.basename(uploadPath)).toBe("annotations.csv");
     expect(uploadPath).not.toContain("..");
+  });
+
+  it("stores the CSV and creates the run for a valid upload", async () => {
+    vi.spyOn(RunSetService, "addRunsToRunSet").mockResolvedValue({
+      errors: [],
+    } as never);
+
+    const { response } = await setupAndUpload(
+      "annotations.csv",
+      "session_id,annotator[joe][0]IS_QUESTION\nsession-a.json,FALSE",
+    );
+
+    expect((response.data as any).success).toBe(true);
+    expect(mockUpload).toHaveBeenCalledOnce();
+    expect(mocks.createHumanRun).toHaveBeenCalledOnce();
   });
 });

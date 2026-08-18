@@ -1,11 +1,16 @@
+import { RunService } from "~/modules/runs/run";
 import { RunSetService } from "~/modules/runSets/runSet";
 import { SessionService } from "~/modules/sessions/session";
+import findInvalidAnnotationValues from "../helpers/findInvalidAnnotationValues";
+import getAnnotationFieldTypes from "../helpers/getAnnotationFieldTypes";
 import parseAnnotationColumn from "../helpers/parseAnnotationColumns";
+import type { InvalidAnnotationField } from "../humanAnnotations.types";
 
 interface AnalyzeHumanCsvProps {
   headers: string[];
   sessionIds: string[];
   runSetId: string;
+  valuesByField?: Record<string, string[]>;
 }
 
 interface MatchedSession {
@@ -20,12 +25,15 @@ interface AnalyzeHumanCsvResult {
   matchedSessions: MatchedSession[];
   unmatchedSessionIds: string[];
   missingSessionNames: string[];
+  fieldTypes: Record<string, string>;
+  invalidValues: InvalidAnnotationField[];
 }
 
 export default async function analyzeHumanCsv({
   headers,
   sessionIds,
   runSetId,
+  valuesByField = {},
 }: AnalyzeHumanCsvProps): Promise<AnalyzeHumanCsvResult> {
   const annotatorSet = new Set<string>();
   const fieldSet = new Set<string>();
@@ -45,6 +53,14 @@ export default async function analyzeHumanCsv({
   const sessions = await SessionService.find({
     match: { _id: { $in: runSet.sessions } },
   });
+
+  const runs = runSet.runs?.length
+    ? await RunService.find({
+        match: { _id: { $in: runSet.runs } },
+        select: "snapshot.prompt.annotationSchema isHuman",
+      })
+    : [];
+  const fieldTypes = getAnnotationFieldTypes(runs);
 
   const matchedSessions: MatchedSession[] = [];
   const unmatchedSessionIds: string[] = [];
@@ -76,5 +92,7 @@ export default async function analyzeHumanCsv({
     matchedSessions,
     unmatchedSessionIds,
     missingSessionNames: missingSessions.map((s) => s.name),
+    fieldTypes,
+    invalidValues: findInvalidAnnotationValues(valuesByField, fieldTypes),
   };
 }

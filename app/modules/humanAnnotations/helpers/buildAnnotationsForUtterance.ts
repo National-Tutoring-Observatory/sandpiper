@@ -1,3 +1,4 @@
+import coerceAnnotationValue from "./coerceAnnotationValue";
 import parseAnnotationColumn from "./parseAnnotationColumns";
 
 interface AnnotationObject {
@@ -11,9 +12,10 @@ export default function buildAnnotationsForUtterance(
   utteranceId: string,
   annotator: string,
   headers: string[],
+  fieldTypes: Record<string, string>,
 ): AnnotationObject[] {
   // Group columns by index — each index produces one annotation object
-  const groups = new Map<number, Record<string, string>>();
+  const groups = new Map<number, Record<string, unknown>>();
 
   for (const header of headers) {
     const parsed = parseAnnotationColumn(header);
@@ -22,11 +24,20 @@ export default function buildAnnotationsForUtterance(
     const value = row[header];
     if (value === undefined || value === "") continue;
 
+    const coerced = coerceAnnotationValue(value, fieldTypes[parsed.field]);
+    if (!coerced.ok) {
+      // Fail the run rather than drop the cell — a silently missing gold label
+      // shrinks the set that agreement is scored over with nobody told
+      throw new Error(
+        `${parsed.field} expects ${fieldTypes[parsed.field]} values but found "${value}" on utterance ${utteranceId}`,
+      );
+    }
+
     if (!groups.has(parsed.index)) {
       groups.set(parsed.index, {});
     }
 
-    groups.get(parsed.index)![parsed.field] = value;
+    groups.get(parsed.index)![parsed.field] = coerced.value;
   }
 
   const annotations: AnnotationObject[] = [];

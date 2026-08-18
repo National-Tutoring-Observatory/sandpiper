@@ -11,6 +11,7 @@ interface UploadHumanAnnotationsProps {
   runIds: string[];
   annotators: string[];
   headers: string[];
+  fieldTypes: Record<string, string>;
   csvPath: string;
   projectId: string;
   matchedSessions: MatchedSession[];
@@ -20,6 +21,7 @@ export default async function uploadHumanAnnotations({
   runIds,
   annotators,
   headers,
+  fieldTypes,
   csvPath,
   projectId,
   matchedSessions,
@@ -46,6 +48,7 @@ export default async function uploadHumanAnnotations({
         sessionName: session.name,
         annotator,
         headers,
+        fieldTypes,
         csvPath,
         inputFile: `storage/${projectId}/preAnalysis/${session._id}/${session.name}`,
         outputFolder: `storage/${projectId}/runs/${runId}/${session._id}`,
