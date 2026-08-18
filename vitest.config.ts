@@ -4,7 +4,11 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
   test: {
-    exclude: ["**/node_modules/**", "**/dist/**", "e2e/**"],
+    include: [
+      "app/**/*.{test,spec}.{ts,tsx}",
+      "workers/**/*.{test,spec}.{ts,tsx}",
+    ],
+    exclude: ["**/node_modules/**"],
     globalSetup: "./test/vitest.globalSetup.ts",
     setupFiles: ["./test/vitest.dbSetup.ts"],
     coverage: {

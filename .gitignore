@@ -25,6 +25,7 @@
 /volume/
 /storage
 /.claude/settings.local.json
+/.claude/worktrees/
 
 # Playwright
 /e2e/.auth/
