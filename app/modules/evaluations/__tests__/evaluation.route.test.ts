@@ -1,8 +1,12 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { BillingPlanService } from "~/modules/billing/billingPlan";
+import { TeamBillingService } from "~/modules/billing/teamBilling";
 import { EvaluationService } from "~/modules/evaluations/evaluation";
+import { getAvailableProviders } from "~/modules/llm/modelRegistry";
 import { ProjectService } from "~/modules/projects/project";
 import { PromptService } from "~/modules/prompts/prompt";
 import { RunSetService } from "~/modules/runSets/runSet";
+import { SessionService } from "~/modules/sessions/session";
 import { TeamService } from "~/modules/teams/team";
 import { UserService } from "~/modules/users/user";
 import clearDocumentDB from "../../../../test/helpers/clearDocumentDB";
@@ -303,5 +307,154 @@ describe("evaluation.route action - START_ADJUDICATION IDOR protection", () => {
 
     expect(res.init?.status).toBe(400);
     expect(res.data.errors.runs).toBeDefined();
+  });
+});
+
+const testModel = getAvailableProviders()[0].models[0].code;
+
+describe("evaluation.route action - START_ADJUDICATION cost gate", () => {
+  beforeEach(async () => {
+    await clearDocumentDB();
+  });
+
+  async function setupFundedFixture({ withBilling }: { withBilling: boolean }) {
+    const team = await TeamService.create({ name: "Team" });
+    const user = await UserService.create({
+      username: "user",
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
+    const project = await ProjectService.create({
+      name: "Project",
+      createdBy: user._id,
+      team: team._id,
+    });
+    const session = await SessionService.create({
+      name: "Session",
+      project: project._id,
+    });
+    const run1 = await createTestRun({ name: "Run 1", project: project._id });
+    const run2 = await createTestRun({ name: "Run 2", project: project._id });
+    const runSet = await RunSetService.create({
+      name: "RunSet",
+      project: project._id,
+      annotationType: "PER_UTTERANCE",
+      runs: [run1._id, run2._id],
+      sessions: [session._id],
+    });
+    const evaluation = await EvaluationService.create({
+      name: "Eval",
+      project: project._id,
+      runSet: runSet._id,
+      runs: [run1._id, run2._id],
+    });
+    const prompt = await PromptService.create({
+      name: "Own",
+      annotationType: "PER_UTTERANCE",
+      team: team._id,
+    });
+
+    if (withBilling) {
+      await BillingPlanService.create({
+        name: "Default",
+        markupRate: 1.5,
+        isDefault: true,
+      });
+      await TeamBillingService.setupTeamBilling(team._id);
+    }
+
+    const cookieHeader = await loginUser(user._id);
+    return {
+      team,
+      project,
+      runSet,
+      evaluation,
+      run1,
+      run2,
+      prompt,
+      cookieHeader,
+    };
+  }
+
+  function startAdjudication({
+    team,
+    project,
+    runSet,
+    evaluation,
+    cookieHeader,
+    payload,
+  }: {
+    team: { _id: string };
+    project: { _id: string };
+    runSet: { _id: string };
+    evaluation: { _id: string };
+    cookieHeader: string;
+    payload: Record<string, unknown>;
+  }) {
+    return action({
+      request: new Request("http://localhost/", {
+        method: "POST",
+        headers: { cookie: cookieHeader, "content-type": "application/json" },
+        body: JSON.stringify({ intent: "START_ADJUDICATION", payload }),
+      }),
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runSetId: runSet._id,
+        evaluationId: evaluation._id,
+      },
+    } as any);
+  }
+
+  it("returns 402 when the estimated cost exceeds the balance", async () => {
+    const fixture = await setupFundedFixture({ withBilling: true });
+
+    const res = (await startAdjudication({
+      ...fixture,
+      payload: {
+        selectedRuns: [fixture.run1._id, fixture.run2._id],
+        modelCode: testModel,
+        promptId: fixture.prompt._id,
+        promptVersion: 1,
+      },
+    })) as any;
+
+    expect(res.init?.status).toBe(402);
+    expect(res.data.errors.credits).toBeDefined();
+  });
+
+  it("rejects a model code that is not in the config", async () => {
+    const fixture = await setupFundedFixture({ withBilling: true });
+
+    const res = (await startAdjudication({
+      ...fixture,
+      payload: {
+        selectedRuns: [fixture.run1._id, fixture.run2._id],
+        modelCode: "not.a.real.model",
+        promptId: fixture.prompt._id,
+        promptVersion: 1,
+      },
+    })) as any;
+
+    expect(res.init?.status).toBe(400);
+    expect(res.data.errors.model).toBeDefined();
+  });
+
+  it("rejects an unknown model before pricing it, so no billing plan is needed", async () => {
+    // Model validation must come before the estimate: estimateCost throws when
+    // the team has no plan, which would mask the 400 as a 500.
+    const fixture = await setupFundedFixture({ withBilling: false });
+
+    const res = (await startAdjudication({
+      ...fixture,
+      payload: {
+        selectedRuns: [fixture.run1._id, fixture.run2._id],
+        modelCode: "not.a.real.model",
+        promptId: fixture.prompt._id,
+        promptVersion: 1,
+      },
+    })) as any;
+
+    expect(res.init?.status).toBe(400);
+    expect(res.data.errors.model).toBeDefined();
   });
 });

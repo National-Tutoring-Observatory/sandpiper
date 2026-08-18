@@ -17,6 +17,8 @@ import AdjudicationDialogContainer from "~/modules/evaluations/containers/adjudi
 import { EvaluationService } from "~/modules/evaluations/evaluation";
 import getTopPerformersVsGoldLabel from "~/modules/evaluations/helpers/getTopPerformersVsGoldLabel";
 
+import { TeamBillingService } from "~/modules/billing/teamBilling";
+import { findModelByCode } from "~/modules/llm/modelRegistry";
 import ProjectAuthorization from "~/modules/projects/authorization";
 import {
   projectRunSetUrl,
@@ -137,6 +139,10 @@ export async function action({ request, params }: Route.ActionArgs) {
 
       const { modelCode, promptId, promptVersion } = payload;
 
+      if (!findModelByCode(modelCode)) {
+        return data({ errors: { model: "Invalid model" } }, { status: 400 });
+      }
+
       const promptDoc = await PromptService.findOne({
         _id: promptId,
         team: params.teamId,
@@ -145,6 +151,41 @@ export async function action({ request, params }: Route.ActionArgs) {
         return data(
           { errors: { prompt: "Prompt not found" } },
           { status: 404 },
+        );
+      }
+
+      // Adjudication annotates the run set's sessions once, with no verification
+      // pass — mirror that here or the gate prices the wrong amount of work.
+      const teamId =
+        typeof project.team === "string" ? project.team : project.team._id;
+      const [balance, estimate] = await Promise.all([
+        TeamBillingService.getBalance(teamId),
+        TeamBillingService.estimateCost({
+          teamId,
+          projectId: params.projectId,
+          sessionIds: runSet.sessions ?? [],
+          definitions: [
+            {
+              key: `${promptId}:${promptVersion}:${modelCode}`,
+              modelCode,
+              prompt: {
+                promptId,
+                promptName: promptDoc.name,
+                version: Number(promptVersion),
+              },
+            },
+          ],
+          shouldRunVerification: false,
+        }),
+      ]);
+      if (estimate.estimatedCost > balance) {
+        return data(
+          {
+            errors: {
+              credits: "Insufficient credits to start an adjudication",
+            },
+          },
+          { status: 402 },
         );
       }
 
