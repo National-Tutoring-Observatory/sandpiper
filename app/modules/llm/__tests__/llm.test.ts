@@ -26,9 +26,12 @@ vi.mock("../helpers/getLLM", () => ({
   }),
 }));
 
+const defaultCalculateLlmCost = ({ inputTokens, outputTokens }: any) =>
+  (inputTokens + outputTokens) * 0.00001;
+const mockCalculateLlmCost = vi.fn(defaultCalculateLlmCost);
+
 vi.mock("../helpers/calculateLlmCost", () => ({
-  default: ({ inputTokens, outputTokens }: any) =>
-    (inputTokens + outputTokens) * 0.00001,
+  default: (input: any) => mockCalculateLlmCost(input),
 }));
 
 vi.mock("~/modules/billing/services/applyBillingDebit.server", () => ({
@@ -51,6 +54,7 @@ beforeEach(async () => {
   vi.resetModules();
   mockCreateChat.mockReset();
   mockCostCreate.mockReset().mockResolvedValue({});
+  mockCalculateLlmCost.mockReset().mockImplementation(defaultCalculateLlmCost);
   const mod = await import("../llm");
   LLM = mod.default;
 });
@@ -234,6 +238,30 @@ describe("LLM", () => {
       llm.addUserMessage("test", {});
 
       await expect(llm.createChat()).resolves.toEqual({ result: "ok" });
+    });
+
+    it("propagates pricing failures instead of billing nothing", async () => {
+      mockCalculateLlmCost.mockImplementationOnce(() => {
+        throw new Error("No pricing found for model: test-model");
+      });
+      mockCreateChat.mockResolvedValueOnce({
+        content: { result: "ok" },
+        usage: mockUsage,
+      });
+
+      const llm = new LLM({
+        source: SOURCE,
+        model: MODEL,
+        userId: "user-123",
+        billingEventId: makeBillingEventId("pricing-failure"),
+        team: "team-1",
+      });
+      llm.addUserMessage("test", {});
+
+      await expect(llm.createChat()).rejects.toThrow(
+        "No pricing found for model: test-model",
+      );
+      expect(mockCostCreate).not.toHaveBeenCalled();
     });
   });
 

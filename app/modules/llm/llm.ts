@@ -98,15 +98,21 @@ class LLM {
     if (delta.inputTokens === 0 && delta.outputTokens === 0) return;
     if (!this.options.team) return;
 
+    const applyBillingDebit = (
+      await import("~/modules/billing/services/applyBillingDebit.server")
+    ).default;
+
+    // Deliberately outside the try: a pricing failure means the tokens were
+    // really spent at the provider and we cannot price them, so swallowing it
+    // hands out free usage with nothing but a log line to show for it. Let it
+    // propagate — the callers turn it into an ERRORED session or a 500.
+    const rawAmount = calculateLlmCost({
+      modelCode: this.options.model,
+      inputTokens: delta.inputTokens,
+      outputTokens: delta.outputTokens,
+    });
+
     try {
-      const applyBillingDebit = (
-        await import("~/modules/billing/services/applyBillingDebit.server")
-      ).default;
-      const rawAmount = calculateLlmCost({
-        modelCode: this.options.model,
-        inputTokens: delta.inputTokens,
-        outputTokens: delta.outputTokens,
-      });
       await applyBillingDebit({
         teamId: this.options.team,
         userId: this.options.userId,
