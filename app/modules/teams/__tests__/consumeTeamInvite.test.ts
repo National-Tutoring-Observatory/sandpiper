@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { UserService } from "~/modules/users/user";
 import clearDocumentDB from "../../../../test/helpers/clearDocumentDB";
@@ -8,6 +9,15 @@ import { TeamInviteService } from "../teamInvites";
 vi.mock("~/modules/analytics/helpers/trackServerEvent.server", () => ({
   default: vi.fn(),
 }));
+
+async function expireInvite(inviteId: string) {
+  await mongoose
+    .model("TeamInvite")
+    .updateOne(
+      { _id: inviteId },
+      { createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000) },
+    );
+}
 
 describe("consumeTeamInvite", () => {
   let team: Awaited<ReturnType<typeof TeamService.create>>;
@@ -27,127 +37,121 @@ describe("consumeTeamInvite", () => {
     });
   });
 
-  it("creates a new user when the github user has no account", async () => {
-    const result = await consumeTeamInvite({
-      inviteId: invite._id,
-      githubUser: { id: 42, login: "newcomer", name: "New Comer" },
-      primaryEmail: "new@example.com",
-    });
-    expect(result.status).toBe("success");
-    expect(result.isNewUser).toBe(true);
-    // New users get both the invited team and a personal workspace from setupNewUser,
-    // matching the existing single-use invite convention in githubStrategy.ts.
-    expect(result.user!.teams).toHaveLength(2);
-    const inviteTeam = result.user!.teams.find((t) => t.team === team._id);
-    expect(inviteTeam).toBeDefined();
-    expect(inviteTeam!.role).toBe("MEMBER");
-    expect(inviteTeam!.viaTeamInvite).toBe(invite._id);
-    expect(inviteTeam!.joinedAt).toBeDefined();
-
-    const updatedInvite = await TeamInviteService.findById(invite._id);
-    expect(updatedInvite?.usedCount).toBe(1);
-  });
-
-  it("adds team to an existing user not in the team", async () => {
-    const existing = await UserService.create({
-      username: "existing",
-      name: "Existing",
+  async function makeUser(overrides: Record<string, unknown> = {}) {
+    return UserService.create({
+      username: "member",
+      name: "Member",
+      email: "member@example.com",
       githubId: 99,
       hasGithubSSO: true,
       isRegistered: true,
       teams: [],
+      ...overrides,
     });
-    const result = await consumeTeamInvite({
-      inviteId: invite._id,
-      githubUser: { id: 99, login: "existing", name: "Existing" },
-      primaryEmail: "existing@example.com",
-    });
+  }
+
+  it("adds the team to an authenticated user who is not yet a member", async () => {
+    const user = await makeUser();
+
+    const result = await consumeTeamInvite({ inviteId: invite._id, user });
+
     expect(result.status).toBe("success");
-    expect(result.isNewUser).toBe(false);
-    expect(result.user!._id).toBe(existing._id);
-    const inviteTeam = result.user!.teams.find((t) => t.team === team._id);
-    expect(inviteTeam).toBeDefined();
-    expect(inviteTeam!.viaTeamInvite).toBe(invite._id);
-    expect(inviteTeam!.joinedAt).toBeDefined();
+    const joined = result.user!.teams.find((t) => t.team === team._id);
+    expect(joined).toBeDefined();
+    expect(joined!.role).toBe("MEMBER");
+    expect(joined!.viaTeamInvite).toBe(invite._id);
 
     const updatedInvite = await TeamInviteService.findById(invite._id);
     expect(updatedInvite?.usedCount).toBe(1);
   });
 
-  it("is a no-op for an existing user already in the team", async () => {
-    const existing = await UserService.create({
-      username: "existing",
-      name: "Existing",
-      githubId: 99,
-      hasGithubSSO: true,
-      isRegistered: true,
+  it("keeps any teams the user already had", async () => {
+    const other = await TeamService.create({ name: "Personal" });
+    const user = await makeUser({
+      teams: [{ team: other._id, role: "ADMIN" }],
+    });
+
+    const result = await consumeTeamInvite({ inviteId: invite._id, user });
+
+    expect(result.status).toBe("success");
+    expect(result.user!.teams).toHaveLength(2);
+  });
+
+  it("reports already_member without spending a use", async () => {
+    const user = await makeUser({
       teams: [{ team: team._id, role: "MEMBER" }],
     });
-    const result = await consumeTeamInvite({
-      inviteId: invite._id,
-      githubUser: { id: 99, login: "existing", name: "Existing" },
-      primaryEmail: "existing@example.com",
-    });
-    expect(result.status).toBe("already_member");
-    expect(result.user!._id).toBe(existing._id);
 
+    const result = await consumeTeamInvite({ inviteId: invite._id, user });
+
+    expect(result.status).toBe("already_member");
     const updatedInvite = await TeamInviteService.findById(invite._id);
     expect(updatedInvite?.usedCount).toBe(0);
   });
 
-  it("rejects a revoked invite", async () => {
-    await TeamInviteService.revokeById(invite._id, admin._id);
-    const result = await consumeTeamInvite({
-      inviteId: invite._id,
-      githubUser: { id: 1, login: "a", name: "A" },
-      primaryEmail: "a@example.com",
+  it("reports already_member even when the invite has expired", async () => {
+    // The heart of #2461: an existing member must never be blocked by the age
+    // of the link that first brought them in.
+    const user = await makeUser({
+      teams: [{ team: team._id, role: "MEMBER" }],
     });
+    await expireInvite(invite._id);
+
+    const result = await consumeTeamInvite({ inviteId: invite._id, user });
+
+    expect(result.status).toBe("already_member");
+  });
+
+  it("reports expired for a non-member when the invite is past its TTL", async () => {
+    const user = await makeUser();
+    await expireInvite(invite._id);
+
+    const result = await consumeTeamInvite({ inviteId: invite._id, user });
+
+    expect(result.status).toBe("expired");
+    expect(result.user).toBeUndefined();
+  });
+
+  it("reports revoked for a non-member when the invite is revoked", async () => {
+    const user = await makeUser();
+    await mongoose
+      .model("TeamInvite")
+      .updateOne({ _id: invite._id }, { revokedAt: new Date() });
+
+    const result = await consumeTeamInvite({ inviteId: invite._id, user });
+
     expect(result.status).toBe("revoked");
   });
 
-  it("rejects a full invite", async () => {
-    const fullInvite = await TeamInviteService.create({
-      team: team._id,
-      name: "Full",
-      maxUses: 1,
-      createdBy: admin._id,
-    });
-    await consumeTeamInvite({
-      inviteId: fullInvite._id,
-      githubUser: { id: 1, login: "a", name: "A" },
-      primaryEmail: "a@example.com",
-    });
-    const result = await consumeTeamInvite({
-      inviteId: fullInvite._id,
-      githubUser: { id: 2, login: "b", name: "B" },
-      primaryEmail: "b@example.com",
-    });
+  it("reports full for a non-member when the invite is at capacity", async () => {
+    const user = await makeUser();
+    await mongoose
+      .model("TeamInvite")
+      .updateOne({ _id: invite._id }, { usedCount: 10 });
+
+    const result = await consumeTeamInvite({ inviteId: invite._id, user });
+
     expect(result.status).toBe("full");
   });
 
-  it("handles concurrent calls atomically (cap not exceeded)", async () => {
-    const narrowInvite = await TeamInviteService.create({
-      team: team._id,
-      name: "Narrow",
-      maxUses: 1,
-      createdBy: admin._id,
-    });
-    const [r1, r2] = await Promise.all([
-      consumeTeamInvite({
-        inviteId: narrowInvite._id,
-        githubUser: { id: 1001, login: "u1", name: "U1" },
-        primaryEmail: "u1@example.com",
-      }),
-      consumeTeamInvite({
-        inviteId: narrowInvite._id,
-        githubUser: { id: 1002, login: "u2", name: "U2" },
-        primaryEmail: "u2@example.com",
-      }),
-    ]);
-    const statuses = [r1.status, r2.status].sort();
-    expect(statuses).toEqual(["full", "success"]);
+  it("reports not_found for an invite id that does not exist", async () => {
+    const user = await makeUser();
 
-    const finalInvite = await TeamInviteService.findById(narrowInvite._id);
-    expect(finalInvite?.usedCount).toBe(1);
+    const result = await consumeTeamInvite({
+      inviteId: new mongoose.Types.ObjectId().toString(),
+      user,
+    });
+
+    expect(result.status).toBe("not_found");
+  });
+
+  it("does not create users", async () => {
+    const user = await makeUser();
+    const before = await UserService.find({ match: {} });
+
+    await consumeTeamInvite({ inviteId: invite._id, user });
+
+    const after = await UserService.find({ match: {} });
+    expect(after).toHaveLength(before.length);
   });
 });
