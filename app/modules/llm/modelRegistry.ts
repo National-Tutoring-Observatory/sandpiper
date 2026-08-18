@@ -68,6 +68,9 @@ export function findModelByCode(
 }
 
 export function getModelPricing(code: string): PricingTier[] {
-  const model = findModelByCode(code);
+  // Deprecated models are hidden from the pickers but still have runs in flight
+  // and historical ledger entries — pricing must keep resolving or billing is
+  // silently skipped.
+  const model = findModelByCode(code, { includeDeprecated: true });
   return model?.pricing ?? [];
 }
