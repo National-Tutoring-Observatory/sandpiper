@@ -2,6 +2,7 @@ import { About } from "./splash/about";
 import { AnnouncementBanner } from "./splash/announcementBanner";
 import { Benefits } from "./splash/benefits";
 import { CTASection } from "./splash/ctaSection";
+import { DataPrivacy } from "./splash/dataPrivacy";
 import { Features } from "./splash/features";
 import { Footer } from "./splash/footer";
 import { Hero } from "./splash/hero";
@@ -30,8 +31,9 @@ export default function Splash() {
       <Research />
       <About />
       <Impact />
+      <DataPrivacy />
       <CTASection />
-      <Footer />
+      <Footer sectionHrefPrefix="" />
     </div>
   );
 }

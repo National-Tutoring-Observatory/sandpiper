@@ -14,6 +14,7 @@ export function Navbar() {
     { label: "Evaluation", href: "#metrics" },
     { label: "Research", href: "#research" },
     { label: "About", href: "#about" },
+    { label: "Privacy", href: "#privacy" },
   ];
 
   return (

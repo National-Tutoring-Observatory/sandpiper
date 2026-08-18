@@ -43,6 +43,7 @@ export const meta: Route.MetaFunction = () => [{ title: "Sandpiper - NTO" }];
 
 const TERMS_EXEMPT_PATHS = [
   "/onboarding",
+  "/privacy",
   "/auth/",
   "/api/authentication",
   "/api/webhooks/",
