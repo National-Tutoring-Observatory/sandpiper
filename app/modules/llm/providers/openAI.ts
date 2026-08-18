@@ -13,17 +13,18 @@ registerLLM("OPEN_AI", {
   },
   createChat: async ({
     llm,
+    options,
     messages,
     schema,
   }: {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     llm: any;
-    options: unknown;
+    options: { model: string };
     messages: Array<{ role: string; content: string }>;
     schema?: object;
   }) => {
     const requestParams: Record<string, unknown> = {
-      model: "gpt-4o",
+      model: options.model,
       messages: messages,
     };
 
