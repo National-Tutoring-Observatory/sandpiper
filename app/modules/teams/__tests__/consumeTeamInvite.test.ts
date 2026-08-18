@@ -60,6 +60,7 @@ describe("consumeTeamInvite", () => {
     expect(joined).toBeDefined();
     expect(joined!.role).toBe("MEMBER");
     expect(joined!.viaTeamInvite).toBe(invite._id);
+    expect(joined!.joinedAt).toBeDefined();
 
     const updatedInvite = await TeamInviteService.findById(invite._id);
     expect(updatedInvite?.usedCount).toBe(1);
@@ -143,6 +144,50 @@ describe("consumeTeamInvite", () => {
     });
 
     expect(result.status).toBe("not_found");
+  });
+
+  it("spends one use when the same user submits twice at once", async () => {
+    const user = await makeUser();
+
+    // Both requests carry the snapshot requireAuth handed them, taken before
+    // either write landed — a double-clicked Join button.
+    const results = await Promise.all([
+      consumeTeamInvite({ inviteId: invite._id, user }),
+      consumeTeamInvite({ inviteId: invite._id, user }),
+    ]);
+
+    const updatedInvite = await TeamInviteService.findById(invite._id);
+    expect(updatedInvite?.usedCount).toBe(1);
+
+    const fresh = await UserService.findById(user._id);
+    const joins = fresh!.teams.filter((t) => t.team === team._id);
+    expect(joins).toHaveLength(1);
+
+    expect(results.filter((r) => r.status === "success")).toHaveLength(1);
+    expect(results.filter((r) => r.status === "already_member")).toHaveLength(
+      1,
+    );
+  });
+
+  it("does not drop a team added while the invite was being consumed", async () => {
+    const other = await TeamService.create({ name: "Added Meanwhile" });
+    const user = await makeUser();
+
+    // The caller's snapshot predates this write, so a whole-array update would
+    // clobber it.
+    await mongoose
+      .model("User")
+      .updateOne(
+        { _id: user._id },
+        { $push: { teams: { team: other._id, role: "ADMIN" } } },
+      );
+
+    await consumeTeamInvite({ inviteId: invite._id, user });
+
+    const fresh = await UserService.findById(user._id);
+    const teamIds = fresh!.teams.map((t) => t.team);
+    expect(teamIds).toContain(other._id);
+    expect(teamIds).toContain(team._id);
   });
 
   it("does not create users", async () => {
