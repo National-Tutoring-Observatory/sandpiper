@@ -8,8 +8,10 @@ import {
 } from "react-router";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import { UserService } from "~/modules/users/user";
+import sessionStorage from "../../../../sessionStorage";
 import Onboarding from "../components/onboarding";
 import TermsAcceptance from "../components/termsAcceptance";
+import sanitizeReturnTo from "../helpers/sanitizeReturnTo";
 import type { Route } from "./+types/onboarding.route";
 
 const VALID_ROLES = [
@@ -91,7 +93,17 @@ export async function action({ request }: Route.ActionArgs) {
       onboardingComplete: true,
     });
 
-    return data({ success: true, data: { redirectTo: "/" } });
+    const session = await sessionStorage.getSession(
+      request.headers.get("cookie"),
+    );
+    const redirectTo = sanitizeReturnTo(session.get("returnTo"));
+
+    return data(
+      { success: true, data: { redirectTo } },
+      {
+        headers: { "Set-Cookie": await sessionStorage.commitSession(session) },
+      },
+    );
   }
 
   return data({ errors: { general: "Invalid intent" } }, { status: 400 });
