@@ -3,6 +3,7 @@ import type { ModelInfo, PricingTier, Provider } from "./model.types";
 
 interface ModelConfig {
   defaultModel: string;
+  taskModels: Record<string, string>;
   providers: Array<{
     name: string;
     models: Array<{
@@ -16,8 +17,40 @@ interface ModelConfig {
 
 const aiGatewayConfig = aiGatewayConfigRaw as unknown as ModelConfig;
 
+export type TaskModelRole =
+  | "promptAlignment"
+  | "promptSuggestions"
+  | "codebookImport";
+
 export function getDefaultModelCode(): string {
   return aiGatewayConfig.defaultModel;
+}
+
+// Model codes are never written in application source — a call that needs a
+// specific model names a role here, so the config stays the only enumeration of
+// codes and modelAvailability.test.ts can cover every one of them. Resolving
+// eagerly against providers turns a config mistake into a loud failure instead
+// of usage the billing path cannot price.
+export function getTaskModelCode(role: TaskModelRole): string {
+  const code = aiGatewayConfig.taskModels?.[role];
+  if (!code) {
+    throw new Error(`No taskModels entry configured for role: ${role}`);
+  }
+
+  const model = findModelByCode(code);
+  if (!model) {
+    throw new Error(
+      `taskModels.${role} is "${code}", which is deprecated or not in providers`,
+    );
+  }
+
+  if (!model.pricing?.length) {
+    throw new Error(
+      `taskModels.${role} is "${code}", which has no pricing and would not be billed`,
+    );
+  }
+
+  return code;
 }
 
 export function getAvailableProviders(): Provider[] {

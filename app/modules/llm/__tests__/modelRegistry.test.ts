@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
+import aiGatewayConfig from "~/config/ai_gateway.json";
+import type { TaskModelRole } from "../modelRegistry";
 import {
   findModelByCode,
   getAvailableModels,
   getAvailableProviders,
   getDefaultModelCode,
   getModelPricing,
+  getTaskModelCode,
 } from "../modelRegistry";
 
 describe("modelRegistry", () => {
@@ -88,14 +91,44 @@ describe("modelRegistry", () => {
     });
   });
 
+  describe("getTaskModelCode", () => {
+    const roles = Object.keys(aiGatewayConfig.taskModels) as TaskModelRole[];
+
+    it("the config declares at least one task model role", () => {
+      expect(roles.length).toBeGreaterThan(0);
+    });
+
+    it.each(roles)("%s resolves to a selectable, priced model", (role) => {
+      const code = getTaskModelCode(role);
+
+      expect(
+        findModelByCode(code),
+        `taskModels.${role} is "${code}", which is deprecated or not in providers`,
+      ).not.toBeNull();
+      expect(
+        getModelPricing(code).length,
+        `taskModels.${role} resolves to "${code}", which has no pricing tiers`,
+      ).toBeGreaterThan(0);
+    });
+
+    it("throws for a role the config does not declare", () => {
+      expect(() => getTaskModelCode("notARole" as TaskModelRole)).toThrow(
+        /notARole/,
+      );
+    });
+  });
+
   describe("config validation", () => {
-    it("every model has a non-empty pricing array", () => {
-      const models = getAvailableModels();
-      for (const model of models) {
-        expect(
-          model.pricing?.length,
-          `Model ${model.code} has no pricing tiers`,
-        ).toBeGreaterThan(0);
+    it("every model has a non-empty pricing array, deprecated included", () => {
+      // getAvailableModels() hides deprecated entries, but those keep resolving
+      // for pricing on in-flight runs, so they need the same guarantee.
+      for (const provider of aiGatewayConfig.providers) {
+        for (const model of provider.models) {
+          expect(
+            model.pricing?.length,
+            `Model ${model.code} has no pricing tiers`,
+          ).toBeGreaterThan(0);
+        }
       }
     });
 
