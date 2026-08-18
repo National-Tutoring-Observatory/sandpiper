@@ -332,6 +332,15 @@ const [result1, result2] = await Promise.all([
 ]);
 ```
 
+### Model Codes (`app/config/ai_gateway.json`)
+
+A model's `code` is a **stored identity**, not just the name sent to the gateway. It is frozen into `run.snapshot.model.code` and `billingLedgerEntry.model`, and both are grouped on directly (`getAdminSpendOverview`, `getBillingSpendAnalytics` do `$group: { _id: "$model" }`). The ledger is append-only, so those values cannot be migrated.
+
+- **Never rename the `code` of a model that has already shipped.** Renaming splits one model into two identities — duplicate rows with the same display name and halved totals in spend reporting.
+- The gateway renamed its models to provider-native naming and keeps the old names as hidden aliases, so shipped codes keep working. Only **new** models get canonical names. The config therefore mixes both conventions on purpose — do not tidy it up.
+- Retire a model with `"deprecated": true`, never by deleting the entry. Deprecated models stay out of the pickers but keep resolving for pricing and display, which is why `getModelPricing` passes `includeDeprecated`.
+- `defaultModel` must point at a non-deprecated model — session uploads call it with no fallback, so a retired default breaks uploads outright. `modelAvailability.test.ts` guards this and checks every selectable code against a snapshot of the gateway listing; refresh instructions are in `gatewayModels.fixture.json`.
+
 ## Path Aliases
 
 ```typescript
