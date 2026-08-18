@@ -2,6 +2,7 @@ import dayjs from "dayjs";
 import find from "lodash/find";
 import mongoose from "mongoose";
 import teamInviteSchema from "~/lib/schemas/teamInvite.schema";
+import userSchema from "~/lib/schemas/user.schema";
 import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
 import getTeamInviteStatus from "~/modules/teams/helpers/getTeamInviteStatus";
 import INVITE_LINK_TTL_DAYS from "~/modules/teams/helpers/inviteLink";
@@ -12,6 +13,15 @@ import type { User } from "~/modules/users/users.types";
 
 const TeamInviteModel =
   mongoose.models.TeamInvite || mongoose.model("TeamInvite", teamInviteSchema);
+
+const UserModel = mongoose.models.User || mongoose.model("User", userSchema);
+
+function releaseInviteUse(inviteId: string) {
+  return TeamInviteModel.updateOne(
+    { _id: inviteId },
+    { $inc: { usedCount: -1 } },
+  );
+}
 
 export type ConsumeStatus =
   | "success"
@@ -68,13 +78,41 @@ export default async function consumeTeamInvite({
     return { status: currentStatus };
   }
 
-  const updatedTeams = [
-    ...user.teams,
-    { team: invite.team, role: "MEMBER" as const, viaTeamInvite: invite._id },
-  ];
-  const updated = (await UserService.updateById(user._id, {
-    teams: updatedTeams,
-  })) as User;
+  // Conditional single-document push. It is atomic, so of two concurrent
+  // submits only one can add the membership, and it cannot clobber teams
+  // written since the caller's snapshot of `user` was taken. `joinedAt` is set
+  // explicitly because schema defaults do not apply to a raw $push.
+  let pushed;
+  try {
+    pushed = await UserModel.updateOne(
+      { _id: user._id, "teams.team": { $ne: invite.team } },
+      {
+        $push: {
+          teams: {
+            team: invite.team,
+            role: "MEMBER" as const,
+            viaTeamInvite: invite._id,
+            joinedAt: new Date(),
+          },
+        },
+      },
+    );
+  } catch (error) {
+    await releaseInviteUse(inviteId);
+    throw error;
+  }
+
+  if (pushed.modifiedCount === 0) {
+    // Lost the race to a concurrent submit, so give back the use we reserved.
+    await releaseInviteUse(inviteId);
+    return {
+      status: "already_member",
+      user: (await UserService.findById(user._id)) as User,
+      invite,
+    };
+  }
+
+  const updated = (await UserService.findById(user._id)) as User;
 
   trackServerEvent({
     name: "team_invite_signup",
