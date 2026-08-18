@@ -1,23 +1,33 @@
 {
-  "defaultModel": "nto.google.gemini-3-flash-preview",
+  "defaultModel": "nto.gemini-3.1-flash-lite",
   "providers": [
     {
       "name": "Google",
       "models": [
         {
-          "name": "Gemini 2.5 Flash Lite",
-          "code": "nto.google.gemini-2.5-flash-lite",
-          "pricing": [{ "inputCostPer1M": 0.1, "outputCostPer1M": 0.4 }]
+          "name": "Gemini 3.7 Flash",
+          "code": "nto.gemini-3.7-flash",
+          "pricing": [{ "inputCostPer1M": 0.75, "outputCostPer1M": 3.75 }]
+        },
+        {
+          "name": "Gemini 3.6 Flash",
+          "code": "nto.gemini-3.6-flash",
+          "pricing": [{ "inputCostPer1M": 1.5, "outputCostPer1M": 7.5 }]
+        },
+        {
+          "name": "Gemini 3.5 Flash Lite",
+          "code": "nto.gemini-3.5-flash-lite",
+          "pricing": [{ "inputCostPer1M": 0.3, "outputCostPer1M": 2.5 }]
+        },
+        {
+          "name": "Gemini 3.5 Flash",
+          "code": "nto.google.gemini-3.5-flash",
+          "pricing": [{ "inputCostPer1M": 1.5, "outputCostPer1M": 9.0 }]
         },
         {
           "name": "Gemini 3.1 Flash Lite",
-          "code": "nto.google.gemini-3.1-flash-lite-preview",
+          "code": "nto.gemini-3.1-flash-lite",
           "pricing": [{ "inputCostPer1M": 0.25, "outputCostPer1M": 1.5 }]
-        },
-        {
-          "name": "Gemini 3 Flash Preview",
-          "code": "nto.google.gemini-3-flash-preview",
-          "pricing": [{ "inputCostPer1M": 0.5, "outputCostPer1M": 3.0 }]
         },
         {
           "name": "Gemini 3.1 Pro Preview",
@@ -32,9 +42,50 @@
           ]
         },
         {
-          "name": "Gemini 3.5 Flash",
-          "code": "nto.google.gemini-3.5-flash",
-          "pricing": [{ "inputCostPer1M": 1.5, "outputCostPer1M": 9.0 }]
+          "name": "Gemini 3.1 Pro Preview (Custom Tools)",
+          "code": "nto.gemini-3.1-pro-preview-customtools",
+          "pricing": [
+            {
+              "upToInputTokens": 200000,
+              "inputCostPer1M": 2.0,
+              "outputCostPer1M": 12.0
+            },
+            { "inputCostPer1M": 4.0, "outputCostPer1M": 18.0 }
+          ]
+        },
+        {
+          "name": "Gemini 2.5 Flash Lite",
+          "code": "nto.google.gemini-2.5-flash-lite",
+          "pricing": [{ "inputCostPer1M": 0.1, "outputCostPer1M": 0.4 }]
+        },
+        {
+          "name": "Gemini 2.5 Flash",
+          "code": "nto.gemini-2.5-flash",
+          "pricing": [{ "inputCostPer1M": 0.3, "outputCostPer1M": 2.5 }]
+        },
+        {
+          "name": "Gemini 2.5 Pro",
+          "code": "nto.gemini-2.5-pro",
+          "pricing": [
+            {
+              "upToInputTokens": 200000,
+              "inputCostPer1M": 1.25,
+              "outputCostPer1M": 10.0
+            },
+            { "inputCostPer1M": 2.5, "outputCostPer1M": 15.0 }
+          ]
+        },
+        {
+          "name": "Gemini 3 Flash Preview",
+          "code": "nto.google.gemini-3-flash-preview",
+          "deprecated": true,
+          "pricing": [{ "inputCostPer1M": 0.5, "outputCostPer1M": 3.0 }]
+        },
+        {
+          "name": "Gemini 3.1 Flash Lite Preview",
+          "code": "nto.google.gemini-3.1-flash-lite-preview",
+          "deprecated": true,
+          "pricing": [{ "inputCostPer1M": 0.25, "outputCostPer1M": 1.5 }]
         }
       ]
     },
@@ -42,19 +93,9 @@
       "name": "OpenAI",
       "models": [
         {
-          "name": "GPT-5 Mini",
-          "code": "openai.gpt-5-mini",
-          "pricing": [{ "inputCostPer1M": 0.25, "outputCostPer1M": 2.0 }]
-        },
-        {
-          "name": "GPT-5.1",
-          "code": "openai.gpt-5.1",
-          "pricing": [{ "inputCostPer1M": 1.25, "outputCostPer1M": 10.0 }]
-        },
-        {
-          "name": "GPT-5.2",
-          "code": "openai.gpt-5.2",
-          "pricing": [{ "inputCostPer1M": 1.75, "outputCostPer1M": 14.0 }]
+          "name": "GPT-5.5",
+          "code": "openai.gpt-5.5",
+          "pricing": [{ "inputCostPer1M": 5.0, "outputCostPer1M": 30.0 }]
         },
         {
           "name": "GPT-5.4 Nano",
@@ -72,9 +113,19 @@
           "pricing": [{ "inputCostPer1M": 2.5, "outputCostPer1M": 15.0 }]
         },
         {
-          "name": "GPT-5.5",
-          "code": "openai.gpt-5.5",
-          "pricing": [{ "inputCostPer1M": 5.0, "outputCostPer1M": 30.0 }]
+          "name": "GPT-5.2",
+          "code": "openai.gpt-5.2",
+          "pricing": [{ "inputCostPer1M": 1.75, "outputCostPer1M": 14.0 }]
+        },
+        {
+          "name": "GPT-5.1",
+          "code": "openai.gpt-5.1",
+          "pricing": [{ "inputCostPer1M": 1.25, "outputCostPer1M": 10.0 }]
+        },
+        {
+          "name": "GPT-5 Mini",
+          "code": "openai.gpt-5-mini",
+          "pricing": [{ "inputCostPer1M": 0.25, "outputCostPer1M": 2.0 }]
         }
       ]
     },
@@ -82,18 +133,13 @@
       "name": "Anthropic",
       "models": [
         {
-          "name": "Claude 4.5 Haiku",
-          "code": "anthropic.claude-4.5-haiku",
-          "pricing": [{ "inputCostPer1M": 1.0, "outputCostPer1M": 5.0 }]
+          "name": "Claude 4.8 Opus",
+          "code": "claude-opus-4-8",
+          "pricing": [{ "inputCostPer1M": 5.0, "outputCostPer1M": 25.0 }]
         },
         {
-          "name": "Claude 4.5 Sonnet",
-          "code": "anthropic.claude-4.5-sonnet",
-          "pricing": [{ "inputCostPer1M": 3.0, "outputCostPer1M": 15.0 }]
-        },
-        {
-          "name": "Claude 4.5 Opus",
-          "code": "anthropic.claude-4.5-opus",
+          "name": "Claude 4.7 Opus",
+          "code": "anthropic.claude-4.7-opus",
           "pricing": [{ "inputCostPer1M": 5.0, "outputCostPer1M": 25.0 }]
         },
         {
@@ -107,13 +153,18 @@
           "pricing": [{ "inputCostPer1M": 5.0, "outputCostPer1M": 25.0 }]
         },
         {
-          "name": "Claude 4.7 Opus",
-          "code": "anthropic.claude-4.7-opus",
-          "pricing": [{ "inputCostPer1M": 5.0, "outputCostPer1M": 25.0 }]
+          "name": "Claude 4.5 Haiku",
+          "code": "anthropic.claude-4.5-haiku",
+          "pricing": [{ "inputCostPer1M": 1.0, "outputCostPer1M": 5.0 }]
         },
         {
-          "name": "Claude 4.8 Opus",
-          "code": "claude-opus-4-8",
+          "name": "Claude 4.5 Sonnet",
+          "code": "anthropic.claude-4.5-sonnet",
+          "pricing": [{ "inputCostPer1M": 3.0, "outputCostPer1M": 15.0 }]
+        },
+        {
+          "name": "Claude 4.5 Opus",
+          "code": "anthropic.claude-4.5-opus",
           "pricing": [{ "inputCostPer1M": 5.0, "outputCostPer1M": 25.0 }]
         }
       ]

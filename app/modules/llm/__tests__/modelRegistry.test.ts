@@ -73,6 +73,19 @@ describe("modelRegistry", () => {
     it("returns empty array for unknown model", () => {
       expect(getModelPricing("nonexistent.model")).toEqual([]);
     });
+
+    it("returns pricing for a deprecated model", () => {
+      const deprecated = getAvailableProviders()
+        .flatMap((p) => p.models)
+        .map((m) => m.code);
+      const hidden = findModelByCode("nto.google.gemini-3-flash-preview", {
+        includeDeprecated: true,
+      });
+
+      expect(hidden).not.toBeNull();
+      expect(deprecated).not.toContain(hidden!.code);
+      expect(getModelPricing(hidden!.code).length).toBeGreaterThan(0);
+    });
   });
 
   describe("config validation", () => {
