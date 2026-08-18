@@ -28,6 +28,7 @@ export default function AuthenticationContainer({
   const isJoinRoute = useMatch("/join/:slug");
   const isSignupRoute = useMatch("/signup");
   const isOnboardingRoute = useMatch("/onboarding");
+  const isPrivacyRoute = useMatch("/privacy");
   const lastFetchRef = useRef<number>(0);
   const MIN_FETCH_INTERVAL = 1 * 60 * 1000;
   const prevAuthRef = useRef<User | null>(null);
@@ -67,7 +68,13 @@ export default function AuthenticationContainer({
     }
   }, [location.pathname]);
 
-  if (isInviteRoute || isJoinRoute || isSignupRoute || isOnboardingRoute) {
+  if (
+    isInviteRoute ||
+    isJoinRoute ||
+    isSignupRoute ||
+    isOnboardingRoute ||
+    isPrivacyRoute
+  ) {
     return <Outlet />;
   }
 

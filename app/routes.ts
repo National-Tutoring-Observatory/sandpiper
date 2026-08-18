@@ -168,6 +168,7 @@ export default [
   ...prefix("join", [
     route(":slug", "modules/teams/containers/join.route.tsx", { id: "join" }),
   ]),
+  route("privacy", "modules/authentication/containers/privacy.route.tsx"),
   route("signup", "modules/authentication/containers/signup.route.tsx"),
   route("onboarding", "modules/authentication/containers/onboarding.route.tsx"),
   route("api", "modules/app/containers/api.route.tsx"),

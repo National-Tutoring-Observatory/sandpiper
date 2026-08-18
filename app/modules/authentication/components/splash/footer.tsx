@@ -1,6 +1,9 @@
+import { Link } from "react-router";
 import sandpiperLogo from "~/assets/sandpiper-logo.svg";
 
-export function Footer() {
+// Section links are in-page anchors on the splash, but must navigate home
+// first from any other page. Pass "" on the splash and "/" elsewhere.
+export function Footer({ sectionHrefPrefix }: { sectionHrefPrefix: string }) {
   return (
     <footer className="bg-[#2C241B] py-8 text-[0.82rem] text-[rgba(255,255,255,0.5)]">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -23,29 +26,35 @@ export function Footer() {
           </div>
           <div className="flex gap-6">
             <a
-              href="#hero"
+              href={`${sectionHrefPrefix}#hero`}
               className="text-[rgba(255,255,255,0.55)] no-underline transition-colors hover:text-[#D4A843]"
             >
               Home
             </a>
             <a
-              href="#features"
+              href={`${sectionHrefPrefix}#features`}
               className="text-[rgba(255,255,255,0.55)] no-underline transition-colors hover:text-[#D4A843]"
             >
               Features
             </a>
             <a
-              href="#how-it-works"
+              href={`${sectionHrefPrefix}#how-it-works`}
               className="text-[rgba(255,255,255,0.55)] no-underline transition-colors hover:text-[#D4A843]"
             >
               How It Works
             </a>
             <a
-              href="#about"
+              href={`${sectionHrefPrefix}#about`}
               className="text-[rgba(255,255,255,0.55)] no-underline transition-colors hover:text-[#D4A843]"
             >
               About
             </a>
+            <Link
+              to="/privacy"
+              className="text-[rgba(255,255,255,0.55)] no-underline transition-colors hover:text-[#D4A843]"
+            >
+              Privacy Policy
+            </Link>
           </div>
           <div>
             <span>Built by </span>

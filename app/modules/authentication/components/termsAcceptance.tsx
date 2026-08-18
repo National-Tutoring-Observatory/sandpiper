@@ -9,7 +9,6 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import sandpiperLogo from "~/assets/sandpiper-logo.svg";
-import FullTermsDialog from "./fullTermsDialog";
 
 interface TermsAcceptanceProps {
   isSubmitting: boolean;
@@ -21,7 +20,6 @@ export default function TermsAcceptance({
   onAccept,
 }: TermsAcceptanceProps) {
   const [accepted, setAccepted] = useState(false);
-  const [termsOpen, setTermsOpen] = useState(false);
 
   return (
     <div className="bg-muted flex min-h-screen w-screen items-center justify-center">
@@ -76,13 +74,14 @@ export default function TermsAcceptance({
           >
             I have read and agree to the&nbsp;
           </Label>
-          <button
-            type="button"
+          <a
+            href="/privacy"
+            target="_blank"
+            rel="noreferrer"
             className="text-primary text-body -ml-1.5 font-semibold hover:underline"
-            onClick={() => setTermsOpen(true)}
           >
             Terms&nbsp;of&nbsp;Use and Privacy&nbsp;Policy
-          </button>
+          </a>
         </div>
 
         <Button
@@ -93,8 +92,6 @@ export default function TermsAcceptance({
           {isSubmitting ? "Saving..." : "Continue \u2192"}
         </Button>
       </div>
-
-      <FullTermsDialog open={termsOpen} onOpenChange={setTermsOpen} />
     </div>
   );
 }

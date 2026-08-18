@@ -1,12 +1,3 @@
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import {
   FileTextIcon,
   LockIcon,
@@ -14,38 +5,42 @@ import {
   XCircleIcon,
 } from "lucide-react";
 
-interface FullTermsDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
-
-export default function FullTermsDialog({
-  open,
-  onOpenChange,
-}: FullTermsDialogProps) {
+export function PrivacyPolicy() {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[85vh] flex-col sm:max-w-2xl">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <FileTextIcon className="size-5" />
-            Sandpiper Terms of Use and Privacy Policy
-          </DialogTitle>
-          <DialogDescription>Hosted by Cornell University</DialogDescription>
-        </DialogHeader>
+    <section
+      id="privacy-policy"
+      className="pt-16 pb-22"
+      style={{
+        background: "linear-gradient(170deg, #F9F7F1 0%, #f0ece0 100%)",
+      }}
+    >
+      <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <div className="mb-2 flex items-center gap-2 text-[0.72rem] font-bold tracking-[0.14em] text-[#A64B2A] uppercase">
+          <FileTextIcon size={14} />
+          Terms &amp; Privacy
+        </div>
+        <h1 className="font-display text-section-heading mb-3 leading-[1.15] font-bold tracking-[-0.01em] text-[#2C241B]">
+          Terms of Use and Privacy Policy
+        </h1>
+        <p className="mb-10 text-[1.05rem] text-[#5D534A]">
+          Hosted by Cornell University
+        </p>
 
-        <div className="text-body-lg space-y-4 overflow-y-auto">
-          <p className="text-muted-foreground leading-relaxed">
+        <div className="space-y-4">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             This Contract governing Users&rsquo; Terms of Use (TOU or Agreement)
             constitutes a legal and binding contract between you and{" "}
-            <strong className="text-foreground">Cornell University</strong>{" "}
+            <strong className="font-semibold text-[#2C241B]">
+              Cornell University
+            </strong>{" "}
             (hereinafter &ldquo;Cornell&rdquo;), containing the terms and
             conditions for licensed access to the information and use of the{" "}
-            <strong className="text-foreground">Sandpiper</strong> web
-            application developed by the National Tutoring Observatory (NTO).
+            <strong className="font-semibold text-[#2C241B]">Sandpiper</strong>{" "}
+            web application developed by the National Tutoring Observatory
+            (NTO).
           </p>
 
-          <div className="bg-destructive/5 border-destructive text-caption rounded-r-md border-l-[3px] px-3 py-2 font-semibold text-red-700 dark:text-red-400">
+          <div className="rounded-r-md border-l-[3px] border-[#B31B1B] bg-[rgba(179,27,27,0.05)] px-4 py-3 text-[0.85rem] leading-[1.7] font-semibold text-[#8B1515]">
             Access to Sandpiper is offered to registered and authorized users.
             Use of this licensed content requires that you carefully read and
             agree in full with all of the terms and conditions of this agreement
@@ -53,7 +48,7 @@ export default function FullTermsDialog({
           </div>
 
           <SectionHeading num={1}>License Grant and Ownership</SectionHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             Cornell hereby grants to you a limited, non-exclusive,
             non-sublicensable license to access Sandpiper solely for research
             and educational purposes. Cornell is and remains the owner of all
@@ -66,7 +61,7 @@ export default function FullTermsDialog({
           <SectionHeading num={2}>
             User Information and Authentication
           </SectionHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             When you log in via GitHub, we receive your GitHub username, display
             name, and GitHub user ID. This information is used solely to
             authenticate you and manage your access to the application. You
@@ -77,27 +72,27 @@ export default function FullTermsDialog({
           <SectionHeading num={3}>
             Data Ingestion, Storage, and Privacy
           </SectionHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             Your uploaded data, including tutoring transcripts and session
             interactions, are treated as confidential research data. By
             uploading data, you explicitly acknowledge the following processing
             flows:
           </p>
 
-          <SubHeading icon={<LockIcon className="size-3.5" />}>
+          <SubHeading icon={<LockIcon className="size-4" />}>
             Storage &amp; Encryption
           </SubHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             Your uploaded data is encrypted at rest and in transit using
             industry-standard AES-256 encryption. The application and all data
             are hosted securely on Amazon Web Services (AWS) infrastructure in
             the United States.
           </p>
 
-          <SubHeading icon={<ShieldCheckIcon className="size-3.5" />}>
+          <SubHeading icon={<ShieldCheckIcon className="size-4" />}>
             Cornell Secure AI Gateway
           </SubHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             All Large Language Model (LLM) API calls for transcript annotation
             are routed through Cornell University&rsquo;s AI Gateway, a secure,
             university-managed proxy operated by the AI Innovation Hub. The
@@ -107,12 +102,10 @@ export default function FullTermsDialog({
             services outside of this controlled environment.
           </p>
 
-          <SubHeading
-            icon={<XCircleIcon className="text-destructive size-3.5" />}
-          >
+          <SubHeading icon={<XCircleIcon className="size-4" />}>
             Prohibited Uses of Data
           </SubHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             We will never use your uploaded data to train, fine-tune, evaluate,
             or improve foundation models, speech models, tutoring models,
             biometric systems, or other general-purpose AI systems. We do not
@@ -124,7 +117,7 @@ export default function FullTermsDialog({
           <SectionHeading num={4}>
             GDPR Compliance and Rights for EU Users
           </SectionHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             In compliance with the General Data Protection Regulation (GDPR),
             users residing within the European Economic Area (EEA) possess
             specific rights regarding their personal data and any Personally
@@ -132,16 +125,16 @@ export default function FullTermsDialog({
             EU are permitted to use the platform under the condition that they
             understand these rights:
           </p>
-          <ul className="text-muted-foreground list-disc space-y-1 pl-5 leading-relaxed">
+          <ul className="list-disc space-y-2 pl-5 text-base leading-[1.8] text-[#5D534A]">
             <li>
-              <strong className="text-foreground">
+              <strong className="font-semibold text-[#2C241B]">
                 Right to Access and Portability:
               </strong>{" "}
               You have the right to request access to the personal data we hold
               about you and receive it in a structured format.
             </li>
             <li>
-              <strong className="text-foreground">
+              <strong className="font-semibold text-[#2C241B]">
                 Right to Erasure (Right to be Forgotten):
               </strong>{" "}
               You may delete your data at any time from your project settings.
@@ -150,7 +143,7 @@ export default function FullTermsDialog({
               You may also request the complete deletion of your user account.
             </li>
             <li>
-              <strong className="text-foreground">
+              <strong className="font-semibold text-[#2C241B]">
                 Right to Withdraw Consent:
               </strong>{" "}
               You can withdraw consent for processing at any time by ceasing use
@@ -158,7 +151,7 @@ export default function FullTermsDialog({
               account data.
             </li>
           </ul>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             Sandpiper is designed with FERPA- and COPPA-eligible workflows in
             mind for researchers working with educational data. Sandpiper
             strictly operates as a data processor for uploaded tutoring
@@ -168,7 +161,7 @@ export default function FullTermsDialog({
           </p>
 
           <SectionHeading num={5}>Analytics</SectionHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             We use Google Analytics 4 to collect anonymized usage data (e.g.,
             pages visited, performance metrics, device types). Google Analytics
             uses cookies to distinguish unique users and sessions. IP addresses
@@ -181,7 +174,7 @@ export default function FullTermsDialog({
           <SectionHeading num={6}>
             No Warranty and Limitation of Liability
           </SectionHeading>
-          <p className="text-muted-foreground text-caption tracking-wide uppercase opacity-85">
+          <p className="text-[0.8rem] leading-[1.7] tracking-wide text-[#5D534A] uppercase">
             The tool is provided &ldquo;as is&rdquo; without warranty of any
             kind, express or implied. Cornell and FreshCognate will not be
             responsible to you or your entity for any consequences, foreseeable
@@ -193,7 +186,7 @@ export default function FullTermsDialog({
           <SectionHeading num={7}>
             Governing Law and Jurisdiction
           </SectionHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             This License shall be governed by and construed in accordance with
             the laws of the United States and the State of New York. Any claim
             arising from or related to this Agreement must be brought in state
@@ -202,29 +195,25 @@ export default function FullTermsDialog({
           </p>
 
           <SectionHeading num={8}>Contact Information</SectionHeading>
-          <p className="text-muted-foreground leading-relaxed">
+          <p className="text-base leading-[1.8] text-[#5D534A]">
             If you have questions about this privacy policy or our data
             practices, please contact us through the National Tutoring
             Observatory or Cornell&rsquo;s privacy contacts. We will publish on
             our website any changes we make to this Privacy Statement.
           </p>
 
-          <div className="text-muted-foreground border-border text-caption border-t pt-3">
+          <div className="mt-8 border-t border-[#E6E2D6] pt-5 text-[0.9rem] text-[#5D534A]">
             Questions? Reach us at{" "}
             <a
               href="mailto:CIS-NTO-PARTNERSHIPS-L@list.cornell.edu"
-              className="text-primary font-semibold"
+              className="font-semibold text-[#A64B2A] underline hover:text-[#8B3D21]"
             >
               CIS-NTO-PARTNERSHIPS-L@list.cornell.edu
             </a>
           </div>
         </div>
-
-        <DialogFooter>
-          <Button onClick={() => onOpenChange(false)}>Close</Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </section>
   );
 }
 
@@ -236,12 +225,12 @@ function SectionHeading({
   children: React.ReactNode;
 }) {
   return (
-    <h3 className="text-heading flex items-center gap-2 pt-2 font-semibold">
-      <span className="bg-primary text-caption flex size-5 shrink-0 items-center justify-center rounded-full font-bold text-white">
+    <h2 className="font-display flex items-center gap-3 pt-6 text-[1.15rem] font-bold text-[#2C241B]">
+      <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-[#367181] text-[0.75rem] font-bold text-white">
         {num}
       </span>
       {children}
-    </h3>
+    </h2>
   );
 }
 
@@ -253,9 +242,9 @@ function SubHeading({
   children: React.ReactNode;
 }) {
   return (
-    <h4 className="text-foreground text-heading flex items-center gap-1.5 font-semibold">
-      <span className="text-primary">{icon}</span>
+    <h3 className="font-display flex items-center gap-2 pt-2 text-[1rem] font-semibold text-[#2C241B]">
+      <span className="text-[#367181]">{icon}</span>
       {children}
-    </h4>
+    </h3>
   );
 }
