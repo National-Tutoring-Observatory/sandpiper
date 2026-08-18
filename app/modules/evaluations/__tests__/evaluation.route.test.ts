@@ -126,48 +126,48 @@ describe("evaluation.route loader - IDOR protection", () => {
   });
 });
 
+async function setupSingleTeamFixture() {
+  const team = await TeamService.create({ name: "Team" });
+  const user = await UserService.create({
+    username: "user",
+    teams: [{ team: team._id, role: "ADMIN" }],
+  });
+  const project = await ProjectService.create({
+    name: "Project",
+    createdBy: user._id,
+    team: team._id,
+  });
+  const run1 = await createTestRun({ name: "Run 1", project: project._id });
+  const run2 = await createTestRun({ name: "Run 2", project: project._id });
+  const runSet = await RunSetService.create({
+    name: "RunSet",
+    project: project._id,
+    annotationType: "PER_UTTERANCE",
+    runs: [run1._id, run2._id],
+  });
+  const evaluation = await EvaluationService.create({
+    name: "Eval",
+    project: project._id,
+    runSet: runSet._id,
+    runs: [run1._id, run2._id],
+  });
+  const cookieHeader = await loginUser(user._id);
+  return {
+    team,
+    user,
+    project,
+    run1,
+    run2,
+    runSet,
+    evaluation,
+    cookieHeader,
+  };
+}
+
 describe("evaluation.route action - START_ADJUDICATION IDOR protection", () => {
   beforeEach(async () => {
     await clearDocumentDB();
   });
-
-  async function setupSingleTeamFixture() {
-    const team = await TeamService.create({ name: "Team" });
-    const user = await UserService.create({
-      username: "user",
-      teams: [{ team: team._id, role: "ADMIN" }],
-    });
-    const project = await ProjectService.create({
-      name: "Project",
-      createdBy: user._id,
-      team: team._id,
-    });
-    const run1 = await createTestRun({ name: "Run 1", project: project._id });
-    const run2 = await createTestRun({ name: "Run 2", project: project._id });
-    const runSet = await RunSetService.create({
-      name: "RunSet",
-      project: project._id,
-      annotationType: "PER_UTTERANCE",
-      runs: [run1._id, run2._id],
-    });
-    const evaluation = await EvaluationService.create({
-      name: "Eval",
-      project: project._id,
-      runSet: runSet._id,
-      runs: [run1._id, run2._id],
-    });
-    const cookieHeader = await loginUser(user._id);
-    return {
-      team,
-      user,
-      project,
-      run1,
-      run2,
-      runSet,
-      evaluation,
-      cookieHeader,
-    };
-  }
 
   it("rejects when promptId belongs to a different team", async () => {
     const {
@@ -303,5 +303,46 @@ describe("evaluation.route action - START_ADJUDICATION IDOR protection", () => {
 
     expect(res.init?.status).toBe(400);
     expect(res.data.errors.runs).toBeDefined();
+  });
+});
+
+describe("evaluation.route action - START_ADJUDICATION model validation", () => {
+  beforeEach(async () => {
+    await clearDocumentDB();
+  });
+
+  it("rejects a model code that is not in the config", async () => {
+    const { team, project, runSet, evaluation, run1, run2, cookieHeader } =
+      await setupSingleTeamFixture();
+    const prompt = await PromptService.create({
+      name: "Own",
+      annotationType: "PER_UTTERANCE",
+      team: team._id,
+    });
+
+    const res = (await action({
+      request: new Request("http://localhost/", {
+        method: "POST",
+        headers: { cookie: cookieHeader, "content-type": "application/json" },
+        body: JSON.stringify({
+          intent: "START_ADJUDICATION",
+          payload: {
+            selectedRuns: [run1._id, run2._id],
+            modelCode: "not.a.real.model",
+            promptId: prompt._id,
+            promptVersion: 1,
+          },
+        }),
+      }),
+      params: {
+        teamId: team._id,
+        projectId: project._id,
+        runSetId: runSet._id,
+        evaluationId: evaluation._id,
+      },
+    } as any)) as any;
+
+    expect(res.init?.status).toBe(400);
+    expect(res.data.errors.model).toBeDefined();
   });
 });

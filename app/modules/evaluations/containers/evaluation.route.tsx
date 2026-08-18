@@ -17,6 +17,7 @@ import AdjudicationDialogContainer from "~/modules/evaluations/containers/adjudi
 import { EvaluationService } from "~/modules/evaluations/evaluation";
 import getTopPerformersVsGoldLabel from "~/modules/evaluations/helpers/getTopPerformersVsGoldLabel";
 
+import { findModelByCode } from "~/modules/llm/modelRegistry";
 import ProjectAuthorization from "~/modules/projects/authorization";
 import {
   projectRunSetUrl,
@@ -136,6 +137,10 @@ export async function action({ request, params }: Route.ActionArgs) {
       }
 
       const { modelCode, promptId, promptVersion } = payload;
+
+      if (!findModelByCode(modelCode)) {
+        return data({ errors: { model: "Invalid model" } }, { status: 400 });
+      }
 
       const promptDoc = await PromptService.findOne({
         _id: promptId,
