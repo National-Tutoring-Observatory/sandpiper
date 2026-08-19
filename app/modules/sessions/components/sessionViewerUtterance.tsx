@@ -38,7 +38,7 @@ export default function SessionViewerUtterance({
         <div
           id={`session-viewer-utterance-${utterance._id}`}
           className={clsx(
-            "text-body-lg break-word scroll-mt-4 rounded-4xl border p-4",
+            "text-body-lg scroll-mt-4 rounded-4xl border p-4 wrap-anywhere",
             {
               "border-sandpiper-accent/30 bg-sandpiper-accent/10": isSelected,
               "bg-sandpiper-elevated rounded-bl-none":
