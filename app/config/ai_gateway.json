@@ -47,18 +47,6 @@
           ]
         },
         {
-          "name": "Gemini 3.1 Pro Preview (Custom Tools)",
-          "code": "nto.gemini-3.1-pro-preview-customtools",
-          "pricing": [
-            {
-              "upToInputTokens": 200000,
-              "inputCostPer1M": 2.0,
-              "outputCostPer1M": 12.0
-            },
-            { "inputCostPer1M": 4.0, "outputCostPer1M": 18.0 }
-          ]
-        },
-        {
           "name": "Gemini 2.5 Flash Lite",
           "code": "nto.google.gemini-2.5-flash-lite",
           "pricing": [{ "inputCostPer1M": 0.1, "outputCostPer1M": 0.4 }]
