@@ -186,7 +186,7 @@ The application uses a **plugin-based adapter pattern** to support multiple stor
 **Storage Adapters** (`app/storageAdapters/`):
 
 - Handle file storage operations (upload, download, remove, request)
-- Two implementations: `local/` (filesystem) and `awsS3/` (AWS S3)
+- Three implementations: `local/` (filesystem), `awsS3/` (AWS S3), and `gcs/` (Google Cloud Storage)
 - Each adapter registers itself via `registerStorageAdapter()` with a common interface
 - Selected at runtime via `STORAGE_ADAPTER` env variable
 - Interface: `{ name, download, upload, remove, request }`
@@ -233,7 +233,7 @@ The codebase follows a **consistent error handling convention** for React Router
 
 - **`/app/modules/`** - Feature modules (projects, prompts, sessions, etc.)
 - **`/app/uikit/`** - Reusable UI components (shadcn/ui)
-- **`/app/storageAdapters/`** - Storage implementations (local filesystem, AWS S3)
+- **`/app/storageAdapters/`** - Storage implementations (local filesystem, AWS S3, Google Cloud Storage)
 - **`/app/documentsAdapters/`** - Database implementations (local in-memory, MongoDB/DocumentDB)
 - **`/app/adapters.js`** - **CRITICAL**: Auto-generates storage imports
 - **`/workers/`** - Background job workers (yarn workspace)
@@ -276,13 +276,13 @@ If you add/remove storage adapters, the build will automatically regenerate the 
 ```bash
 # .env file (copy from .env.example)
 
-# Storage adapter (LOCAL or AWS_S3)
+# Storage adapter (LOCAL, AWS_S3, or GCS)
 STORAGE_ADAPTER='LOCAL'
 
 # Documents adapter (LOCAL or DOCUMENT_DB)
 DOCUMENTS_ADAPTER='LOCAL'
 
-# LLM Provider (AI_GATEWAY or OPENAI)
+# LLM Provider (AI_GATEWAY, OPEN_AI, or VERTEX_AI)
 LLM_PROVIDER='AI_GATEWAY'
 
 # Session encryption (generate with: openssl rand -hex 64)
@@ -305,7 +305,9 @@ AUTH_CALLBACK_URL='http://localhost:5173/auth/callback'
 
 - AWS credentials (if using AWS_S3 or DOCUMENT_DB)
 - AI Gateway credentials (if using AI_GATEWAY)
-- OpenAI key (if using OPENAI provider)
+- OpenAI key (if using OPEN_AI provider)
+- `GCS_BUCKET` + `GOOGLE_APPLICATION_CREDENTIALS` (if using the GCS storage adapter)
+- `VERTEX_AI_PROJECT` + `VERTEX_AI_LOCATION` + `GOOGLE_APPLICATION_CREDENTIALS` (if using the VERTEX_AI provider) — see CONTRIBUTING.md for manual GCP setup steps
 
 ## Troubleshooting: Root Causes
 

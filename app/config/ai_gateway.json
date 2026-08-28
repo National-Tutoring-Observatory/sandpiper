@@ -79,6 +79,21 @@
       ]
     },
     {
+      "name": "Vertex AI",
+      "models": [
+        {
+          "name": "Gemini 2.5 Flash Lite",
+          "code": "gemini-2.5-flash-lite",
+          "pricing": [{ "inputCostPer1M": 0.1, "outputCostPer1M": 0.4 }]
+        },
+        {
+          "name": "Gemini 2.5 Flash",
+          "code": "gemini-2.5-flash",
+          "pricing": [{ "inputCostPer1M": 0.3, "outputCostPer1M": 2.5 }]
+        }
+      ]
+    },
+    {
       "name": "Anthropic",
       "models": [
         {

@@ -26,9 +26,21 @@ export async function loader() {
     );
   }
 
+  if (LLM_PROVIDER === "VERTEX_AI") {
+    missingParameters = missingParameters.concat(
+      checkParamsExist(["VERTEX_AI_PROJECT", "VERTEX_AI_LOCATION"]),
+    );
+  }
+
   if (STORAGE_ADAPTER === "AWS_S3") {
     missingParameters = missingParameters.concat(
       checkParamsExist(["AWS_BUCKET", "AWS_REGION", "AWS_KEY", "AWS_SECRET"]),
+    );
+  }
+
+  if (STORAGE_ADAPTER === "GCS") {
+    missingParameters = missingParameters.concat(
+      checkParamsExist(["GCS_BUCKET"]),
     );
   }
 

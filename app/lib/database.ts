@@ -28,7 +28,10 @@ async function getDatabaseConnection(): Promise<DatabaseConnection> {
     throw new Error("DOCUMENT_DB_PASSWORD is undefined.");
   }
 
-  const connectionString = `mongodb://${encodeURIComponent(DOCUMENT_DB_USERNAME)}:${encodeURIComponent(DOCUMENT_DB_PASSWORD)}@${DOCUMENT_DB_CONNECTION_STRING}`;
+  const isAtlasConnection =
+    DOCUMENT_DB_CONNECTION_STRING.includes("mongodb.net");
+  const scheme = isAtlasConnection ? "mongodb+srv" : "mongodb";
+  const connectionString = `${scheme}://${encodeURIComponent(DOCUMENT_DB_USERNAME)}:${encodeURIComponent(DOCUMENT_DB_PASSWORD)}@${DOCUMENT_DB_CONNECTION_STRING}`;
 
   if (!CONNECTION) {
     const connectionOptions: mongoose.ConnectOptions = {
@@ -40,7 +43,9 @@ async function getDatabaseConnection(): Promise<DatabaseConnection> {
       DOCUMENT_DB_CONNECTION_STRING.includes("localhost") ||
       DOCUMENT_DB_CONNECTION_STRING.includes("127.0.0.1");
 
-    if (!isLocalConnection) {
+    // Atlas uses mongodb+srv:// with its own public-CA TLS; the AWS
+    // DocumentDB CA bundle below only applies to that AWS-specific path.
+    if (!isLocalConnection && !isAtlasConnection) {
       connectionOptions.tls = true;
       connectionOptions.tlsCAFile = path.join(
         process.cwd(),

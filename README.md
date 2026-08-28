@@ -27,3 +27,5 @@ yarn app:dev
 ```
 
 Your application will be available at `http://localhost:5173`.
+
+For Docker Compose setups, production-like containers, or configuring Google Cloud (GCS storage, Vertex AI) or AWS backends, see [CONTRIBUTING.md](CONTRIBUTING.md).

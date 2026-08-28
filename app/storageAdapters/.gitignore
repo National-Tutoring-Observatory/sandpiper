@@ -2,6 +2,8 @@
 *
 !awsS3
 !awsS3/**
+!gcs
+!gcs/**
 !local
 !local/**
 !.gitignore

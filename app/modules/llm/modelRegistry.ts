@@ -17,6 +17,19 @@ interface ModelConfig {
 const aiGatewayConfig = aiGatewayConfigRaw as unknown as ModelConfig;
 
 export function getDefaultModelCode(): string {
+  // The gateway's default is a "nto."-prefixed LiteLLM code, which Vertex's
+  // raw generateContent call won't recognize — fall back to that provider's
+  // own model list instead.
+  if (process.env.LLM_PROVIDER === "VERTEX_AI") {
+    const vertexProvider = aiGatewayConfig.providers.find(
+      (provider) => provider.name === "Vertex AI",
+    );
+    const defaultVertexModel = vertexProvider?.models.find(
+      (model) => !model.deprecated,
+    );
+    if (defaultVertexModel) return defaultVertexModel.code;
+  }
+
   return aiGatewayConfig.defaultModel;
 }
 

@@ -75,6 +75,61 @@ AWS_DEFAULT_REGION=us-east-1
 REDIS_URL='redis://localhost:6379'
 ```
 
+### Example .env for Google Cloud (GCS + Vertex AI)
+
+If you're testing against real Google Cloud resources instead of local/LocalStack adapters, use these instead of the AWS/S3 block above:
+
+```env
+STORAGE_ADAPTER='GCS'
+GCS_BUCKET='<your-bucket-name>'
+
+LLM_PROVIDER='VERTEX_AI'
+VERTEX_AI_PROJECT='<your-gcp-project-id>'
+VERTEX_AI_LOCATION='us-central1'
+
+# Authenticates both the GCS and Vertex AI clients via Application Default
+# Credentials — no explicit key/secret pair like the AWS adapter uses.
+GOOGLE_APPLICATION_CREDENTIALS='/path/to/service-account-key.json'
+```
+
+Minimal manual setup (bucket + service account + IAM), assuming `gcloud` is authenticated against your project:
+
+```bash
+gcloud services enable storage.googleapis.com aiplatform.googleapis.com --project=<project-id>
+
+gcloud storage buckets create gs://<bucket-name> \
+  --project=<project-id> --location=<region> --uniform-bucket-level-access
+
+gcloud iam service-accounts create sandpiper-local-test \
+  --project=<project-id> --display-name="Sandpiper local testing"
+
+gcloud storage buckets add-iam-policy-binding gs://<bucket-name> \
+  --member="serviceAccount:sandpiper-local-test@<project-id>.iam.gserviceaccount.com" \
+  --role="roles/storage.objectAdmin"
+
+gcloud projects add-iam-policy-binding <project-id> \
+  --member="serviceAccount:sandpiper-local-test@<project-id>.iam.gserviceaccount.com" \
+  --role="roles/aiplatform.user" --condition=None
+
+gcloud iam service-accounts keys create ~/sandpiper-gcp-key.json \
+  --iam-account=sandpiper-local-test@<project-id>.iam.gserviceaccount.com
+```
+
+The two `add-iam-policy-binding` commands need an IAM-admin-level role on the project (e.g. `roles/resourcemanager.projectIamAdmin`) — the default `Editor` role can create resources but can't modify IAM policy, and will fail with a permission error on just those two commands.
+
+### Known gaps and fixes for local + Vertex AI
+
+Issues hit (and fixed, where noted) while first running this GCP setup locally:
+
+**Local/GCS-only — not yet fixed:**
+
+- The MTM sample dataset (`storage/datasets/mtm/latest.json`) has never been released to GCS. `scripts/datasets/releaseMtmDataset.ts`/`prepareMtmDataset.ts` are still AWS-S3-only (`staging.nto`/`prod.nto` buckets), so the "Insert MTM dataset" action fails with a GCS download error against an empty bucket even when `GCS_BUCKET`/credentials are correctly configured. Migrating those scripts to GCS was scoped out — needs its own decision on whether GCS gets a staging/prod split like S3 has.
+
+**Vertex AI — fixed in code:**
+
+- `LLM.checkBalance()` ([app/modules/llm/llm.ts:137-144](app/modules/llm/llm.ts#L137-L144)) used to block every LLM call — including file-upload attribute mapping — behind the team's Sandpiper credit balance (`TeamBillingBalance`), regardless of provider. Since Vertex AI spend bills directly to the GCP project (see the cost-attribution labels in `providers/vertexAI.ts`) rather than through Sandpiper's Stripe-funded ledger, `checkBalance()` now skips the check when `LLM_PROVIDER=VERTEX_AI`. Cost recording (`writeCostRecord`) is unaffected — usage still gets logged for analytics.
+- `getDefaultModelCode()` ([app/modules/llm/modelRegistry.ts:19-32](app/modules/llm/modelRegistry.ts#L19-L32)) always returned the AI-gateway default (`nto.google.gemini-3-flash-preview`), an AI-gateway/LiteLLM-style code that Vertex's raw `generateContent` call doesn't recognize. It now returns a model from the `"Vertex AI"` block in `app/config/ai_gateway.json` (e.g. `gemini-2.5-flash-lite`) when `LLM_PROVIDER=VERTEX_AI`.
+
 ## 3. Running Fully in Containers (Production-like)
 
 To run the entire stack (app, workers, Redis, MongoDB) in Docker containers:

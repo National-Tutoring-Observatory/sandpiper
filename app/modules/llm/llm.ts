@@ -6,6 +6,7 @@ import getLLM from "./helpers/getLLM";
 import type { LLMUsage } from "./llm.types";
 import "./providers/aiGateway.js";
 import "./providers/openAI.js";
+import "./providers/vertexAI.js";
 
 interface Message {
   role: "system" | "assistant" | "user";
@@ -136,6 +137,10 @@ class LLM {
   private async checkBalance() {
     if (!this.options.team) return;
     if (mongoose.connection.readyState !== 1) return;
+    // Vertex AI spend bills directly to the GCP project (see the
+    // cost-attribution labels in providers/vertexAI.ts) rather than through
+    // Sandpiper's Stripe-funded team ledger, so it isn't gated on it.
+    if (process.env.LLM_PROVIDER === "VERTEX_AI") return;
 
     const { TeamBillingService } =
       await import("~/modules/billing/teamBilling");

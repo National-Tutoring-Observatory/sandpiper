@@ -1,0 +1,107 @@
+name: GCP Deploy (Experimental)
+
+on:
+  workflow_dispatch:
+
+# Manual-dispatch only for now, deliberately not on push to main — this is
+# an experimental, parallel environment and shouldn't be confused with or
+# race the existing AWS staging pipeline. See terraform/README.md.
+
+permissions:
+  id-token: write
+  contents: read
+
+concurrency:
+  group: gcp-experimental-deployment
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy-web:
+    name: Build & Deploy (web)
+    runs-on: ubuntu-latest
+    environment: gcp-experimental
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        id: image
+        env:
+          BULLMQ_PRO_TOKEN: ${{ secrets.BULLMQ_PRO_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          TAG="${GITHUB_SHA::7}"
+          IMAGE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sandpiper/web:$TAG"
+
+          DOCKER_BUILDKIT=1 docker build \
+            --secret id=BULLMQ_PRO_TOKEN,env=BULLMQ_PRO_TOKEN \
+            -f Dockerfile \
+            -t "$IMAGE" .
+
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: sandpiper-web
+          region: ${{ vars.GCP_REGION }}
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          image: ${{ steps.image.outputs.image }}
+
+  build-and-deploy-worker:
+    name: Build & Deploy (worker)
+    runs-on: ubuntu-latest
+    environment: gcp-experimental
+
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT_EMAIL }}
+
+      - uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker "${{ vars.GCP_REGION }}-docker.pkg.dev" --quiet
+
+      - name: Build and push image
+        id: image
+        env:
+          BULLMQ_PRO_TOKEN: ${{ secrets.BULLMQ_PRO_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          TAG="${GITHUB_SHA::7}"
+          IMAGE="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/sandpiper/worker:$TAG"
+
+          DOCKER_BUILDKIT=1 docker build \
+            --secret id=BULLMQ_PRO_TOKEN,env=BULLMQ_PRO_TOKEN \
+            -f workers/Dockerfile \
+            -t "$IMAGE" .
+
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: sandpiper-worker
+          region: ${{ vars.GCP_REGION }}
+          project_id: ${{ vars.GCP_PROJECT_ID }}
+          image: ${{ steps.image.outputs.image }}

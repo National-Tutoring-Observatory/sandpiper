@@ -11,15 +11,21 @@ isPublished: true
 
 Sandpiper supports multiple **LLM providers** for annotation, verification, and adjudication tasks. The application abstracts provider-specific details behind a common interface, allowing you to choose the best model for your annotation needs.
 
-All LLM API calls are routed through Cornell University's **Secure AI Gateway**, a university-managed proxy that ensures your data is never stored or used by the underlying model providers. No data passes directly to third-party AI services outside of this controlled environment.
+Depending on how a given deployment is configured, LLM calls are routed through one of:
+
+- **Cornell University's Secure AI Gateway** — a university-managed proxy giving access to models from Anthropic, OpenAI, and Google, ensuring your data is never stored or used by the underlying model providers.
+- **A direct OpenAI connection.**
+- **A direct Google Vertex AI connection** — used by deployments hosted on Google Cloud.
+
+Only one provider is active per deployment; the model dropdown only shows models available through whichever provider your instance uses.
 
 ## Supported Providers
 
-Sandpiper integrates with LLM providers through LiteLLM, providing access to models from:
+Depending on the active provider, Sandpiper gives access to models from:
 
-- **Anthropic** — Claude models
-- **OpenAI** — GPT models
-- **Google** — Gemini models
+- **Anthropic** — Claude models (via AI Gateway)
+- **OpenAI** — GPT models (via AI Gateway or a direct connection)
+- **Google** — Gemini models (via AI Gateway or a direct Vertex AI connection)
 
 Each model has a **tiered pricing structure** based on input and output token counts, which is used to calculate costs and provide estimates before running annotations.
 
