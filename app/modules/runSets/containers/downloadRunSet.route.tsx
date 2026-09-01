@@ -3,6 +3,7 @@ import map from "lodash/map";
 import { PassThrough, Readable } from "node:stream";
 import { redirect } from "react-router";
 import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
+import sanitizeName from "~/modules/app/helpers/sanitizeName";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import { ProjectService } from "~/modules/projects/project";
 import { RunService } from "~/modules/runs/run";
@@ -136,13 +137,15 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const webStream = Readable.toWeb(passthroughStream);
 
-  const safeRunSetName = runSet.name.replace(/[\r\n"\\]/g, "_");
+  const safeProjectName = sanitizeName(project.name);
+
+  const safeRunSetName = sanitizeName(runSet.name);
 
   return new Response(webStream as ReadableStream<Uint8Array>, {
     status: 200,
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="project-${runSet.project}-run-set-${runSet._id}-${safeRunSetName}-${formatSuffix}.zip"`,
+      "Content-Disposition": `attachment; filename="project_${runSet.project}_${safeProjectName}-runSet_${runSet._id}_${safeRunSetName}-${formatSuffix}.zip"`,
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",

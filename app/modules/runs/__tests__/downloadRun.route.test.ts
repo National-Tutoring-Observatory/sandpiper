@@ -64,7 +64,7 @@ describe("downloadRun.route loader", () => {
         teams: [{ team: team._id, role: "ADMIN" }],
       });
       project = await ProjectService.create({
-        name: "Test Project",
+        name: "Weird/Name:With*Bad?Chars",
         createdBy: user._id,
         team: team._id,
       });
@@ -139,7 +139,7 @@ describe("downloadRun.route loader", () => {
 
       expect(res).toBeInstanceOf(Response);
       expect((res as Response).headers.get("Content-Disposition")).toContain(
-        "-csv.zip",
+        `project_${project._id}_Weird_Name_With_Bad_Chars-run_${run._id}_${run.name}-csv.zip`,
       );
     });
 
@@ -156,7 +156,7 @@ describe("downloadRun.route loader", () => {
 
       expect(res).toBeInstanceOf(Response);
       expect((res as Response).headers.get("Content-Disposition")).toContain(
-        "-jsonl.zip",
+        `project_${project._id}_Weird_Name_With_Bad_Chars-run_${run._id}_${run.name}-jsonl.zip`,
       );
     });
   });
