@@ -42,6 +42,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Error("Run not found.");
   }
 
+  const safeProjectName = sanitizeName(project.name);
+
+  const safeRunName = sanitizeName(run.name);
+
+  const filePrefix = `project_${run.project}_${safeProjectName}-run_${run._id}_${safeRunName}`;
+
   const archive = archiver("zip", {
     zlib: { level: 9 },
   });
@@ -53,27 +59,27 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (exportType === "CSV") {
     filesToArchive.push({
       path: `${outputDirectory}/${run.project}-${run._id}-meta.csv`,
-      name: `${run.project}-${run._id}-meta.csv`,
+      name: `${filePrefix}-meta.csv`,
     });
     if (run.annotationType === "PER_UTTERANCE") {
       filesToArchive.push({
         path: `${outputDirectory}/${run.project}-${run._id}-utterances.csv`,
-        name: `${run.project}-${run._id}-utterances.csv`,
+        name: `${filePrefix}-utterances.csv`,
       });
     } else {
       filesToArchive.push({
         path: `${outputDirectory}/${run.project}-${run._id}-sessions.csv`,
-        name: `${run.project}-${run._id}-sessions.csv`,
+        name: `${filePrefix}-sessions.csv`,
       });
     }
   } else {
     filesToArchive.push({
       path: `${outputDirectory}/${run.project}-${run._id}-meta.jsonl`,
-      name: `${run.project}-${run._id}-meta.jsonl`,
+      name: `${filePrefix}-meta.jsonl`,
     });
     filesToArchive.push({
       path: `${outputDirectory}/${run.project}-${run._id}-sessions.jsonl`,
-      name: `${run.project}-${run._id}-sessions.jsonl`,
+      name: `${filePrefix}-sessions.jsonl`,
     });
   }
 
@@ -108,15 +114,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const webStream = Readable.toWeb(passthroughStream);
 
-  const safeProjectName = sanitizeName(project.name);
-
-  const safeRunName = sanitizeName(run.name);
-
   return new Response(webStream as ReadableStream<Uint8Array>, {
     status: 200,
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="project_${run.project}_${safeProjectName}-run_${run._id}_${safeRunName}-${formatSuffix}.zip"`,
+      "Content-Disposition": `attachment; filename="${filePrefix}-${formatSuffix}.zip"`,
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
