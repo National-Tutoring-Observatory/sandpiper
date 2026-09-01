@@ -28,7 +28,7 @@ describe("finishAnnotateRun worker", () => {
     );
   });
 
-  it("throws error if run not found", async () => {
+  it("skips instead of failing when the run was deleted", async () => {
     const fakeRunId = new Types.ObjectId().toString();
     const job = {
       id: "job-1",
@@ -36,9 +36,9 @@ describe("finishAnnotateRun worker", () => {
       getChildrenValues: vi.fn().mockResolvedValue([]),
     } as any as Job;
 
-    await expect(finishAnnotateRun(job)).rejects.toThrow(
-      `finishAnnotateRun: Run not found: ${fakeRunId}`,
-    );
+    await expect(finishAnnotateRun(job)).resolves.toEqual({
+      status: "SKIPPED",
+    });
   });
 
   it("marks run as complete when all sessions succeed", async () => {

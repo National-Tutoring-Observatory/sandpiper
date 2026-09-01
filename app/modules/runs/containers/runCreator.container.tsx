@@ -3,7 +3,9 @@ import {
   isAnnotationType,
   type AnnotationTypeOptions,
 } from "~/modules/annotations/helpers/annotationTypes";
+import isLedgerBillingEnabled from "~/modules/billing/helpers/isLedgerBillingEnabled";
 import useEstimateCost from "~/modules/billing/hooks/useEstimateCost";
+import useLlmProvider from "~/modules/llm/hooks/useLlmProvider";
 import { getDefaultModelCode } from "~/modules/llm/modelRegistry";
 import type { CreateRun, Run } from "~/modules/runs/runs.types";
 import type { SessionData } from "~/modules/sessions/sessions.types";
@@ -26,6 +28,7 @@ export default function ProjectRunCreatorContainer({
   initialRun,
   duplicateWarnings = [],
 }: RunCreatorContainerProps) {
+  const llmProvider = useLlmProvider();
   const [runName, setRunName] = useState(
     initialRun ? `${initialRun.name} (copy)` : "",
   );
@@ -42,7 +45,7 @@ export default function ProjectRunCreatorContainer({
     number | null
   >(initialRun?.promptVersion || null);
   const [selectedModel, setSelectedModel] = useState(
-    initialRun?.snapshot?.model?.code || getDefaultModelCode(),
+    initialRun?.snapshot?.model?.code || getDefaultModelCode(llmProvider),
   );
   const [selectedSessions, setSelectedSessions] = useState<SessionData[]>(
     initialRun?.sessions?.map((s) => ({ _id: s.sessionId })) || [],
@@ -95,7 +98,8 @@ export default function ProjectRunCreatorContainer({
     shouldRunVerification,
   });
 
-  const exceedsBalance = estimation.estimatedCost > balance;
+  const exceedsBalance =
+    isLedgerBillingEnabled(llmProvider) && estimation.estimatedCost > balance;
 
   const onStartRunButtonClicked = () => {
     onStartRunClicked({

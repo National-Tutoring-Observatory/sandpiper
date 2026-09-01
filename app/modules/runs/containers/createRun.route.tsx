@@ -12,6 +12,7 @@ import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.serve
 import useSubmitGuard from "~/modules/app/hooks/useSubmitGuard";
 import getSessionUserTeams from "~/modules/authentication/helpers/getSessionUserTeams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import isLedgerBillingEnabled from "~/modules/billing/helpers/isLedgerBillingEnabled";
 import { TeamBillingService } from "~/modules/billing/teamBilling";
 import { findModelByCode } from "~/modules/llm/modelRegistry";
 import ProjectAuthorization from "~/modules/projects/authorization";
@@ -147,7 +148,7 @@ export async function action({ request, params }: Route.ActionArgs) {
           shouldRunVerification: !!payload.shouldRunVerification,
         }),
       ]);
-      if (estimate.estimatedCost > balance) {
+      if (isLedgerBillingEnabled() && estimate.estimatedCost > balance) {
         return data(
           { errors: { credits: "Insufficient credits to start a run" } },
           { status: 402 },

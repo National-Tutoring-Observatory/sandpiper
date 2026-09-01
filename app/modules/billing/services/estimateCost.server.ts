@@ -6,6 +6,7 @@ import type {
 } from "~/modules/runSets/runSets.types";
 import { RunService } from "~/modules/runs/run";
 import { SessionService } from "~/modules/sessions/session";
+import isLedgerBillingEnabled from "../helpers/isLedgerBillingEnabled";
 import { TeamBillingService } from "../teamBilling";
 import { TeamBillingPlanService } from "../teamBillingPlan";
 
@@ -70,7 +71,10 @@ export default async function estimateCost({
     RunService.getAverageSecondsPerSession(projectId),
   ]);
 
-  if (!plan) {
+  // Where the team ledger isn't the billing authority, a team with no plan must
+  // not be blocked from running — the estimate just carries no markup.
+  // Everywhere else a missing plan is a real misconfiguration.
+  if (!plan && isLedgerBillingEnabled()) {
     throw new Error(`No billing plan found for team ${teamId}`);
   }
 
@@ -94,7 +98,7 @@ export default async function estimateCost({
   );
 
   return {
-    estimatedCost: estimatedCost * (plan.markupRate ?? 1),
+    estimatedCost: estimatedCost * (plan?.markupRate ?? 1),
     estimatedTimeSeconds,
   };
 }

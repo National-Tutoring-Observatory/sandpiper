@@ -170,7 +170,10 @@ export default async function annotatePerUtterance(job: Job) {
     const run = await RunService.findById(runId);
 
     if (!run) {
-      throw new Error(`Run not found: ${runId}`);
+      console.warn(
+        `annotatePerUtterance: run ${runId} no longer exists, skipping`,
+      );
+      return { status: "SKIPPED" };
     }
 
     const sessionsCount = run.sessions.length;

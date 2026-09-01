@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
+import isLedgerBillingEnabled from "~/modules/billing/helpers/isLedgerBillingEnabled";
 import useEstimateCost from "~/modules/billing/hooks/useEstimateCost";
+import useLlmProvider from "~/modules/llm/hooks/useLlmProvider";
 import type { SessionData } from "~/modules/sessions/sessions.types";
 import RunSetCreatorAnnotationType from "../components/runSetCreatorAnnotationType";
 import RunSetCreatorFooter from "../components/runSetCreatorFooter";
@@ -39,6 +41,7 @@ export default function RunSetCreatorContainer({
   isLoading: boolean;
   errors: Record<string, string>;
 }) {
+  const llmProvider = useLlmProvider();
   const [name, setName] = useState(getDefaultName(prefillData));
   const [annotationType, setAnnotationType] = useState(
     prefillData?.annotationType || "PER_UTTERANCE",
@@ -74,7 +77,8 @@ export default function RunSetCreatorContainer({
     shouldRunVerification,
   });
 
-  const exceedsBalance = estimation.estimatedCost > balance;
+  const exceedsBalance =
+    isLedgerBillingEnabled(llmProvider) && estimation.estimatedCost > balance;
 
   const handleAnnotationTypeChange = (type: string) => {
     setAnnotationType(type);

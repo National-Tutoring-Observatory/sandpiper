@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import isLedgerBillingEnabled from "~/modules/billing/helpers/isLedgerBillingEnabled";
 import { TeamBillingService } from "~/modules/billing/teamBilling";
 import ProjectAuthorization from "~/modules/projects/authorization";
 import {
@@ -152,7 +153,7 @@ export async function action({ request, params }: Route.ActionArgs) {
           shouldRunVerification: !!payload.shouldRunVerification,
         }),
       ]);
-      if (estimate.estimatedCost > balance) {
+      if (isLedgerBillingEnabled() && estimate.estimatedCost > balance) {
         return data(
           { errors: { credits: "Insufficient credits to start runs" } },
           { status: 402 },

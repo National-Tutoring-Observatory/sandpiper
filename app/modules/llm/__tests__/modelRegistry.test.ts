@@ -1,10 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   findModelByCode,
   getAvailableModels,
   getAvailableProviders,
   getDefaultModelCode,
   getModelPricing,
+  resolveModelCodeForProvider,
+  VERTEX_AI_PROVIDER_NAME,
 } from "../modelRegistry";
 
 describe("modelRegistry", () => {
@@ -13,6 +15,65 @@ describe("modelRegistry", () => {
       const code = getDefaultModelCode();
       expect(code).toBeTruthy();
       expect(typeof code).toBe("string");
+    });
+
+    it("returns a Vertex model for the VERTEX_AI provider", () => {
+      const code = getDefaultModelCode("VERTEX_AI");
+      expect(findModelByCode(code)?.provider).toBe(VERTEX_AI_PROVIDER_NAME);
+    });
+
+    it("returns a gateway model for the AI_GATEWAY provider", () => {
+      const code = getDefaultModelCode("AI_GATEWAY");
+      expect(findModelByCode(code)?.provider).not.toBe(VERTEX_AI_PROVIDER_NAME);
+    });
+  });
+
+  describe("getAvailableProviders filtered by LLM provider", () => {
+    it("offers only Vertex models on VERTEX_AI", () => {
+      const providers = getAvailableProviders("VERTEX_AI");
+      expect(providers.map((provider) => provider.name)).toEqual([
+        VERTEX_AI_PROVIDER_NAME,
+      ]);
+    });
+
+    it("hides Vertex-only models on AI_GATEWAY", () => {
+      const names = getAvailableProviders("AI_GATEWAY").map(
+        (provider) => provider.name,
+      );
+      expect(names.length).toBeGreaterThan(0);
+      expect(names).not.toContain(VERTEX_AI_PROVIDER_NAME);
+    });
+  });
+
+  describe("resolveModelCodeForProvider", () => {
+    const originalProvider = process.env.LLM_PROVIDER;
+
+    afterEach(() => {
+      if (originalProvider === undefined) delete process.env.LLM_PROVIDER;
+      else process.env.LLM_PROVIDER = originalProvider;
+    });
+
+    it("keeps the preferred code on non-Vertex providers", () => {
+      process.env.LLM_PROVIDER = "AI_GATEWAY";
+      expect(resolveModelCodeForProvider("anthropic.claude-4.6-sonnet")).toBe(
+        "anthropic.claude-4.6-sonnet",
+      );
+    });
+
+    it("swaps a non-Vertex code for a Vertex model on VERTEX_AI", () => {
+      process.env.LLM_PROVIDER = "VERTEX_AI";
+      const code = resolveModelCodeForProvider("anthropic.claude-4.6-sonnet");
+      expect(findModelByCode(code)?.provider).toBe(VERTEX_AI_PROVIDER_NAME);
+    });
+
+    it("keeps a code that Vertex already serves", () => {
+      process.env.LLM_PROVIDER = "VERTEX_AI";
+      const vertexCode =
+        getAvailableModels().find(
+          (model) => model.provider === VERTEX_AI_PROVIDER_NAME,
+        )?.code ?? "";
+      expect(vertexCode).toBeTruthy();
+      expect(resolveModelCodeForProvider(vertexCode)).toBe(vertexCode);
     });
   });
 

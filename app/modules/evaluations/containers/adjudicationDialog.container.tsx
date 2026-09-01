@@ -1,4 +1,5 @@
 import { useState } from "react";
+import useLlmProvider from "~/modules/llm/hooks/useLlmProvider";
 import { getDefaultModelCode } from "~/modules/llm/modelRegistry";
 import AdjudicationDialog from "../components/adjudicationDialog";
 import type { EvaluationReport } from "../evaluations.types";
@@ -31,7 +32,10 @@ export default function AdjudicationDialogContainer({
 
   const initialSelection = nonHumanPerformers.slice(0, 3).map((p) => p.runId);
   const [selectedRuns, setSelectedRuns] = useState<string[]>(initialSelection);
-  const [selectedModel, setSelectedModel] = useState(getDefaultModelCode());
+  const llmProvider = useLlmProvider();
+  const [selectedModel, setSelectedModel] = useState(
+    getDefaultModelCode(llmProvider),
+  );
 
   return (
     <AdjudicationDialog

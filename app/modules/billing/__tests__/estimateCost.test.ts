@@ -173,6 +173,42 @@ describe("TeamBillingService.estimateCost", () => {
     ).rejects.toThrow("No billing plan found");
   });
 
+  it("estimates without a plan or markup on Vertex AI deployments", async () => {
+    const originalProvider = process.env.LLM_PROVIDER;
+    process.env.LLM_PROVIDER = "VERTEX_AI";
+
+    try {
+      const result = await TeamBillingService.estimateCost({
+        teamId: team._id,
+        projectId: project._id,
+        sessionIds: [session._id],
+        definitions: [definition()],
+        shouldRunVerification: false,
+      });
+
+      const promptVersion = await PromptVersionService.findOne({
+        prompt: prompt._id,
+        version: 1,
+      });
+
+      const rawEstimate = calculateEstimate(
+        [
+          {
+            modelCode: testModel,
+            prompt: { inputTokens: promptVersion?.inputTokens },
+          },
+        ],
+        [{ inputTokens: session.inputTokens }],
+        { shouldRunVerification: false },
+      );
+
+      expect(result.estimatedCost).toBeCloseTo(rawEstimate.estimatedCost, 5);
+    } finally {
+      if (originalProvider === undefined) delete process.env.LLM_PROVIDER;
+      else process.env.LLM_PROVIDER = originalProvider;
+    }
+  });
+
   it("only includes sessions that belong to the project", async () => {
     const otherProject = await ProjectService.create({
       name: "Other Project",

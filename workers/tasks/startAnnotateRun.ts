@@ -11,7 +11,11 @@ export default async function startAnnotateRun(job: Job) {
 
   const run = await RunService.findById(runId);
   if (!run) {
-    throw new Error(`startAnnotateRun: Run not found: ${runId}`);
+    // The run (or its run set) was deleted while these jobs sat in the queue.
+    // Failing here just retries until attempts run out and fills the worker log
+    // with stack traces on every restart.
+    console.warn(`startAnnotateRun: run ${runId} no longer exists, skipping`);
+    return { status: "SKIPPED" };
   }
 
   if (run.stoppedAt) {

@@ -84,8 +84,14 @@ export class TeamBillingService {
   static async setupTeamBilling(teamId: string): Promise<void> {
     const defaultPlan = await BillingPlanService.findDefault();
     if (!defaultPlan) {
-      console.warn(
-        `No default billing plan found, skipping billing setup for team ${teamId}`,
+      // A team with no plan looks fine until something needs one, and then it
+      // fails somewhere unrelated (cost estimation on the run page). Name the
+      // missing migration here so the cause is findable at team-creation time.
+      console.error(
+        `No default billing plan exists, so team ${teamId} was created without a billing plan or balance. ` +
+          `Run the "20260325153256-seed-default-billing-plan" migration, then ` +
+          `"20260326120000-assign-default-plan-to-existing-teams" and ` +
+          `"20260327135814-backfill-billing-plan-effective-from" to repair existing teams.`,
       );
       return;
     }

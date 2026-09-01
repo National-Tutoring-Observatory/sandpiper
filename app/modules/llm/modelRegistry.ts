@@ -16,25 +16,34 @@ interface ModelConfig {
 
 const aiGatewayConfig = aiGatewayConfigRaw as unknown as ModelConfig;
 
-export function getDefaultModelCode(): string {
-  // The gateway's default is a "nto."-prefixed LiteLLM code, which Vertex's
-  // raw generateContent call won't recognize — fall back to that provider's
-  // own model list instead.
-  if (process.env.LLM_PROVIDER === "VERTEX_AI") {
-    const vertexProvider = aiGatewayConfig.providers.find(
-      (provider) => provider.name === "Vertex AI",
-    );
-    const defaultVertexModel = vertexProvider?.models.find(
-      (model) => !model.deprecated,
-    );
-    if (defaultVertexModel) return defaultVertexModel.code;
-  }
+export const VERTEX_AI_PROVIDER_NAME = "Vertex AI";
 
-  return aiGatewayConfig.defaultModel;
+// Vite replaces `process.env` with `{}` in the client bundle, so this reads as
+// unset in the browser — client callers pass the value down from the root
+// loader instead (see hooks/useLlmProvider).
+function getActiveLlmProvider(): string {
+  return process.env.LLM_PROVIDER || "";
 }
 
-export function getAvailableProviders(): Provider[] {
+// The "Vertex AI" block holds bare model codes that only the direct Vertex
+// provider can resolve (it calls publishers/google), and the other blocks hold
+// gateway codes ("nto."/"anthropic."/"openai."-prefixed) that only the gateway
+// can resolve. Offering a code the active provider can't resolve doesn't fail
+// at selection time — it 404s later, mid-annotation.
+function canServeModelsFrom(llmProvider: string, blockName: string): boolean {
+  if (llmProvider === "VERTEX_AI") return blockName === VERTEX_AI_PROVIDER_NAME;
+  if (llmProvider === "AI_GATEWAY")
+    return blockName !== VERTEX_AI_PROVIDER_NAME;
+  // OPEN_AI hardcodes its own model and ignores the selected code, and an unset
+  // provider means local dev — neither gains anything from filtering.
+  return true;
+}
+
+export function getAvailableProviders(
+  llmProvider: string = getActiveLlmProvider(),
+): Provider[] {
   return aiGatewayConfig.providers
+    .filter((provider) => canServeModelsFrom(llmProvider, provider.name))
     .map((provider) => ({
       name: provider.name,
       models: provider.models
@@ -46,6 +55,43 @@ export function getAvailableProviders(): Provider[] {
         })),
     }))
     .filter((provider) => provider.models.length > 0);
+}
+
+export function getDefaultModelCode(
+  llmProvider: string = getActiveLlmProvider(),
+): string {
+  const configuredDefault = findModelByCode(aiGatewayConfig.defaultModel, {
+    includeDeprecated: true,
+  });
+  if (
+    configuredDefault &&
+    canServeModelsFrom(llmProvider, configuredDefault.provider)
+  ) {
+    return aiGatewayConfig.defaultModel;
+  }
+
+  // The configured default is a gateway code the active provider can't resolve
+  // (e.g. "nto.google.gemini-3-flash-preview" under VERTEX_AI) — take that
+  // provider's first available model instead.
+  const firstServableCode =
+    getAvailableProviders(llmProvider)[0]?.models[0]?.code;
+  return firstServableCode ?? aiGatewayConfig.defaultModel;
+}
+
+// System-initiated LLM calls (alignment checks, prompt suggestions, codebook
+// generation) name the model they want rather than taking the user's pick, so
+// they need the same swap the dropdown does for user picks.
+export function resolveModelCodeForProvider(preferredCode: string): string {
+  const llmProvider = getActiveLlmProvider();
+  const preferred = findModelByCode(preferredCode, {
+    includeDeprecated: true,
+  });
+
+  // An unrecognised code isn't ours to reassign — leave it for the provider.
+  if (!preferred) return preferredCode;
+  if (canServeModelsFrom(llmProvider, preferred.provider)) return preferredCode;
+
+  return getDefaultModelCode(llmProvider);
 }
 
 export function getAvailableModels(): ModelInfo[] {

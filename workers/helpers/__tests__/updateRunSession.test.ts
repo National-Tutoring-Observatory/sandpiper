@@ -12,17 +12,19 @@ describe("updateRunSession helper", () => {
     await clearDocumentDB();
   });
 
-  it("throws error if run not found", async () => {
+  it("reports a deleted run instead of throwing", async () => {
     const fakeRunId = new Types.ObjectId().toString();
     const sessionId = new Types.ObjectId().toString();
 
+    // Callers use this from their catch blocks, so throwing here replaced the
+    // original failure with "Run not found".
     await expect(
       updateRunSession({
         runId: fakeRunId,
         sessionId,
         update: { status: "DONE" },
       }),
-    ).rejects.toThrow(`Run not found: ${fakeRunId}`);
+    ).resolves.toBe(false);
   });
 
   it("updates session status to DONE", async () => {

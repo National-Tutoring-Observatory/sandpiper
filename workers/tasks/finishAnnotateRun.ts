@@ -13,7 +13,8 @@ export default async function finishAnnotateRun(job: Job) {
 
   const run = await RunService.findById(runId);
   if (!run) {
-    throw new Error(`finishAnnotateRun: Run not found: ${runId}`);
+    console.warn(`finishAnnotateRun: run ${runId} no longer exists, skipping`);
+    return { status: "SKIPPED" };
   }
 
   if (run.stoppedAt) {

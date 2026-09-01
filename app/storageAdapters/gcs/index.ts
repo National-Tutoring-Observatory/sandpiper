@@ -51,9 +51,12 @@ registerStorageAdapter({
     const bucket = getGcsBucket();
 
     try {
+      // No `private: true` — that sends a legacy object ACL, which buckets with
+      // uniform bucket-level access reject outright ("Cannot insert legacy ACL
+      // for an object when uniform bucket-level access is enabled"). Under UBLA
+      // access is IAM-only and objects are already non-public.
       await bucket.file(uploadPath).save(buffer, {
         contentType: type,
-        private: true,
       });
     } catch (error) {
       throw new Error(`GCS upload error for ${uploadPath}`, {

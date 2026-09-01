@@ -77,6 +77,9 @@ export async function loader({ request }: Route.LoaderArgs) {
   return Response.json(
     {
       googleAnalyticsId: process.env.GOOGLE_ANALYTICS_ID || null,
+      // Which LLM provider this deployment talks to — client containers need it
+      // to offer only models that provider can resolve (see hooks/useLlmProvider).
+      llmProvider: process.env.LLM_PROVIDER || null,
       maintenanceMode,
       initialCredits: getInitialCreditsAmount(),
       flashToast: flashToast ?? null,

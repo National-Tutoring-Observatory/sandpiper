@@ -1,4 +1,5 @@
 import { useState } from "react";
+import useLlmProvider from "~/modules/llm/hooks/useLlmProvider";
 import { getAvailableProviders } from "~/modules/llm/modelRegistry";
 import ModelSelector from "../components/modelSelector";
 
@@ -12,12 +13,13 @@ export default function ModelSelectorContainer({
   onSelectedModelChanged: (selectedModel: string) => void;
 }) {
   const [isModelsOpen, setIsModelsOpen] = useState(false);
+  const llmProvider = useLlmProvider();
 
   const onToggleModelPopover = (isModelsOpen: boolean) => {
     setIsModelsOpen(isModelsOpen);
   };
 
-  const providers = getAvailableProviders();
+  const providers = getAvailableProviders(llmProvider);
 
   const providersWithFilteredModels = providers.map((provider) => ({
     ...provider,

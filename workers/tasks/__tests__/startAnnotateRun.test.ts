@@ -27,16 +27,18 @@ describe("startAnnotateRun worker", () => {
     );
   });
 
-  it("throws error if run not found", async () => {
+  it("skips instead of failing when the run was deleted", async () => {
     const fakeRunId = new Types.ObjectId().toString();
     const job = {
       id: "job-1",
       data: { runId: fakeRunId },
     } as any as Job;
 
-    await expect(startAnnotateRun(job)).rejects.toThrow(
-      `startAnnotateRun: Run not found: ${fakeRunId}`,
-    );
+    // Deleting a run or run set leaves its queued jobs behind; retrying them
+    // to exhaustion buried the worker log in stack traces on every restart.
+    await expect(startAnnotateRun(job)).resolves.toEqual({
+      status: "SKIPPED",
+    });
   });
 
   it("marks run as started", async () => {

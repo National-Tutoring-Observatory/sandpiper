@@ -1,5 +1,7 @@
 import { useMemo, useState } from "react";
+import isLedgerBillingEnabled from "~/modules/billing/helpers/isLedgerBillingEnabled";
 import useEstimateCost from "~/modules/billing/hooks/useEstimateCost";
+import useLlmProvider from "~/modules/llm/hooks/useLlmProvider";
 import RunSetCreateRunsFooter from "../components/runSetCreateRunsFooter";
 import RunSetCreateRunsInfo from "../components/runSetCreateRunsInfo";
 import RunSetCreatorFormAlerts from "../components/runSetCreatorFormAlerts";
@@ -35,6 +37,7 @@ export default function RunSetCreateRunsContainer({
   isLoading,
   errors,
 }: RunSetCreateRunsContainerProps) {
+  const llmProvider = useLlmProvider();
   const [selectedPrompts, setSelectedPrompts] = useState<PromptReference[]>([]);
   const [selectedModels, setSelectedModels] = useState<string[]>([]);
   const [shouldRunVerification, setShouldRunVerification] = useState(true);
@@ -63,7 +66,8 @@ export default function RunSetCreateRunsContainer({
     shouldRunVerification,
   });
 
-  const exceedsBalance = estimation.estimatedCost > balance;
+  const exceedsBalance =
+    isLedgerBillingEnabled(llmProvider) && estimation.estimatedCost > balance;
 
   const handleRemoveCard = (key: string) => {
     setRemovedKeys((prev) => new Set(prev).add(key));

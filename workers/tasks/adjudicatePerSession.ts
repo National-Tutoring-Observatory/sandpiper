@@ -160,7 +160,10 @@ export default async function adjudicatePerSession(job: Job) {
     const run = await RunService.findById(runId);
 
     if (!run) {
-      throw new Error(`Run not found: ${runId}`);
+      console.warn(
+        `adjudicatePerSession: run ${runId} no longer exists, skipping`,
+      );
+      return { status: "SKIPPED" };
     }
 
     const sessionsCount = run.sessions.length;
