@@ -58,15 +58,8 @@ registerLLM("AI_GATEWAY", {
 
     applySchemaToRequest(requestParams, schema);
 
-    const requestOptions: Record<string, unknown> = {};
-    if (options.timeout) {
-      requestOptions.headers = {
-        "x-litellm-timeout": String(options.timeout / 1000),
-      };
-    }
-
     const { data: stream, response } = await llm.chat.completions
-      .create(requestParams, requestOptions)
+      .create(requestParams)
       .withResponse();
 
     let contentStr = "";
