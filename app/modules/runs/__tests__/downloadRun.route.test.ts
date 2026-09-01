@@ -139,7 +139,7 @@ describe("downloadRun.route loader", () => {
 
       expect(res).toBeInstanceOf(Response);
       expect((res as Response).headers.get("Content-Disposition")).toContain(
-        "-csv.zip",
+        `project_${project._id}_${project.name}-run_${run._id}_${run.name}-csv.zip`,
       );
     });
 
@@ -156,7 +156,7 @@ describe("downloadRun.route loader", () => {
 
       expect(res).toBeInstanceOf(Response);
       expect((res as Response).headers.get("Content-Disposition")).toContain(
-        "-jsonl.zip",
+        `project_${project._id}_${project.name}-run_${run._id}_${run.name}-jsonl.zip`,
       );
     });
   });

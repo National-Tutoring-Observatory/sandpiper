@@ -107,13 +107,15 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const webStream = Readable.toWeb(passthroughStream);
 
+  const safeProjectName = project.name.replace(/[\r\n"\\]/g, "_");
+
   const safeRunName = run.name.replace(/[\r\n"\\]/g, "_");
 
   return new Response(webStream as ReadableStream<Uint8Array>, {
     status: 200,
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="project-${run.project}-run-${run._id}-${safeRunName}-${formatSuffix}.zip"`,
+      "Content-Disposition": `attachment; filename="project_${run.project}_${safeProjectName}-run_${run._id}_${safeRunName}-${formatSuffix}.zip"`,
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",

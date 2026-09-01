@@ -207,13 +207,7 @@ describe("downloadRunSet.route loader", () => {
       "application/zip",
     );
     expect((res as Response).headers.get("Content-Disposition")).toContain(
-      "attachment",
-    );
-    expect((res as Response).headers.get("Content-Disposition")).toContain(
-      runSet._id,
-    );
-    expect((res as Response).headers.get("Content-Disposition")).toContain(
-      "-csv.zip",
+      `project_${project._id}_${project.name}-runSet_${runSet._id}_${runSet.name}-csv.zip`,
     );
   });
 
@@ -234,13 +228,7 @@ describe("downloadRunSet.route loader", () => {
       "application/zip",
     );
     expect((res as Response).headers.get("Content-Disposition")).toContain(
-      "attachment",
-    );
-    expect((res as Response).headers.get("Content-Disposition")).toContain(
-      runSet._id,
-    );
-    expect((res as Response).headers.get("Content-Disposition")).toContain(
-      "-jsonl.zip",
+      `project_${project._id}_${project.name}-runSet_${runSet._id}_${runSet.name}-jsonl.zip`,
     );
   });
 });
