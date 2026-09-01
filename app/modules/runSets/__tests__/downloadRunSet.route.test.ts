@@ -39,7 +39,7 @@ describe("downloadRunSet.route loader", () => {
       teams: [{ team: team._id, role: "ADMIN" }],
     });
     project = await ProjectService.create({
-      name: "Test Project",
+      name: "Weird/Name:With*Bad?Chars",
       createdBy: user._id,
       team: team._id,
     });
@@ -207,7 +207,7 @@ describe("downloadRunSet.route loader", () => {
       "application/zip",
     );
     expect((res as Response).headers.get("Content-Disposition")).toContain(
-      `project_${project._id}_${project.name}-runSet_${runSet._id}_${runSet.name}-csv.zip`,
+      `project_${project._id}_Weird_Name_With_Bad_Chars-runSet_${runSet._id}_${runSet.name}-csv.zip`,
     );
   });
 
@@ -228,7 +228,7 @@ describe("downloadRunSet.route loader", () => {
       "application/zip",
     );
     expect((res as Response).headers.get("Content-Disposition")).toContain(
-      `project_${project._id}_${project.name}-runSet_${runSet._id}_${runSet.name}-jsonl.zip`,
+      `project_${project._id}_Weird_Name_With_Bad_Chars-runSet_${runSet._id}_${runSet.name}-jsonl.zip`,
     );
   });
 });
