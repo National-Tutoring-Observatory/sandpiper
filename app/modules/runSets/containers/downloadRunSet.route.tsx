@@ -18,35 +18,36 @@ function buildExportFilePaths(
   outputDirectory: string,
   exportType: string,
   annotationType: string | undefined,
+  filePrefix: string,
 ) {
   const files: { path: string; name: string }[] = [];
 
   if (exportType === "CSV") {
     files.push({
       path: `${outputDirectory}/${runSet.project}-${runSet._id}-meta.csv`,
-      name: `${runSet.project}-${runSet._id}-meta.csv`,
+      name: `${filePrefix}-meta.csv`,
     });
 
     if (annotationType === "PER_UTTERANCE") {
       files.push({
         path: `${outputDirectory}/${runSet.project}-${runSet._id}-utterances.csv`,
-        name: `${runSet.project}-${runSet._id}-utterances.csv`,
+        name: `${filePrefix}-utterances.csv`,
       });
     } else if (annotationType === "PER_SESSION") {
       files.push({
         path: `${outputDirectory}/${runSet.project}-${runSet._id}-sessions.csv`,
-        name: `${runSet.project}-${runSet._id}-sessions.csv`,
+        name: `${filePrefix}-sessions.csv`,
       });
     }
   } else {
     files.push({
       path: `${outputDirectory}/${runSet.project}-${runSet._id}-meta.jsonl`,
-      name: `${runSet.project}-${runSet._id}-meta.jsonl`,
+      name: `${filePrefix}-meta.jsonl`,
     });
 
     files.push({
       path: `${outputDirectory}/${runSet.project}-${runSet._id}-sessions.jsonl`,
-      name: `${runSet.project}-${runSet._id}-sessions.jsonl`,
+      name: `${filePrefix}-sessions.jsonl`,
     });
   }
 
@@ -95,6 +96,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Error("Run set not found.");
   }
 
+  const safeProjectName = sanitizeName(project.name);
+
+  const safeRunSetName = sanitizeName(runSet.name);
+
+  const filePrefix = `project_${runSet.project}_${safeProjectName}-runSet_${runSet._id}_${safeRunSetName}`;
+
   const runs = await RunService.find({
     match: { _id: { $in: runSet.runs || [] } },
   });
@@ -108,6 +115,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     outputDirectory,
     exportType,
     annotationType,
+    filePrefix,
   );
   const localPaths = await downloadFiles(storage, files);
 
@@ -137,15 +145,11 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const webStream = Readable.toWeb(passthroughStream);
 
-  const safeProjectName = sanitizeName(project.name);
-
-  const safeRunSetName = sanitizeName(runSet.name);
-
   return new Response(webStream as ReadableStream<Uint8Array>, {
     status: 200,
     headers: {
       "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="project_${runSet.project}_${safeProjectName}-runSet_${runSet._id}_${safeRunSetName}-${formatSuffix}.zip"`,
+      "Content-Disposition": `attachment; filename="${filePrefix}-${formatSuffix}.zip"`,
       "Cache-Control": "no-cache, no-store, must-revalidate",
       Pragma: "no-cache",
       Expires: "0",
