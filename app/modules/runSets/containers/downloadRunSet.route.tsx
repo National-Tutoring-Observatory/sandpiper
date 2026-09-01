@@ -3,6 +3,7 @@ import map from "lodash/map";
 import { PassThrough, Readable } from "node:stream";
 import { redirect } from "react-router";
 import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
+import sanitizeName from "~/modules/app/helpers/sanitizeName";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import { ProjectService } from "~/modules/projects/project";
 import { RunService } from "~/modules/runs/run";
@@ -136,9 +137,9 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
   const webStream = Readable.toWeb(passthroughStream);
 
-  const safeProjectName = project.name.replace(/[\r\n"\\]/g, "_");
+  const safeProjectName = sanitizeName(project.name);
 
-  const safeRunSetName = runSet.name.replace(/[\r\n"\\]/g, "_");
+  const safeRunSetName = sanitizeName(runSet.name);
 
   return new Response(webStream as ReadableStream<Uint8Array>, {
     status: 200,
