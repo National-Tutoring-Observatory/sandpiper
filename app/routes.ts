@@ -79,6 +79,7 @@ export default [
         ),
       ],
     ),
+    route(":teamId/tags", "modules/tags/containers/tags.route.tsx"),
     route(
       ":teamId/projects/:projectId",
       "modules/projects/containers/project.route.tsx",

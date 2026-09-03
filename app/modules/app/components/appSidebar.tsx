@@ -25,6 +25,7 @@ import {
   Link2,
   Notebook,
   Shield,
+  Tag,
   Users,
   UsersRound,
 } from "lucide-react";
@@ -266,6 +267,22 @@ export default function AppSidebar() {
                                 <Library />
                                 <span className={isActive ? "underline" : ""}>
                                   Prompt Library
+                                </span>
+                              </>
+                            )}
+                          </NavLink>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    </FeatureFlag>
+                    <FeatureFlag flag="HAS_TAGS">
+                      <SidebarMenuItem>
+                        <SidebarMenuButton asChild>
+                          <NavLink to={`/teams/${activeTeamId}/tags`}>
+                            {({ isActive }) => (
+                              <>
+                                <Tag />
+                                <span className={isActive ? "underline" : ""}>
+                                  Tags
                                 </span>
                               </>
                             )}
