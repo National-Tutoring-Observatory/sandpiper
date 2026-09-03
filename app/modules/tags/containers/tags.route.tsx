@@ -6,6 +6,8 @@ import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromR
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import getSessionUserTeams from "~/modules/authentication/helpers/getSessionUserTeams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import addDialog from "~/modules/dialogs/addDialog";
+import EditTagDialog from "../components/editTagDialog";
 import { TagService } from "../tag";
 import type { Route } from "./+types/tags.route";
 import TagsContainer from "./tags.container";
@@ -60,8 +62,22 @@ export default function TagsRoute() {
     filters: {},
   });
 
+  const onCreateTagClicked = () => {};
+
+  const onCreateTagButtonClicked = () => {
+    addDialog(
+      <EditTagDialog
+        tag={{ name: "", description: "", color: "#ff5567" }}
+        onEditTagClicked={onCreateTagClicked}
+      />,
+    );
+  };
+
   const onActionClicked = (action: string) => {
     console.warn("Tag action not yet implemented:", action);
+    if (action === "CREATE") {
+      onCreateTagButtonClicked();
+    }
   };
 
   const onItemActionClicked = ({

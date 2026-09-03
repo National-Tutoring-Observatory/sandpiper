@@ -1,6 +1,8 @@
 export interface Tag {
   _id: string;
   name: string;
+  description: string;
+  color: string;
   team: string;
   createdAt: Date | string;
   createdBy?: string;
@@ -10,6 +12,8 @@ export interface Tag {
 
 export interface CreateTagProps {
   name: string;
+  description: string;
+  color: string;
   team: string;
   createdBy: string;
 }
