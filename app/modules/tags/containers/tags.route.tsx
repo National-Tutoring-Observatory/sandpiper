@@ -98,7 +98,7 @@ export default function TagsRoute() {
     });
   };
 
-  const onCreateTagButtonClicked = () => {
+  const openCreateTagDialog = () => {
     addDialog(
       <EditTagDialog
         tag={{ name: "", description: "", color: "#ff5567" }}
@@ -109,7 +109,7 @@ export default function TagsRoute() {
 
   const onActionClicked = (action: string) => {
     if (action === "CREATE") {
-      onCreateTagButtonClicked();
+      openCreateTagDialog();
     }
   };
 
@@ -150,7 +150,7 @@ export default function TagsRoute() {
       totalPages={tags.totalPages}
       filtersValues={filtersValues}
       sortValue={sortValue}
-      isSyncing={isSyncing}
+      isSyncing={isSyncing || fetcher.state !== "idle"}
       onActionClicked={onActionClicked}
       onItemActionClicked={onItemActionClicked}
       onSearchValueChanged={onSearchValueChanged}
