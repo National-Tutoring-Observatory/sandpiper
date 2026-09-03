@@ -23,6 +23,7 @@ type CollectionItemActionsProps = {
   id: string;
   actions: CollectionItemAction[];
   isDisabled?: boolean;
+  to?: string;
   onItemActionClicked?: (args: { id: string; action: string }) => void;
 };
 
@@ -30,6 +31,7 @@ const CollectionItemActions = ({
   id,
   actions,
   isDisabled,
+  to,
   onItemActionClicked,
 }: CollectionItemActionsProps) => {
   if (actions.length === 0) return null;
@@ -55,7 +57,9 @@ const CollectionItemActions = ({
                     variant={action.variant}
                     onClick={(event) => {
                       event.stopPropagation();
-                      event.preventDefault();
+                      if (to) {
+                        event.preventDefault();
+                      }
                       if (onItemActionClicked) {
                         onItemActionClicked({ id, action: action.action });
                       }
@@ -75,7 +79,9 @@ const CollectionItemActions = ({
           variant="ghost"
           onClick={(event) => {
             event.stopPropagation();
-            event.preventDefault();
+            if (to) {
+              event.preventDefault();
+            }
             if (onItemActionClicked) {
               onItemActionClicked({ id, action: actions[0].action });
             }

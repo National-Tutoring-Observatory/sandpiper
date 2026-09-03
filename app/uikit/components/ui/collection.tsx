@@ -179,6 +179,7 @@ const Collection = ({
                     id={id}
                     actions={itemActions}
                     isDisabled={!!isDisabled}
+                    to={to}
                     onItemActionClicked={onItemActionClicked}
                   />
                 )}
