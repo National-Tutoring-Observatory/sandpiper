@@ -1,5 +1,5 @@
 import map from "lodash/map";
-import { redirect, useLoaderData } from "react-router";
+import { data, redirect, useFetcher, useLoaderData } from "react-router";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
@@ -9,6 +9,7 @@ import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import EditTagDialog from "../components/editTagDialog";
 import { TagService } from "../tag";
+import type { Tag } from "../tags.types";
 import type { Route } from "./+types/tags.route";
 import TagsContainer from "./tags.container";
 
@@ -40,6 +41,37 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return { tags };
 }
 
+export async function action({ request, params }: Route.ActionArgs) {
+  const user = await requireAuth({ request });
+
+  const authenticationTeams = await getSessionUserTeams({ request });
+  const teamIds = map(authenticationTeams, "team");
+  if (!teamIds.includes(params.teamId)) {
+    return redirect("/");
+  }
+
+  const payload = await request.json();
+
+  if (payload.intent === "CREATE_TAG") {
+    const name = payload.tag?.name?.trim();
+    if (!name) {
+      return data({ errors: { name: "Name is required" } }, { status: 400 });
+    }
+
+    const tag = await TagService.create({
+      name,
+      description: payload.tag.description,
+      color: payload.tag.color,
+      team: params.teamId,
+      createdBy: user._id,
+    });
+
+    return data({ success: true, intent: "CREATE_TAG", tag });
+  }
+
+  return data({ errors: { general: "Invalid intent" } }, { status: 400 });
+}
+
 const breadcrumbs: Breadcrumb[] = [{ text: "Tags" }];
 
 export default function TagsRoute() {
@@ -62,7 +94,16 @@ export default function TagsRoute() {
     filters: {},
   });
 
-  const onCreateTagClicked = () => {};
+  const fetcher = useFetcher();
+
+  const onCreateTagClicked = (
+    tag: Pick<Tag, "name" | "description" | "color">,
+  ) => {
+    fetcher.submit(JSON.stringify({ intent: "CREATE_TAG", tag }), {
+      method: "POST",
+      encType: "application/json",
+    });
+  };
 
   const onCreateTagButtonClicked = () => {
     addDialog(
@@ -74,7 +115,6 @@ export default function TagsRoute() {
   };
 
   const onActionClicked = (action: string) => {
-    console.warn("Tag action not yet implemented:", action);
     if (action === "CREATE") {
       onCreateTagButtonClicked();
     }

@@ -72,6 +72,8 @@ export class TagService {
   static async create(props: CreateTagProps): Promise<Tag> {
     const doc = await TagModel.create({
       name: props.name,
+      description: props.description,
+      color: props.color,
       team: props.team,
       createdBy: props.createdBy,
     });

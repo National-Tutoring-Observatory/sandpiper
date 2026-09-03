@@ -37,6 +37,10 @@ const EditTagDialog = ({
     });
   };
 
+  const onColorChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setUpdatedTag({ ...updatedTag, color: event.target.value });
+  };
+
   const isSubmitButtonDisabled =
     updatedTag.name.trim().length < 3 || isSubmitting;
 
@@ -53,6 +57,7 @@ const EditTagDialog = ({
           name="name"
           defaultValue={updatedTag.name}
           autoComplete="off"
+          autoFocus
           onChange={onNameChanged}
         />
         <div>
@@ -65,6 +70,18 @@ const EditTagDialog = ({
           defaultValue={updatedTag.description}
           onChange={onDescriptionChanged}
         />
+        <div className="flex items-center justify-between">
+          <div>
+            <Label htmlFor="color-1">Color</Label>
+          </div>
+          <div className="w-full max-w-12">
+            <Input
+              type="color"
+              value={updatedTag.color}
+              onChange={onColorChanged}
+            />
+          </div>
+        </div>
       </div>
       <DialogFooter className="justify-end">
         <DialogClose asChild>
