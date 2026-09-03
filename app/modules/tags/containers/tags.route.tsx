@@ -1,12 +1,11 @@
-import map from "lodash/map";
 import { data, redirect, useFetcher, useLoaderData } from "react-router";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
-import getSessionUserTeams from "~/modules/authentication/helpers/getSessionUserTeams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
+import TagAuthorization from "../authorization";
 import EditTagDialog from "../components/editTagDialog";
 import { TagService } from "../tag";
 import type { Tag } from "../tags.types";
@@ -14,11 +13,8 @@ import type { Route } from "./+types/tags.route";
 import TagsContainer from "./tags.container";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
-  await requireAuth({ request });
-
-  const authenticationTeams = await getSessionUserTeams({ request });
-  const teamIds = map(authenticationTeams, "team");
-  if (!teamIds.includes(params.teamId)) {
+  const user = await requireAuth({ request });
+  if (!TagAuthorization.canCreate(user, params.teamId)) {
     return redirect("/");
   }
 
@@ -43,10 +39,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 
 export async function action({ request, params }: Route.ActionArgs) {
   const user = await requireAuth({ request });
-
-  const authenticationTeams = await getSessionUserTeams({ request });
-  const teamIds = map(authenticationTeams, "team");
-  if (!teamIds.includes(params.teamId)) {
+  if (!TagAuthorization.canCreate(user, params.teamId)) {
     return redirect("/");
   }
 
