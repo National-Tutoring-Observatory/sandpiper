@@ -16,11 +16,9 @@ import type { Tag } from "../tags.types";
 const EditTagDialog = ({
   tag,
   onEditTagClicked,
-  isSubmitting = false,
 }: {
   tag: Pick<Tag, "name" | "description" | "color">;
   onEditTagClicked: (tag: Pick<Tag, "name" | "description" | "color">) => void;
-  isSubmitting?: boolean;
 }) => {
   const [updatedTag, setUpdatedTag] = useState(tag);
 
@@ -40,9 +38,6 @@ const EditTagDialog = ({
   const onColorChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     setUpdatedTag({ ...updatedTag, color: event.target.value });
   };
-
-  const isSubmitButtonDisabled =
-    updatedTag.name.trim().length < 3 || isSubmitting;
 
   return (
     <DialogContent>
@@ -92,7 +87,7 @@ const EditTagDialog = ({
         <DialogClose asChild>
           <Button
             type="button"
-            disabled={isSubmitButtonDisabled}
+            disabled={updatedTag.name.trim().length < 3}
             onClick={() => {
               onEditTagClicked(updatedTag);
             }}

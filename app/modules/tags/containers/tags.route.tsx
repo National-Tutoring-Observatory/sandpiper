@@ -1,3 +1,4 @@
+import find from "lodash/find";
 import { data, redirect, useFetcher, useLoaderData } from "react-router";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
@@ -46,20 +47,47 @@ export async function action({ request, params }: Route.ActionArgs) {
   const payload = await request.json();
 
   if (payload.intent === "CREATE_TAG") {
-    const name = payload.tag?.name?.trim();
+    const newTag = payload.data;
+    const name = newTag?.name?.trim();
     if (!name) {
       return data({ errors: { name: "Name is required" } }, { status: 400 });
     }
 
     const tag = await TagService.create({
       name,
-      description: payload.tag.description,
-      color: payload.tag.color,
+      description: newTag.description,
+      color: newTag.color,
       team: params.teamId,
       createdBy: user._id,
     });
 
     return data({ success: true, intent: "CREATE_TAG", tag });
+  }
+
+  if (payload.intent === "UPDATE_TAG") {
+    const updates = payload.data;
+    const name = updates?.name?.trim();
+    if (!name) {
+      return data({ errors: { name: "Name is required" } }, { status: 400 });
+    }
+
+    const existingTag = await TagService.findOne({
+      _id: payload.entityId,
+      team: params.teamId,
+    });
+    if (!existingTag) {
+      return data({ errors: { general: "Tag not found" } }, { status: 404 });
+    }
+
+    const tag = await TagService.updateById(existingTag._id, {
+      name,
+      description: updates.description,
+      color: updates.color,
+      updatedBy: user._id,
+      updatedAt: new Date(),
+    });
+
+    return data({ success: true, intent: "UPDATE_TAG", tag });
   }
 
   return data({ errors: { general: "Invalid intent" } }, { status: 400 });
@@ -89,11 +117,19 @@ export default function TagsRoute() {
 
   const fetcher = useFetcher();
 
-  const onCreateTagClicked = (
-    tag: Pick<Tag, "name" | "description" | "color">,
-  ) => {
-    fetcher.submit(JSON.stringify({ intent: "CREATE_TAG", tag }), {
+  const createTag = (data: Pick<Tag, "name" | "description" | "color">) => {
+    fetcher.submit(JSON.stringify({ intent: "CREATE_TAG", data }), {
       method: "POST",
+      encType: "application/json",
+    });
+  };
+
+  const updateTag = (
+    entityId: string,
+    data: Pick<Tag, "name" | "description" | "color">,
+  ) => {
+    fetcher.submit(JSON.stringify({ intent: "UPDATE_TAG", entityId, data }), {
+      method: "PUT",
       encType: "application/json",
     });
   };
@@ -102,7 +138,16 @@ export default function TagsRoute() {
     addDialog(
       <EditTagDialog
         tag={{ name: "", description: "", color: "#ff5567" }}
-        onEditTagClicked={onCreateTagClicked}
+        onEditTagClicked={createTag}
+      />,
+    );
+  };
+
+  const openEditTagDialog = (tag: Tag) => {
+    addDialog(
+      <EditTagDialog
+        tag={tag}
+        onEditTagClicked={(updatedTag) => updateTag(tag._id, updatedTag)}
       />,
     );
   };
@@ -120,7 +165,12 @@ export default function TagsRoute() {
     id: string;
     action: string;
   }) => {
-    console.warn("Tag item action not yet implemented:", { id, action });
+    if (action === "EDIT") {
+      const tag = find(tags.data, { _id: id });
+      if (tag) {
+        openEditTagDialog(tag);
+      }
+    }
   };
 
   const onSearchValueChanged = (value: string) => {
