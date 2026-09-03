@@ -7,6 +7,7 @@ import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
 import TagAuthorization from "../authorization";
+import DeleteTagDialog from "../components/deleteTagDialog";
 import EditTagDialog from "../components/editTagDialog";
 import { TagService } from "../tag";
 import type { Tag } from "../tags.types";
@@ -90,6 +91,20 @@ export async function action({ request, params }: Route.ActionArgs) {
     return data({ success: true, intent: "UPDATE_TAG", tag });
   }
 
+  if (payload.intent === "DELETE_TAG") {
+    const existingTag = await TagService.findOne({
+      _id: payload.entityId,
+      team: params.teamId,
+    });
+    if (!existingTag) {
+      return data({ errors: { general: "Tag not found" } }, { status: 404 });
+    }
+
+    await TagService.deleteById(existingTag._id);
+
+    return data({ success: true, intent: "DELETE_TAG" });
+  }
+
   return data({ errors: { general: "Invalid intent" } }, { status: 400 });
 }
 
@@ -143,11 +158,27 @@ export default function TagsRoute() {
     );
   };
 
+  const deleteTag = (entityId: string) => {
+    fetcher.submit(JSON.stringify({ intent: "DELETE_TAG", entityId }), {
+      method: "DELETE",
+      encType: "application/json",
+    });
+  };
+
   const openEditTagDialog = (tag: Tag) => {
     addDialog(
       <EditTagDialog
         tag={tag}
         onEditTagClicked={(updatedTag) => updateTag(tag._id, updatedTag)}
+      />,
+    );
+  };
+
+  const openDeleteTagDialog = (tag: Tag) => {
+    addDialog(
+      <DeleteTagDialog
+        tag={tag}
+        onDeleteTagClicked={() => deleteTag(tag._id)}
       />,
     );
   };
@@ -165,11 +196,15 @@ export default function TagsRoute() {
     id: string;
     action: string;
   }) => {
+    const tag = find(tags.data, { _id: id });
+    if (!tag) return;
+
     if (action === "EDIT") {
-      const tag = find(tags.data, { _id: id });
-      if (tag) {
-        openEditTagDialog(tag);
-      }
+      openEditTagDialog(tag);
+    }
+
+    if (action === "DELETE") {
+      openDeleteTagDialog(tag);
     }
   };
 
