@@ -13,6 +13,7 @@ import { Item, ItemGroup, ItemSeparator } from "./item";
 import type { PaginationProps } from "./pagination";
 import type { SearchProps } from "./search";
 import type { SelectProps } from "./selectAll";
+import SelectItem from "./selectItem";
 import type { SortProps } from "./sort";
 
 export type CollectionProps = {
@@ -85,12 +86,31 @@ const Collection = ({
       if (selectedItems.length > 0) {
         onSelectChanged([]);
       } else {
-        onSelectChanged(map(items, "_id"));
+        onSelectChanged(
+          map(items, (item) => {
+            const { id } = getItemAttributes(item);
+            return id;
+          }),
+        );
       }
     } else {
       console.warn(
         "Collection is trying to select all but onSelectChanged is missing",
       );
+    }
+  };
+
+  const onSelectItemChanged = (itemId: string) => {
+    if (!onSelectChanged) {
+      console.warn(
+        "Collection is trying to select an item but onSelectChanged is missing",
+      );
+      return;
+    }
+    if (selectedItems.includes(itemId)) {
+      onSelectChanged(selectedItems.filter((id) => id !== itemId));
+    } else {
+      onSelectChanged([...selectedItems, itemId]);
     }
   };
 
@@ -156,6 +176,12 @@ const Collection = ({
                   "has-focus-visible:border-ring has-focus-visible:ring-ring/50 relative rounded-none p-0 transition-colors duration-300 has-focus-visible:ring-[3px]",
                 )}
               >
+                {selectActions && selectActions.length > 0 && (
+                  <SelectItem
+                    isSelected={selectedItems.includes(id)}
+                    onSelectItemChanged={() => onSelectItemChanged(id)}
+                  />
+                )}
                 {to && !isDisabled ? (
                   <Link
                     to={to}
