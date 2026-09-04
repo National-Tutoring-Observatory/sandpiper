@@ -1,4 +1,5 @@
 import find from "lodash/find";
+import { useState } from "react";
 import { redirect, useLoaderData, useSubmit } from "react-router";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
@@ -99,6 +100,12 @@ export default function ProjectSessionsRoute() {
     filters: {},
   });
 
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  const onSelectChanged = (selectedItems: string[]) => {
+    setSelectedItems(selectedItems);
+  };
+
   const onSessionClicked = (session: Session) => {
     addDialog(<ViewSessionContainer session={session} />);
   };
@@ -149,6 +156,7 @@ export default function ProjectSessionsRoute() {
     <Sessions
       project={project}
       sessions={sessions.data}
+      selectedItems={selectedItems}
       searchValue={searchValue}
       currentPage={currentPage}
       totalPages={sessions.totalPages}
@@ -156,6 +164,7 @@ export default function ProjectSessionsRoute() {
       sortValue={sortValue}
       isSyncing={isSyncing}
       onActionClicked={onActionClicked}
+      onSelectChanged={onSelectChanged}
       onItemClicked={onItemClicked}
       onSearchValueChanged={onSearchValueChanged}
       onPaginationChanged={onPaginationChanged}

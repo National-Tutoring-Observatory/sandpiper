@@ -12,6 +12,7 @@ import type { FiltersProps } from "./filters";
 import { Item, ItemGroup, ItemSeparator } from "./item";
 import type { PaginationProps } from "./pagination";
 import type { SearchProps } from "./search";
+import type { SelectProps } from "./selectAll";
 import type { SortProps } from "./sort";
 
 export type CollectionProps = {
@@ -49,6 +50,8 @@ const Collection = ({
   items,
   itemsLayout = "list",
   actions = [],
+  selectActions = [],
+  selectedItems = [],
   filters = [],
   filtersValues,
   sortOptions,
@@ -65,20 +68,39 @@ const Collection = ({
   getItemActions,
   onItemClicked,
   onActionClicked,
+  onSelectChanged,
   onItemActionClicked,
   onSearchValueChanged,
   onPaginationChanged,
   onFiltersValueChanged,
   onSortValueChanged,
 }: CollectionProps &
+  SelectProps &
   SearchProps &
   PaginationProps &
   FiltersProps &
   SortProps) => {
+  const onSelectAllChanged = () => {
+    if (onSelectChanged) {
+      if (selectedItems.length > 0) {
+        onSelectChanged([]);
+      } else {
+        onSelectChanged(map(items, "_id"));
+      }
+    } else {
+      console.warn(
+        "Collection is trying to select all but onSelectChanged is missing",
+      );
+    }
+  };
+
   return (
     <div>
       <ActionBar
         actions={actions}
+        selectActions={selectActions}
+        selectedItems={selectedItems}
+        totalItems={items.length}
         filters={filters}
         filtersValues={filtersValues}
         sortOptions={sortOptions}
@@ -90,6 +112,7 @@ const Collection = ({
         hasPagination={hasPagination}
         isSyncing={isSyncing}
         onActionClicked={onActionClicked}
+        onSelectAllChanged={onSelectAllChanged}
         onSearchValueChanged={onSearchValueChanged}
         onPaginationChanged={onPaginationChanged}
         onFiltersValueChanged={onFiltersValueChanged}

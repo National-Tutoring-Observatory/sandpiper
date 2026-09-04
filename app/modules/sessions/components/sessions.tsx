@@ -11,6 +11,7 @@ import sessionsSortOptions from "../helpers/sessionsSortOptions";
 export default function Sessions({
   project,
   sessions,
+  selectedItems,
   searchValue,
   currentPage,
   totalPages,
@@ -18,6 +19,7 @@ export default function Sessions({
   sortValue,
   isSyncing,
   onActionClicked,
+  onSelectChanged,
   onItemClicked,
   onSearchValueChanged,
   onPaginationChanged,
@@ -26,6 +28,7 @@ export default function Sessions({
 }: {
   project: Project;
   sessions: Session[];
+  selectedItems: string[];
   searchValue: string;
   currentPage: number;
   totalPages: number;
@@ -33,6 +36,7 @@ export default function Sessions({
   sortValue: string;
   isSyncing: boolean;
   onActionClicked: (action: string) => void;
+  onSelectChanged: (selectedItems: string[]) => void;
   onItemClicked: (id: string) => void;
   onSearchValueChanged: (searchValue: string) => void;
   onPaginationChanged: (currentPage: number) => void;
@@ -45,6 +49,10 @@ export default function Sessions({
         items={sessions}
         itemsLayout="list"
         actions={getSessionsActions(project)}
+        selectActions={[
+          { action: "MARK_WITH_TAG", component: <div>Marking...</div> },
+        ]}
+        selectedItems={selectedItems}
         filters={sessionsFilters}
         sortOptions={sessionsSortOptions}
         hasSearch
@@ -60,6 +68,7 @@ export default function Sessions({
         getItemActions={getSessionsItemActions}
         onItemClicked={onItemClicked}
         onActionClicked={onActionClicked}
+        onSelectChanged={onSelectChanged}
         onSearchValueChanged={onSearchValueChanged}
         onPaginationChanged={onPaginationChanged}
         onFiltersValueChanged={onFiltersValueChanged}

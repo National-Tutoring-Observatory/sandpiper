@@ -5,6 +5,7 @@ import { Button } from "./button";
 import Filters, { type Filter, type FiltersProps } from "./filters";
 import { Pagination, type PaginationProps } from "./pagination";
 import { Search, type SearchProps } from "./search";
+import SelectAll, { type SelectProps } from "./selectAll";
 import type { SortOption, SortProps } from "./sort";
 import Sort from "./sort";
 import { Spinner } from "./spinner";
@@ -28,6 +29,9 @@ export type ActionBarProps = {
 
 function ActionBar({
   actions,
+  selectActions,
+  selectedItems,
+  totalItems,
   filters,
   filtersValues,
   sortOptions,
@@ -39,11 +43,17 @@ function ActionBar({
   currentPage = 1,
   totalPages = 1,
   onActionClicked,
+  onSelectAllChanged,
   onSearchValueChanged,
   onPaginationChanged,
   onFiltersValueChanged,
   onSortValueChanged,
-}: ActionBarProps & SearchProps & PaginationProps & FiltersProps & SortProps) {
+}: ActionBarProps &
+  SelectProps &
+  SearchProps &
+  PaginationProps &
+  FiltersProps &
+  SortProps) {
   // Don't render if there's no content to display
   const hasContent =
     hasSearch ||
@@ -89,6 +99,13 @@ function ActionBar({
         )}
       >
         <div className="flex w-1/3 items-center gap-x-1">
+          {selectActions && selectActions.length > 0 && (
+            <SelectAll
+              selectedItems={selectedItems}
+              totalItems={totalItems}
+              onSelectAllChanged={onSelectAllChanged}
+            />
+          )}
           {hasSearch && (
             <Search
               searchValue={searchValue}
