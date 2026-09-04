@@ -8,7 +8,7 @@ const SelectItem = ({
   onSelectItemChanged: () => void;
 }) => {
   return (
-    <div className="mx-2">
+    <div className="ml-4">
       <Checkbox checked={isSelected} onCheckedChange={onSelectItemChanged} />
     </div>
   );

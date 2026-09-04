@@ -176,62 +176,64 @@ const Collection = ({
                   "has-focus-visible:border-ring has-focus-visible:ring-ring/50 relative rounded-none p-0 transition-colors duration-300 has-focus-visible:ring-[3px]",
                 )}
               >
-                {selectActions && selectActions.length > 0 && (
-                  <SelectItem
-                    isSelected={selectedItems.includes(id)}
-                    onSelectItemChanged={() => onSelectItemChanged(id)}
-                  />
-                )}
-                {to && !isDisabled ? (
-                  <Link
-                    to={to}
-                    className={clsx(
-                      {
-                        "pr-[140px]": itemActions.length > 0,
-                      },
-                      "flex w-full min-w-0 items-center gap-4 rounded-none p-4 outline-none",
-                    )}
-                  >
-                    {(renderItem && renderItem(item)) || (
-                      <CollectionItemContent
-                        title={title}
-                        description={description}
-                        meta={meta}
-                      />
-                    )}
-                  </Link>
-                ) : (
-                  <div
-                    className={clsx(
-                      {
-                        "pr-[140px]": itemActions.length > 0,
-                      },
-                      "flex w-full min-w-0 items-center gap-4 rounded-none p-4",
-                    )}
-                    onClick={() => {
-                      if (onItemClicked) {
-                        onItemClicked(item._id);
-                      }
-                    }}
-                  >
-                    {(renderItem && renderItem(item)) || (
-                      <CollectionItemContent
-                        title={title}
-                        description={description}
-                        meta={meta}
-                      />
-                    )}
-                  </div>
-                )}
-                {!renderItem && (
-                  <CollectionItemActions
-                    id={id}
-                    actions={itemActions}
-                    isDisabled={!!isDisabled}
-                    to={to}
-                    onItemActionClicked={onItemActionClicked}
-                  />
-                )}
+                <div className="flex items-center">
+                  {selectActions && selectActions.length > 0 && (
+                    <SelectItem
+                      isSelected={selectedItems.includes(id)}
+                      onSelectItemChanged={() => onSelectItemChanged(id)}
+                    />
+                  )}
+                  {to && !isDisabled ? (
+                    <Link
+                      to={to}
+                      className={clsx(
+                        {
+                          "pr-[140px]": itemActions.length > 0,
+                        },
+                        "flex w-full min-w-0 items-center gap-4 rounded-none p-4 outline-none",
+                      )}
+                    >
+                      {(renderItem && renderItem(item)) || (
+                        <CollectionItemContent
+                          title={title}
+                          description={description}
+                          meta={meta}
+                        />
+                      )}
+                    </Link>
+                  ) : (
+                    <div
+                      className={clsx(
+                        {
+                          "pr-[140px]": itemActions.length > 0,
+                        },
+                        "flex w-full min-w-0 items-center gap-4 rounded-none p-4",
+                      )}
+                      onClick={() => {
+                        if (onItemClicked) {
+                          onItemClicked(item._id);
+                        }
+                      }}
+                    >
+                      {(renderItem && renderItem(item)) || (
+                        <CollectionItemContent
+                          title={title}
+                          description={description}
+                          meta={meta}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {!renderItem && (
+                    <CollectionItemActions
+                      id={id}
+                      actions={itemActions}
+                      isDisabled={!!isDisabled}
+                      to={to}
+                      onItemActionClicked={onItemActionClicked}
+                    />
+                  )}
+                </div>
               </Item>
               {index !== items.length - 1 && itemsLayout === "list" && (
                 <ItemSeparator />
