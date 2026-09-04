@@ -1,4 +1,9 @@
+import type {
+  SelectActionChange,
+  SelectActionClose,
+} from "@/components/ui/selectAll";
 import find from "lodash/find";
+import { useState } from "react";
 import { redirect, useLoaderData, useSubmit } from "react-router";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
@@ -99,6 +104,37 @@ export default function ProjectSessionsRoute() {
     filters: {},
   });
 
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  const [selectActionsValues, setSelectActionsValues] = useState<{
+    tag: string[];
+  }>({ tag: [] });
+
+  const onSelectChanged = (selectedItems: string[]) => {
+    setSelectedItems(selectedItems);
+  };
+
+  const onSelectActionChanged = ({ action, value }: SelectActionChange) => {
+    if (action === "tag") {
+      setSelectActionsValues((current) => ({
+        ...current,
+        tag: current.tag.includes(value)
+          ? current.tag.filter((id) => id !== value)
+          : [...current.tag, value],
+      }));
+    }
+  };
+
+  const onSelectActionClosed = ({ action, value }: SelectActionClose) => {
+    if (action === "tag") {
+      console.log(value);
+      setSelectActionsValues((current) => ({
+        ...current,
+        tag: [],
+      }));
+    }
+  };
+
   const onSessionClicked = (session: Session) => {
     addDialog(<ViewSessionContainer session={session} />);
   };
@@ -149,6 +185,8 @@ export default function ProjectSessionsRoute() {
     <Sessions
       project={project}
       sessions={sessions.data}
+      selectedItems={selectedItems}
+      selectActionsValues={selectActionsValues}
       searchValue={searchValue}
       currentPage={currentPage}
       totalPages={sessions.totalPages}
@@ -156,6 +194,9 @@ export default function ProjectSessionsRoute() {
       sortValue={sortValue}
       isSyncing={isSyncing}
       onActionClicked={onActionClicked}
+      onSelectChanged={onSelectChanged}
+      onSelectActionChanged={onSelectActionChanged}
+      onSelectActionClosed={onSelectActionClosed}
       onItemClicked={onItemClicked}
       onSearchValueChanged={onSearchValueChanged}
       onPaginationChanged={onPaginationChanged}

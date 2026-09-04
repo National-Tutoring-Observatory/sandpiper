@@ -152,7 +152,7 @@ export default function TagsRoute() {
   const openCreateTagDialog = () => {
     addDialog(
       <EditTagDialog
-        tag={{ name: "", description: "", color: "#ff5567" }}
+        tag={{ name: "", description: "", color: "#454545" }}
         onEditTagClicked={createTag}
       />,
     );
