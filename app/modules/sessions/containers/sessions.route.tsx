@@ -1,3 +1,4 @@
+import type { SelectActionChange } from "@/components/ui/selectAll";
 import find from "lodash/find";
 import { useState } from "react";
 import { redirect, useLoaderData, useSubmit } from "react-router";
@@ -102,8 +103,23 @@ export default function ProjectSessionsRoute() {
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
+  const [selectActionsValues, setSelectActionsValues] = useState<{
+    tag: string[];
+  }>({ tag: [] });
+
   const onSelectChanged = (selectedItems: string[]) => {
     setSelectedItems(selectedItems);
+  };
+
+  const onSelectActionChanged = ({ action, value }: SelectActionChange) => {
+    if (action === "tag") {
+      setSelectActionsValues((current) => ({
+        ...current,
+        tag: current.tag.includes(value)
+          ? current.tag.filter((id) => id !== value)
+          : [...current.tag, value],
+      }));
+    }
   };
 
   const onSessionClicked = (session: Session) => {
@@ -157,6 +173,7 @@ export default function ProjectSessionsRoute() {
       project={project}
       sessions={sessions.data}
       selectedItems={selectedItems}
+      selectActionsValues={selectActionsValues}
       searchValue={searchValue}
       currentPage={currentPage}
       totalPages={sessions.totalPages}
@@ -165,6 +182,7 @@ export default function ProjectSessionsRoute() {
       isSyncing={isSyncing}
       onActionClicked={onActionClicked}
       onSelectChanged={onSelectChanged}
+      onSelectActionChanged={onSelectActionChanged}
       onItemClicked={onItemClicked}
       onSearchValueChanged={onSearchValueChanged}
       onPaginationChanged={onPaginationChanged}

@@ -53,6 +53,7 @@ const Collection = ({
   actions = [],
   selectActions = [],
   selectedItems = [],
+  selectActionsValues = {},
   filters = [],
   filtersValues,
   sortOptions,
@@ -70,6 +71,7 @@ const Collection = ({
   onItemClicked,
   onActionClicked,
   onSelectChanged,
+  onSelectActionChanged,
   onItemActionClicked,
   onSearchValueChanged,
   onPaginationChanged,
@@ -120,6 +122,7 @@ const Collection = ({
         actions={actions}
         selectActions={selectActions}
         selectedItems={selectedItems}
+        selectActionsValues={selectActionsValues}
         totalItems={items.length}
         filters={filters}
         filtersValues={filtersValues}
@@ -133,6 +136,7 @@ const Collection = ({
         isSyncing={isSyncing}
         onActionClicked={onActionClicked}
         onSelectAllChanged={onSelectAllChanged}
+        onSelectActionChanged={onSelectActionChanged}
         onSearchValueChanged={onSearchValueChanged}
         onPaginationChanged={onPaginationChanged}
         onFiltersValueChanged={onFiltersValueChanged}

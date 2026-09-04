@@ -1,17 +1,31 @@
-import { type ReactElement } from "react";
+import { type ComponentType, type ReactElement } from "react";
 import { Checkbox } from "./checkbox";
+
+export type SelectActionComponentProps = {
+  value: string[];
+  onChange: (value: string) => void;
+};
+
+export type SelectActionChange = {
+  action: string;
+  value: string;
+};
 
 export type SelectAction = {
   action: string;
-  component: ReactElement;
+  text: string;
+  icon: ReactElement;
+  component: ComponentType<SelectActionComponentProps>;
 };
 
 export type SelectProps = {
   selectActions?: SelectAction[];
   selectedItems?: string[];
+  selectActionsValues?: Record<string, string[]>;
   totalItems?: number;
   onSelectChanged?: (selectedItems: string[]) => void;
   onSelectAllChanged?: () => void;
+  onSelectActionChanged?: (payload: SelectActionChange) => void;
 };
 
 const SelectAll = ({
