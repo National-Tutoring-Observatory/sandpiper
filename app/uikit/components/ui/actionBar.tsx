@@ -47,6 +47,7 @@ function ActionBar({
   onActionClicked,
   onSelectAllChanged,
   onSelectActionChanged,
+  onSelectActionClosed,
   onSearchValueChanged,
   onPaginationChanged,
   onFiltersValueChanged,
@@ -162,6 +163,7 @@ function ActionBar({
               selectActionsValues={selectActionsValues}
               actions={selectActions}
               onSelectActionChanged={onSelectActionChanged}
+              onSelectActionClosed={onSelectActionClosed}
             />
           )}
         </div>

@@ -11,6 +11,11 @@ export type SelectActionChange = {
   value: string;
 };
 
+export type SelectActionClose = {
+  action: string;
+  value: string[];
+};
+
 export type SelectAction = {
   action: string;
   text: string;
@@ -26,6 +31,7 @@ export type SelectProps = {
   onSelectChanged?: (selectedItems: string[]) => void;
   onSelectAllChanged?: () => void;
   onSelectActionChanged?: (payload: SelectActionChange) => void;
+  onSelectActionClosed?: (payload: SelectActionClose) => void;
 };
 
 const SelectAll = ({

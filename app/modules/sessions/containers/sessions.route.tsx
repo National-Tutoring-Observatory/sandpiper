@@ -1,4 +1,7 @@
-import type { SelectActionChange } from "@/components/ui/selectAll";
+import type {
+  SelectActionChange,
+  SelectActionClose,
+} from "@/components/ui/selectAll";
 import find from "lodash/find";
 import { useState } from "react";
 import { redirect, useLoaderData, useSubmit } from "react-router";
@@ -122,6 +125,16 @@ export default function ProjectSessionsRoute() {
     }
   };
 
+  const onSelectActionClosed = ({ action, value }: SelectActionClose) => {
+    if (action === "tag") {
+      console.log(value);
+      setSelectActionsValues((current) => ({
+        ...current,
+        tag: [],
+      }));
+    }
+  };
+
   const onSessionClicked = (session: Session) => {
     addDialog(<ViewSessionContainer session={session} />);
   };
@@ -183,6 +196,7 @@ export default function ProjectSessionsRoute() {
       onActionClicked={onActionClicked}
       onSelectChanged={onSelectChanged}
       onSelectActionChanged={onSelectActionChanged}
+      onSelectActionClosed={onSelectActionClosed}
       onItemClicked={onItemClicked}
       onSearchValueChanged={onSearchValueChanged}
       onPaginationChanged={onPaginationChanged}

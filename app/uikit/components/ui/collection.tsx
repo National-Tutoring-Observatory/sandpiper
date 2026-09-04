@@ -72,6 +72,7 @@ const Collection = ({
   onActionClicked,
   onSelectChanged,
   onSelectActionChanged,
+  onSelectActionClosed,
   onItemActionClicked,
   onSearchValueChanged,
   onPaginationChanged,
@@ -137,6 +138,7 @@ const Collection = ({
         onActionClicked={onActionClicked}
         onSelectAllChanged={onSelectAllChanged}
         onSelectActionChanged={onSelectActionChanged}
+        onSelectActionClosed={onSelectActionClosed}
         onSearchValueChanged={onSearchValueChanged}
         onPaginationChanged={onPaginationChanged}
         onFiltersValueChanged={onFiltersValueChanged}

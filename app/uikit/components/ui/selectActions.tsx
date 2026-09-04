@@ -12,15 +12,28 @@ const SelectActions = ({
   selectActionsValues = {},
   actions,
   onSelectActionChanged,
+  onSelectActionClosed,
 }: {
   actions: SelectAction[];
-} & Pick<SelectProps, "selectActionsValues" | "onSelectActionChanged">) => {
+} & Pick<
+  SelectProps,
+  "selectActionsValues" | "onSelectActionChanged" | "onSelectActionClosed"
+>) => {
   return (
     <div>
       {map(actions, (action) => {
         const Component = action.component;
         return (
-          <DropdownMenu>
+          <DropdownMenu
+            onOpenChange={(open) => {
+              if (!open) {
+                onSelectActionClosed?.({
+                  action: action.action,
+                  value: selectActionsValues[action.action] || [],
+                });
+              }
+            }}
+          >
             <DropdownMenuTrigger asChild>
               <Button variant="outline">
                 {action.text}

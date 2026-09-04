@@ -1,5 +1,8 @@
 import { Collection } from "@/components/ui/collection";
-import type { SelectActionChange } from "@/components/ui/selectAll";
+import type {
+  SelectActionChange,
+  SelectActionClose,
+} from "@/components/ui/selectAll";
 import { Tag } from "lucide-react";
 import type { Project } from "~/modules/projects/projects.types";
 import type { Session } from "~/modules/sessions/sessions.types";
@@ -25,6 +28,7 @@ export default function Sessions({
   onActionClicked,
   onSelectChanged,
   onSelectActionChanged,
+  onSelectActionClosed,
   onItemClicked,
   onSearchValueChanged,
   onPaginationChanged,
@@ -44,6 +48,7 @@ export default function Sessions({
   onActionClicked: (action: string) => void;
   onSelectChanged: (selectedItems: string[]) => void;
   onSelectActionChanged: (payload: SelectActionChange) => void;
+  onSelectActionClosed: (payload: SelectActionClose) => void;
   onItemClicked: (id: string) => void;
   onSearchValueChanged: (searchValue: string) => void;
   onPaginationChanged: (currentPage: number) => void;
@@ -83,6 +88,7 @@ export default function Sessions({
         onActionClicked={onActionClicked}
         onSelectChanged={onSelectChanged}
         onSelectActionChanged={onSelectActionChanged}
+        onSelectActionClosed={onSelectActionClosed}
         onSearchValueChanged={onSearchValueChanged}
         onPaginationChanged={onPaginationChanged}
         onFiltersValueChanged={onFiltersValueChanged}
