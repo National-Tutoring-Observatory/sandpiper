@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { getPaginationParams, getTotalPages } from "~/helpers/pagination";
 import sessionSchema from "~/lib/schemas/session.schema";
 import type { FindOptions, PaginateProps } from "~/modules/common/types";
+// Registers the Tag model so `.populate(["tags"])` can resolve the ref.
+import "~/modules/tags/tag";
 import type { Session } from "./sessions.types";
 
 const SessionModel =
