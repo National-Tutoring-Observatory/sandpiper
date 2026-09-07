@@ -10,14 +10,15 @@ import type { Session } from "~/modules/sessions/sessions.types";
 import TagsSelectorContainer from "~/modules/tags/containers/tagsSelector.container";
 import getSessionsActions from "../helpers/getSessionsActions";
 import getSessionsEmptyAttributes from "../helpers/getSessionsEmptyAttributes";
+import type getSessionsFilters from "../helpers/getSessionsFilters";
 import getSessionsItemActions from "../helpers/getSessionsItemActions";
 import getSessionsItemAttributes from "../helpers/getSessionsItemAttributes";
-import sessionsFilters from "../helpers/sessionsFilters";
 import sessionsSortOptions from "../helpers/sessionsSortOptions";
 
 export default function Sessions({
   project,
   sessions,
+  sessionsFilters,
   selectedItems,
   selectActionsValues,
   searchValue,
@@ -38,6 +39,7 @@ export default function Sessions({
 }: {
   project: Project;
   sessions: Session[];
+  sessionsFilters: ReturnType<typeof getSessionsFilters>;
   selectedItems: string[];
   selectActionsValues: Record<string, string[]>;
   searchValue: string;
