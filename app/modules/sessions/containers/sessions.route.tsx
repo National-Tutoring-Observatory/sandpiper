@@ -81,7 +81,23 @@ export async function action({ request, params }: Route.ActionArgs) {
       });
     }
     case "TAG_SESSIONS": {
-      const tagIds = [...new Set<string>(payload.tags ?? [])];
+      const isStringArray = (value: unknown): value is string[] =>
+        Array.isArray(value) && value.every((id) => typeof id === "string");
+
+      const sessions: unknown = payload.sessions;
+      const tags: unknown = payload.tags;
+
+      if (!isStringArray(sessions) || sessions.length === 0) {
+        return data(
+          { errors: { sessions: "Invalid sessions" } },
+          { status: 400 },
+        );
+      }
+      if (!isStringArray(tags)) {
+        return data({ errors: { tags: "Invalid tags" } }, { status: 400 });
+      }
+
+      const tagIds = [...new Set(tags)];
       const ownedTagCount = await TagService.count({
         _id: { $in: tagIds },
         team: project.team,
@@ -92,7 +108,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 
       await tagSessions({
         projectId: params.projectId,
-        sessions: payload.sessions,
+        sessions,
         tags: tagIds,
       });
       return {};
