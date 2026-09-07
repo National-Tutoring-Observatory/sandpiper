@@ -15,7 +15,6 @@ import { ProjectService } from "~/modules/projects/project";
 import ViewSessionContainer from "~/modules/sessions/containers/viewSessionContainer";
 import { SessionService } from "~/modules/sessions/session";
 import type { Session } from "~/modules/sessions/sessions.types";
-import { TagService } from "~/modules/tags/tag";
 import Sessions from "../components/sessions";
 import createSessionsFromFiles from "../services/createSessionsFromFiles.server";
 import tagSessions from "../services/tagSessions.server";
@@ -81,36 +80,15 @@ export async function action({ request, params }: Route.ActionArgs) {
       });
     }
     case "TAG_SESSIONS": {
-      const isStringArray = (value: unknown): value is string[] =>
-        Array.isArray(value) && value.every((id) => typeof id === "string");
-
-      const sessions: unknown = payload.sessions;
-      const tags: unknown = payload.tags;
-
-      if (!isStringArray(sessions) || sessions.length === 0) {
-        return data(
-          { errors: { sessions: "Invalid sessions" } },
-          { status: 400 },
-        );
-      }
-      if (!isStringArray(tags)) {
-        return data({ errors: { tags: "Invalid tags" } }, { status: 400 });
-      }
-
-      const tagIds = [...new Set(tags)];
-      const ownedTagCount = await TagService.count({
-        _id: { $in: tagIds },
-        team: project.team,
-      });
-      if (ownedTagCount !== tagIds.length) {
-        return data({ errors: { tags: "Invalid tag" } }, { status: 400 });
-      }
-
-      await tagSessions({
+      const result = await tagSessions({
         projectId: params.projectId,
-        sessions,
-        tags: tagIds,
+        teamId: params.teamId,
+        sessions: payload.sessions,
+        tags: payload.tags,
       });
+      if (!result.success) {
+        return data({ errors: result.errors }, { status: 400 });
+      }
       return {};
     }
     default:

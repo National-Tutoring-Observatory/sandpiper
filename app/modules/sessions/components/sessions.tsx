@@ -4,6 +4,7 @@ import type {
   SelectActionClose,
 } from "@/components/ui/selectAll";
 import { Tag } from "lucide-react";
+import useHasFeatureFlag from "~/modules/featureFlags/hooks/useHasFeatureFlag";
 import type { Project } from "~/modules/projects/projects.types";
 import type { Session } from "~/modules/sessions/sessions.types";
 import TagsSelectorContainer from "~/modules/tags/containers/tagsSelector.container";
@@ -55,20 +56,25 @@ export default function Sessions({
   onFiltersValueChanged: (filterValue: Record<string, string | null>) => void;
   onSortValueChanged: (sortValue: string) => void;
 }) {
+  const hasTags = useHasFeatureFlag("HAS_TAGS");
   return (
     <div className="mt-8">
       <Collection
         items={sessions}
         itemsLayout="list"
         actions={getSessionsActions(project)}
-        selectActions={[
-          {
-            action: "tag",
-            text: "Tag",
-            icon: <Tag />,
-            component: TagsSelectorContainer,
-          },
-        ]}
+        selectActions={
+          hasTags
+            ? [
+                {
+                  action: "tag",
+                  text: "Tag",
+                  icon: <Tag />,
+                  component: TagsSelectorContainer,
+                },
+              ]
+            : []
+        }
         selectedItems={selectedItems}
         selectActionsValues={selectActionsValues}
         filters={sessionsFilters}
