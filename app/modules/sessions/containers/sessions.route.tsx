@@ -17,6 +17,7 @@ import { SessionService } from "~/modules/sessions/session";
 import type { Session } from "~/modules/sessions/sessions.types";
 import Sessions from "../components/sessions";
 import createSessionsFromFiles from "../services/createSessionsFromFiles.server";
+import tagSessions from "../services/tagSessions.server";
 import type { Route } from "./+types/sessions.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -65,7 +66,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     return redirect("/");
   }
 
-  const { intent } = await request.json();
+  const { intent, payload = {} } = await request.json();
 
   switch (intent) {
     case "RE_RUN": {
@@ -77,6 +78,14 @@ export async function action({ request, params }: Route.ActionArgs) {
       return await ProjectService.updateById(params.projectId, {
         isConvertingFiles: true,
       });
+    }
+    case "TAG_SESSIONS": {
+      await tagSessions({
+        projectId: params.projectId,
+        sessions: payload.sessions,
+        tags: payload.tags,
+      });
+      return {};
     }
     default:
       return {};
@@ -127,7 +136,16 @@ export default function ProjectSessionsRoute() {
 
   const onSelectActionClosed = ({ action, value }: SelectActionClose) => {
     if (action === "tag") {
-      console.log(value);
+      submit(
+        JSON.stringify({
+          intent: "TAG_SESSIONS",
+          payload: {
+            sessions: selectedItems,
+            tags: value,
+          },
+        }),
+        { method: "POST", encType: "application/json" },
+      );
       setSelectActionsValues((current) => ({
         ...current,
         tag: [],

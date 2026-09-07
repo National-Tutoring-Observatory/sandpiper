@@ -1,5 +1,6 @@
 import type { File } from "~/modules/files/files.types";
 import type { Project } from "~/modules/projects/projects.types";
+import type { Tag } from "../tags/tags.types";
 
 export interface Session {
   _id: string;
@@ -14,6 +15,7 @@ export interface Session {
   hasErrored: boolean;
   startedAt?: string;
   finishedAt?: string;
+  tags?: (Tag | string)[];
   createdAt?: string;
   createdBy?: string;
   updatedAt?: string;

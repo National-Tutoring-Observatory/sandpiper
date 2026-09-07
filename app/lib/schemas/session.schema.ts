@@ -12,6 +12,7 @@ export default new mongoose.Schema({
   startedAt: { type: Date },
   finishedAt: { type: Date },
   hasErrored: { type: Boolean, default: false },
+  tags: { type: [{ type: mongoose.Types.ObjectId, ref: "Tag" }], default: [] },
   createdAt: { type: Date, default: Date.now },
   createdBy: { type: mongoose.Types.ObjectId, ref: "User" },
   updatedAt: { type: Date },

@@ -1,5 +1,8 @@
+import map from "lodash/map";
+import sortBy from "lodash/sortBy";
 import getDateString from "~/modules/app/helpers/getDateString";
 import type { Session } from "~/modules/sessions/sessions.types";
+import type { Tag } from "~/modules/tags/tags.types";
 
 export default function getSessionsItemAttributes(item: Session) {
   const status =
@@ -8,6 +11,16 @@ export default function getSessionsItemAttributes(item: Session) {
       : item.hasErrored
         ? "Failed"
         : "Not converted";
+
+  const populatedTags = (item.tags ?? []).filter(
+    (tag): tag is Tag => typeof tag !== "string",
+  );
+  const tags = map(sortBy(populatedTags, "name"), (tag) => {
+    return {
+      text: tag.name,
+      color: tag.color,
+    };
+  });
 
   return {
     id: item._id,
@@ -24,6 +37,7 @@ export default function getSessionsItemAttributes(item: Session) {
       {
         text: `Created at - ${getDateString(item.createdAt)}`,
       },
+      ...tags,
     ],
   };
 }
