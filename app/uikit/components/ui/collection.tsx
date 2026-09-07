@@ -12,6 +12,8 @@ import type { FiltersProps } from "./filters";
 import { Item, ItemGroup, ItemSeparator } from "./item";
 import type { PaginationProps } from "./pagination";
 import type { SearchProps } from "./search";
+import type { SelectProps } from "./selectAll";
+import SelectItem from "./selectItem";
 import type { SortProps } from "./sort";
 
 export type CollectionProps = {
@@ -49,6 +51,9 @@ const Collection = ({
   items,
   itemsLayout = "list",
   actions = [],
+  selectActions = [],
+  selectedItems = [],
+  selectActionsValues = {},
   filters = [],
   filtersValues,
   sortOptions,
@@ -65,20 +70,61 @@ const Collection = ({
   getItemActions,
   onItemClicked,
   onActionClicked,
+  onSelectChanged,
+  onSelectActionChanged,
+  onSelectActionClosed,
   onItemActionClicked,
   onSearchValueChanged,
   onPaginationChanged,
   onFiltersValueChanged,
   onSortValueChanged,
 }: CollectionProps &
+  SelectProps &
   SearchProps &
   PaginationProps &
   FiltersProps &
   SortProps) => {
+  const onSelectAllChanged = () => {
+    if (onSelectChanged) {
+      if (selectedItems.length > 0) {
+        onSelectChanged([]);
+      } else {
+        onSelectChanged(
+          map(items, (item) => {
+            const { id } = getItemAttributes(item);
+            return id;
+          }),
+        );
+      }
+    } else {
+      console.warn(
+        "Collection is trying to select all but onSelectChanged is missing",
+      );
+    }
+  };
+
+  const onSelectItemChanged = (itemId: string) => {
+    if (!onSelectChanged) {
+      console.warn(
+        "Collection is trying to select an item but onSelectChanged is missing",
+      );
+      return;
+    }
+    if (selectedItems.includes(itemId)) {
+      onSelectChanged(selectedItems.filter((id) => id !== itemId));
+    } else {
+      onSelectChanged([...selectedItems, itemId]);
+    }
+  };
+
   return (
     <div>
       <ActionBar
         actions={actions}
+        selectActions={selectActions}
+        selectedItems={selectedItems}
+        selectActionsValues={selectActionsValues}
+        totalItems={items.length}
         filters={filters}
         filtersValues={filtersValues}
         sortOptions={sortOptions}
@@ -90,6 +136,9 @@ const Collection = ({
         hasPagination={hasPagination}
         isSyncing={isSyncing}
         onActionClicked={onActionClicked}
+        onSelectAllChanged={onSelectAllChanged}
+        onSelectActionChanged={onSelectActionChanged}
+        onSelectActionClosed={onSelectActionClosed}
         onSearchValueChanged={onSearchValueChanged}
         onPaginationChanged={onPaginationChanged}
         onFiltersValueChanged={onFiltersValueChanged}
@@ -133,56 +182,64 @@ const Collection = ({
                   "has-focus-visible:border-ring has-focus-visible:ring-ring/50 relative rounded-none p-0 transition-colors duration-300 has-focus-visible:ring-[3px]",
                 )}
               >
-                {to && !isDisabled ? (
-                  <Link
-                    to={to}
-                    className={clsx(
-                      {
-                        "pr-[140px]": itemActions.length > 0,
-                      },
-                      "flex w-full min-w-0 items-center gap-4 rounded-none p-4 outline-none",
-                    )}
-                  >
-                    {(renderItem && renderItem(item)) || (
-                      <CollectionItemContent
-                        title={title}
-                        description={description}
-                        meta={meta}
-                      />
-                    )}
-                  </Link>
-                ) : (
-                  <div
-                    className={clsx(
-                      {
-                        "pr-[140px]": itemActions.length > 0,
-                      },
-                      "flex w-full min-w-0 items-center gap-4 rounded-none p-4",
-                    )}
-                    onClick={() => {
-                      if (onItemClicked) {
-                        onItemClicked(item._id);
-                      }
-                    }}
-                  >
-                    {(renderItem && renderItem(item)) || (
-                      <CollectionItemContent
-                        title={title}
-                        description={description}
-                        meta={meta}
-                      />
-                    )}
-                  </div>
-                )}
-                {!renderItem && (
-                  <CollectionItemActions
-                    id={id}
-                    actions={itemActions}
-                    isDisabled={!!isDisabled}
-                    to={to}
-                    onItemActionClicked={onItemActionClicked}
-                  />
-                )}
+                <div className="flex items-center">
+                  {selectActions && selectActions.length > 0 && (
+                    <SelectItem
+                      isSelected={selectedItems.includes(id)}
+                      onSelectItemChanged={() => onSelectItemChanged(id)}
+                    />
+                  )}
+                  {to && !isDisabled ? (
+                    <Link
+                      to={to}
+                      className={clsx(
+                        {
+                          "pr-[140px]": itemActions.length > 0,
+                        },
+                        "flex w-full min-w-0 items-center gap-4 rounded-none p-4 outline-none",
+                      )}
+                    >
+                      {(renderItem && renderItem(item)) || (
+                        <CollectionItemContent
+                          title={title}
+                          description={description}
+                          meta={meta}
+                        />
+                      )}
+                    </Link>
+                  ) : (
+                    <div
+                      className={clsx(
+                        {
+                          "pr-[140px]": itemActions.length > 0,
+                        },
+                        "flex w-full min-w-0 items-center gap-4 rounded-none p-4",
+                      )}
+                      onClick={() => {
+                        if (onItemClicked) {
+                          onItemClicked(item._id);
+                        }
+                      }}
+                    >
+                      {(renderItem && renderItem(item)) || (
+                        <CollectionItemContent
+                          title={title}
+                          description={description}
+                          meta={meta}
+                        />
+                      )}
+                    </div>
+                  )}
+                  {!renderItem && (
+                    <CollectionItemActions
+                      id={id}
+                      actions={itemActions}
+                      isDisabled={!!isDisabled}
+                      to={to}
+                      onItemActionClicked={onItemActionClicked}
+                    />
+                  )}
+                </div>
               </Item>
               {index !== items.length - 1 && itemsLayout === "list" && (
                 <ItemSeparator />

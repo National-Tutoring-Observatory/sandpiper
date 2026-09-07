@@ -5,6 +5,8 @@ import { Button } from "./button";
 import Filters, { type Filter, type FiltersProps } from "./filters";
 import { Pagination, type PaginationProps } from "./pagination";
 import { Search, type SearchProps } from "./search";
+import SelectActions from "./selectActions";
+import SelectAll, { type SelectProps } from "./selectAll";
 import type { SortOption, SortProps } from "./sort";
 import Sort from "./sort";
 import { Spinner } from "./spinner";
@@ -28,6 +30,10 @@ export type ActionBarProps = {
 
 function ActionBar({
   actions,
+  selectActions,
+  selectedItems = [],
+  selectActionsValues = {},
+  totalItems,
   filters,
   filtersValues,
   sortOptions,
@@ -39,11 +45,19 @@ function ActionBar({
   currentPage = 1,
   totalPages = 1,
   onActionClicked,
+  onSelectAllChanged,
+  onSelectActionChanged,
+  onSelectActionClosed,
   onSearchValueChanged,
   onPaginationChanged,
   onFiltersValueChanged,
   onSortValueChanged,
-}: ActionBarProps & SearchProps & PaginationProps & FiltersProps & SortProps) {
+}: ActionBarProps &
+  SelectProps &
+  SearchProps &
+  PaginationProps &
+  FiltersProps &
+  SortProps) {
   // Don't render if there's no content to display
   const hasContent =
     hasSearch ||
@@ -76,6 +90,8 @@ function ActionBar({
     return null;
   }
 
+  const isSelectMode = selectedItems.length > 0;
+
   return (
     <>
       <div ref={sentinelRef} aria-hidden style={{ height: "1px" }} />
@@ -89,6 +105,13 @@ function ActionBar({
         )}
       >
         <div className="flex w-1/3 items-center gap-x-1">
+          {selectActions && selectActions.length > 0 && (
+            <SelectAll
+              selectedItems={selectedItems}
+              totalItems={totalItems}
+              onSelectAllChanged={onSelectAllChanged}
+            />
+          )}
           {hasSearch && (
             <Search
               searchValue={searchValue}
@@ -110,27 +133,39 @@ function ActionBar({
             />
           )}
         </div>
-        <div className="flex w-1/3 justify-center">
-          {hasPagination && (
+        <div className="flex w-1/3 items-center justify-center">
+          {hasPagination && !isSelectMode && (
             <Pagination
               currentPage={currentPage}
               totalPages={totalPages}
               onPaginationChanged={onPaginationChanged}
             />
           )}
+          {isSelectMode && (
+            <div className="text-sm">{`${selectedItems.length} of ${totalItems} selected`}</div>
+          )}
         </div>
         <div className="flex w-1/3 justify-end gap-x-1">
-          {map(actions, (action) => {
-            return (
-              <Button
-                key={action.action}
-                onClick={() => onActionClicked(action.action)}
-              >
-                {action.icon ? action.icon : null}
-                {action.text}
-              </Button>
-            );
-          })}
+          {!isSelectMode &&
+            map(actions, (action) => {
+              return (
+                <Button
+                  key={action.action}
+                  onClick={() => onActionClicked(action.action)}
+                >
+                  {action.icon ? action.icon : null}
+                  {action.text}
+                </Button>
+              );
+            })}
+          {isSelectMode && selectActions && selectActions.length > 0 && (
+            <SelectActions
+              selectActionsValues={selectActionsValues}
+              actions={selectActions}
+              onSelectActionChanged={onSelectActionChanged}
+              onSelectActionClosed={onSelectActionClosed}
+            />
+          )}
         </div>
         {isSyncing && (
           <div

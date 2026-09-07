@@ -9,6 +9,10 @@ export default function getTagsItemAttributes(item: Tag) {
       {
         text: `Created at - ${getDateString(item.createdAt)}`,
       },
+      {
+        text: "Color",
+        color: item.color,
+      },
     ],
   };
 }

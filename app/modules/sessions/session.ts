@@ -2,6 +2,8 @@ import mongoose from "mongoose";
 import { getPaginationParams, getTotalPages } from "~/helpers/pagination";
 import sessionSchema from "~/lib/schemas/session.schema";
 import type { FindOptions, PaginateProps } from "~/modules/common/types";
+// Registers the Tag model so `.populate(["tags"])` can resolve the ref.
+import "~/modules/tags/tag";
 import type { Session } from "./sessions.types";
 
 const SessionModel =
@@ -70,6 +72,22 @@ export class SessionService {
     return doc ? this.toSession(doc) : null;
   }
 
+  static async updateMany({
+    ids,
+    updates,
+    match = {},
+  }: {
+    ids: string[];
+    updates: Partial<Session>;
+    match?: Record<string, unknown>;
+  }): Promise<number> {
+    const result = await SessionModel.updateMany(
+      { _id: { $in: ids }, ...match },
+      { $set: updates },
+    );
+    return result.modifiedCount || 0;
+  }
+
   static async deleteById(id: string): Promise<Session | null> {
     const doc = await SessionModel.findByIdAndDelete(id);
     return doc ? this.toSession(doc) : null;
@@ -102,6 +120,7 @@ export class SessionService {
       sort,
       pagination,
       select,
+      populate: ["tags"],
     });
 
     const count = await this.count(match);

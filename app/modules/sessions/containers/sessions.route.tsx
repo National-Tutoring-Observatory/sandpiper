@@ -1,5 +1,10 @@
+import type {
+  SelectActionChange,
+  SelectActionClose,
+} from "@/components/ui/selectAll";
 import find from "lodash/find";
-import { redirect, useLoaderData, useSubmit } from "react-router";
+import { useState } from "react";
+import { data, redirect, useLoaderData, useSubmit } from "react-router";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
@@ -12,6 +17,7 @@ import { SessionService } from "~/modules/sessions/session";
 import type { Session } from "~/modules/sessions/sessions.types";
 import Sessions from "../components/sessions";
 import createSessionsFromFiles from "../services/createSessionsFromFiles.server";
+import tagSessions from "../services/tagSessions.server";
 import type { Route } from "./+types/sessions.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -60,7 +66,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     return redirect("/");
   }
 
-  const { intent } = await request.json();
+  const { intent, payload = {} } = await request.json();
 
   switch (intent) {
     case "RE_RUN": {
@@ -72,6 +78,18 @@ export async function action({ request, params }: Route.ActionArgs) {
       return await ProjectService.updateById(params.projectId, {
         isConvertingFiles: true,
       });
+    }
+    case "TAG_SESSIONS": {
+      const result = await tagSessions({
+        projectId: params.projectId,
+        teamId: params.teamId,
+        sessions: payload.sessions,
+        tags: payload.tags,
+      });
+      if (!result.success) {
+        return data({ errors: result.errors }, { status: 400 });
+      }
+      return {};
     }
     default:
       return {};
@@ -98,6 +116,46 @@ export default function ProjectSessionsRoute() {
     sortValue: "name",
     filters: {},
   });
+
+  const [selectedItems, setSelectedItems] = useState<string[]>([]);
+
+  const [selectActionsValues, setSelectActionsValues] = useState<{
+    tag: string[];
+  }>({ tag: [] });
+
+  const onSelectChanged = (selectedItems: string[]) => {
+    setSelectedItems(selectedItems);
+  };
+
+  const onSelectActionChanged = ({ action, value }: SelectActionChange) => {
+    if (action === "tag") {
+      setSelectActionsValues((current) => ({
+        ...current,
+        tag: current.tag.includes(value)
+          ? current.tag.filter((id) => id !== value)
+          : [...current.tag, value],
+      }));
+    }
+  };
+
+  const onSelectActionClosed = ({ action, value }: SelectActionClose) => {
+    if (action === "tag") {
+      submit(
+        JSON.stringify({
+          intent: "TAG_SESSIONS",
+          payload: {
+            sessions: selectedItems,
+            tags: value,
+          },
+        }),
+        { method: "POST", encType: "application/json" },
+      );
+      setSelectActionsValues((current) => ({
+        ...current,
+        tag: [],
+      }));
+    }
+  };
 
   const onSessionClicked = (session: Session) => {
     addDialog(<ViewSessionContainer session={session} />);
@@ -149,6 +207,8 @@ export default function ProjectSessionsRoute() {
     <Sessions
       project={project}
       sessions={sessions.data}
+      selectedItems={selectedItems}
+      selectActionsValues={selectActionsValues}
       searchValue={searchValue}
       currentPage={currentPage}
       totalPages={sessions.totalPages}
@@ -156,6 +216,9 @@ export default function ProjectSessionsRoute() {
       sortValue={sortValue}
       isSyncing={isSyncing}
       onActionClicked={onActionClicked}
+      onSelectChanged={onSelectChanged}
+      onSelectActionChanged={onSelectActionChanged}
+      onSelectActionClosed={onSelectActionClosed}
       onItemClicked={onItemClicked}
       onSearchValueChanged={onSearchValueChanged}
       onPaginationChanged={onPaginationChanged}
