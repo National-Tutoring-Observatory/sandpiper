@@ -4,7 +4,7 @@ import type {
 } from "@/components/ui/selectAll";
 import find from "lodash/find";
 import { useState } from "react";
-import { redirect, useLoaderData, useSubmit } from "react-router";
+import { data, redirect, useLoaderData, useSubmit } from "react-router";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
@@ -15,6 +15,7 @@ import { ProjectService } from "~/modules/projects/project";
 import ViewSessionContainer from "~/modules/sessions/containers/viewSessionContainer";
 import { SessionService } from "~/modules/sessions/session";
 import type { Session } from "~/modules/sessions/sessions.types";
+import { TagService } from "~/modules/tags/tag";
 import Sessions from "../components/sessions";
 import createSessionsFromFiles from "../services/createSessionsFromFiles.server";
 import tagSessions from "../services/tagSessions.server";
@@ -80,10 +81,19 @@ export async function action({ request, params }: Route.ActionArgs) {
       });
     }
     case "TAG_SESSIONS": {
+      const tagIds = [...new Set<string>(payload.tags ?? [])];
+      const ownedTagCount = await TagService.count({
+        _id: { $in: tagIds },
+        team: project.team,
+      });
+      if (ownedTagCount !== tagIds.length) {
+        return data({ errors: { tags: "Invalid tag" } }, { status: 400 });
+      }
+
       await tagSessions({
         projectId: params.projectId,
         sessions: payload.sessions,
-        tags: payload.tags,
+        tags: tagIds,
       });
       return {};
     }
