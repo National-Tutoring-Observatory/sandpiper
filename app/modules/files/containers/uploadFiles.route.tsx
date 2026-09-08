@@ -125,12 +125,29 @@ export async function action({ request, params }: Route.ActionArgs) {
     );
   }
 
+  let tagIds: string[] = [];
+  const rawTagIds = formData.get("tagIds");
+  if (typeof rawTagIds === "string") {
+    try {
+      const parsed = JSON.parse(rawTagIds);
+      if (
+        Array.isArray(parsed) &&
+        parsed.every((id) => typeof id === "string")
+      ) {
+        tagIds = parsed;
+      }
+    } catch {
+      tagIds = [];
+    }
+  }
+
   try {
     await FileService.processUploadedFiles({
       projectId: params.projectId,
       files: uploadedFiles,
       team: project.team as string,
       userId: user._id,
+      tagIds,
     });
   } catch (error) {
     const errorMessage =

@@ -9,11 +9,13 @@ export default async function processUploadedFiles({
   files,
   team,
   userId,
+  tagIds = [],
 }: {
   projectId: string;
   files: File[];
   team: string;
   userId: string;
+  tagIds?: string[];
 }) {
   const splitFiles = await splitMultipleSessionsIntoFiles({ files });
 
@@ -34,6 +36,7 @@ export default async function processUploadedFiles({
         projectId,
         shouldCreateSessionModels: true,
         attributesMapping,
+        tagIds,
       }),
     )
     .catch(async (error) => {

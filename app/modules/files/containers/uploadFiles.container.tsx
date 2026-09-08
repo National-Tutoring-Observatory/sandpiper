@@ -50,6 +50,8 @@ export default function UploadFilesContainer({
       formData.append("files", file);
     });
 
+    formData.append("tagIds", JSON.stringify(selectedTagIds));
+
     uploadFetcher.submit(formData, {
       method: "POST",
       encType: "multipart/form-data",
