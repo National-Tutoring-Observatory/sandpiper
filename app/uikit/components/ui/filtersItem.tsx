@@ -11,7 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from "./command";
-import type { Filter } from "./filters";
+import type { Filter, FilterValue, FiltersValues } from "./filters";
 import { Label } from "./label";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import {
@@ -29,19 +29,28 @@ const FiltersItem = ({
   onFiltersValueChanged,
 }: {
   filter: Filter;
-  value: string | undefined;
-  onFiltersValueChanged?: (
-    filterKeyAndValue: Record<string, string | null>,
-  ) => void;
+  value: FilterValue | undefined;
+  onFiltersValueChanged?: (filterKeyAndValue: FiltersValues) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  if (filter.options.length > 4) {
+  if (filter.options.length > 4 || filter.isMultiSelect) {
+    if (filter.isMultiSelect && !Array.isArray(value)) {
+      console.warn(
+        `FiltersItem: multiSelect filter "${filter.category}" expected an array value but received "${value}".`,
+      );
+      return null;
+    }
+
+    // Non-multiSelect combobox keeps a single string; normalise both shapes
+    // to an array for selection/membership rendering below.
+    const selectedValues = Array.isArray(value) ? value : value ? [value] : [];
+
     return (
       <div className="flex flex-col gap-2">
         <div className="flex h-4 items-baseline justify-between">
-          <Label htmlFor="width">{filter.text}</Label>
-          {value && (
+          <Label>{filter.text}</Label>
+          {selectedValues.length > 0 && (
             <Button
               variant="link"
               size={"sm"}
@@ -65,9 +74,17 @@ const FiltersItem = ({
               aria-expanded={isOpen}
               className="justify-between font-normal"
             >
-              {value
-                ? filter.options.find((option) => option.value === value)?.text
-                : "--"}
+              {(() => {
+                if (selectedValues.length === 0) return "--";
+                if (filter.isMultiSelect) {
+                  return `${selectedValues.length} selected`;
+                }
+                return (
+                  filter.options.find(
+                    (option) => option.value === selectedValues[0],
+                  )?.text ?? selectedValues[0]
+                );
+              })()}
               <ChevronDown className="opacity-30" />
             </Button>
           </PopoverTrigger>
@@ -75,7 +92,7 @@ const FiltersItem = ({
             <Command>
               <CommandInput placeholder={`Search...`} className="h-9" />
               <CommandList>
-                <CommandEmpty>No framework found.</CommandEmpty>
+                <CommandEmpty>No item found.</CommandEmpty>
                 <CommandGroup>
                   {map(filter.options, (option) => {
                     return (
@@ -83,20 +100,33 @@ const FiltersItem = ({
                         key={option.value}
                         value={option.value}
                         keywords={[option.text]}
-                        onSelect={(filterValue) => {
-                          setIsOpen(false);
-                          if (onFiltersValueChanged) {
+                        onSelect={() => {
+                          if (!onFiltersValueChanged) return;
+
+                          if (!filter.isMultiSelect) {
+                            setIsOpen(false);
                             onFiltersValueChanged({
-                              [filter.category]: filterValue,
+                              [filter.category]: option.value,
                             });
+                            return;
                           }
+
+                          const nextValues = selectedValues.includes(
+                            option.value,
+                          )
+                            ? selectedValues.filter((v) => v !== option.value)
+                            : [...selectedValues, option.value];
+
+                          onFiltersValueChanged({
+                            [filter.category]: nextValues,
+                          });
                         }}
                       >
                         {option.text}
                         <Check
                           className={cn(
                             "ml-auto",
-                            value === option.value
+                            selectedValues.includes(option.value)
                               ? "opacity-100"
                               : "opacity-0",
                           )}
@@ -112,10 +142,16 @@ const FiltersItem = ({
       </div>
     );
   } else {
+    if (Array.isArray(value)) {
+      console.warn(
+        `FiltersItem: filter "${filter.category}" received an array value but is not multiSelect. Falling back to no selection.`,
+      );
+      return null;
+    }
     return (
       <div className="flex flex-col gap-2">
         <div className="flex h-4 items-baseline justify-between">
-          <Label htmlFor="width">{filter.text}</Label>
+          <Label>{filter.text}</Label>
           {value && (
             <Button
               variant="link"
@@ -134,7 +170,7 @@ const FiltersItem = ({
         </div>
         <div className="relative">
           <Select
-            value={value ? value : ""}
+            value={value}
             onValueChange={(filterValue) => {
               if (onFiltersValueChanged) {
                 onFiltersValueChanged({ [filter.category]: filterValue });

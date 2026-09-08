@@ -1,4 +1,5 @@
 import { Collection } from "@/components/ui/collection";
+import type { FiltersValues } from "@/components/ui/filters";
 import { useContext } from "react";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
 import type { Prompt } from "~/modules/prompts/prompts.types";
@@ -17,14 +18,14 @@ interface TeamPromptsProps {
   searchValue: string;
   currentPage: number;
   totalPages: number;
-  filtersValues: Record<string, string | null>;
+  filtersValues: FiltersValues;
   sortValue: string;
   isSyncing: boolean;
   onActionClicked: (action: string) => void;
   onItemActionClicked: ({ id, action }: { id: string; action: string }) => void;
   onSearchValueChanged: (searchValue: string) => void;
   onPaginationChanged: (currentPage: number) => void;
-  onFiltersValueChanged: (filterValue: Record<string, string | null>) => void;
+  onFiltersValueChanged: (filterValue: FiltersValues) => void;
   onSortValueChanged: (sortValue: string) => void;
 }
 

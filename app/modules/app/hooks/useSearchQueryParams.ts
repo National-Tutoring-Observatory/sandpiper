@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import { useEffect, useState } from "react";
 import { useNavigation, useSearchParams } from "react-router";
 
@@ -7,25 +8,105 @@ type DefaultQueryParams = {
   searchValue?: string;
   currentPage?: number;
   sortValue?: string;
-  filters?: Record<string, string | null> | null;
+  filters?: FiltersValues | null;
 };
 
-function parseFiltersFromUrl(
+export function parseFiltersFromUrl(
   searchParams: URLSearchParams,
-  defaultFilters?: Record<string, string | null> | null,
+  defaultFilters?: FiltersValues | null,
   prefix: string = "",
-): Record<string, string | null> {
-  const filters: Record<string, string | null> = {};
+): FiltersValues {
   const filterPrefix = prefix ? `${prefix}Filter_` : "filter_";
 
-  searchParams.forEach((value, key) => {
-    if (key.startsWith(filterPrefix)) {
-      const filterKey = key.replace(filterPrefix, "");
-      filters[filterKey] = value;
+  const arrayFilterKeys = new Set<string>();
+  if (defaultFilters) {
+    for (const [key, defaultValue] of Object.entries(defaultFilters)) {
+      if (Array.isArray(defaultValue)) arrayFilterKeys.add(key);
+    }
+  }
+
+  const urlFilterKeys = new Set<string>();
+  searchParams.forEach((_, key) => {
+    if (key.startsWith(filterPrefix)) urlFilterKeys.add(key);
+  });
+
+  // If no filters in the URL: fall back to the defaults
+  if (urlFilterKeys.size === 0) {
+    const filters: FiltersValues = { ...(defaultFilters ?? {}) };
+    for (const key of arrayFilterKeys) {
+      if (!Array.isArray(filters[key])) filters[key] = [];
+    }
+    return filters;
+  }
+
+  const filters: FiltersValues = {};
+  for (const key of arrayFilterKeys) filters[key] = [];
+  for (const key of urlFilterKeys) {
+    const filterKey = key.replace(filterPrefix, "");
+    const values = searchParams.getAll(key);
+    filters[filterKey] = arrayFilterKeys.has(filterKey) ? values : values[0];
+  }
+  return filters;
+}
+
+/**
+ * Serialise filter values into a copy of `currentSearchParams`: existing
+ * filter params are cleared, arrays become repeated params, scalars a single
+ * param, and empty/null/"" values are omitted (so a cleared filter drops out).
+ */
+export function buildFilterSearchParams(
+  currentSearchParams: URLSearchParams,
+  value: FiltersValues,
+  prefix: string = "",
+): URLSearchParams {
+  const newSearchParams = new URLSearchParams(currentSearchParams.toString());
+  const filterPrefix = prefix ? `${prefix}Filter_` : "filter_";
+
+  const keysToDelete: string[] = [];
+  newSearchParams.forEach((_, paramKey) => {
+    if (paramKey.startsWith(filterPrefix)) keysToDelete.push(paramKey);
+  });
+  keysToDelete.forEach((k) => newSearchParams.delete(k));
+
+  Object.entries(value ?? {}).forEach(([filterKey, filterValue]) => {
+    if (
+      filterValue === null ||
+      filterValue === undefined ||
+      filterValue === ""
+    ) {
+      return;
+    }
+
+    const paramKey = `${filterPrefix}${filterKey}`;
+    if (Array.isArray(filterValue)) {
+      filterValue.forEach((entry) => {
+        if (entry !== null && entry !== undefined && entry !== "") {
+          newSearchParams.append(paramKey, entry);
+        }
+      });
+    } else {
+      newSearchParams.set(paramKey, filterValue);
     }
   });
 
-  return Object.keys(filters).length > 0 ? filters : (defaultFilters ?? {});
+  return newSearchParams;
+}
+
+/**
+ * Ensure cleared array-typed filters stay as an empty array (never null/
+ * undefined) so multi-select filters always receive an array.
+ */
+export function coerceClearedArrayFilters(
+  value: FiltersValues,
+  arrayFilterKeys: Iterable<string>,
+): FiltersValues {
+  const normalised: FiltersValues = { ...value };
+  for (const key of arrayFilterKeys) {
+    if (normalised[key] === null || normalised[key] === undefined) {
+      normalised[key] = [];
+    }
+  }
+  return normalised;
 }
 
 export function useSearchQueryParams(
@@ -39,6 +120,13 @@ export function useSearchQueryParams(
   const searchValueKey = prefix ? `${prefix}SearchValue` : "searchValue";
   const currentPageKey = prefix ? `${prefix}CurrentPage` : "currentPage";
   const sortKey = prefix ? `${prefix}Sort` : "sort";
+
+  // Map to help filter array based keys for when finding an empty array.
+  const arrayFilterKeys = new Set(
+    Object.entries(defaultQueryParams.filters ?? {})
+      .filter(([, defaultValue]) => Array.isArray(defaultValue))
+      .map(([key]) => key),
+  );
 
   const [searchValue, setSearchValueState] = useState<string>(
     searchParams.get(searchValueKey) ?? defaultQueryParams.searchValue ?? "",
@@ -54,9 +142,9 @@ export function useSearchQueryParams(
     searchParams.get(sortKey) ?? defaultQueryParams.sortValue ?? "",
   );
 
-  const [filtersValues, setFiltersValuesState] = useState<
-    Record<string, string | null>
-  >(parseFiltersFromUrl(searchParams, defaultQueryParams.filters, prefix));
+  const [filtersValues, setFiltersValuesState] = useState<FiltersValues>(
+    parseFiltersFromUrl(searchParams, defaultQueryParams.filters, prefix),
+  );
 
   // isSyncing tracks two async phases to show the Collection "Syncing" indicator:
   // 1. isPending: user is typing but debounce hasn't fired yet (no navigation started)
@@ -154,45 +242,18 @@ export function useSearchQueryParams(
 
   const updateUrlParamObject = (
     key: string,
-    value: Record<string, string | null>,
-    setStateFunction: React.Dispatch<
-      React.SetStateAction<Record<string, string | null>>
-    >,
+    value: FiltersValues,
+    setStateFunction: React.Dispatch<React.SetStateAction<FiltersValues>>,
   ) => {
     setStateFunction(value);
     setHasInitiatedNavigation(true);
     setSearchParams(
       (prevSearchParams: URLSearchParams) => {
-        const newSearchParams = new URLSearchParams(
-          prevSearchParams.toString(),
+        const newSearchParams = buildFilterSearchParams(
+          prevSearchParams,
+          value,
+          prefix,
         );
-
-        const filterPrefix = prefix ? `${prefix}Filter_` : "filter_";
-
-        // Remove all existing filter_* params
-        const keysToDelete: string[] = [];
-        newSearchParams.forEach((_, paramKey) => {
-          if (paramKey.startsWith(filterPrefix)) {
-            keysToDelete.push(paramKey);
-          }
-        });
-        keysToDelete.forEach((k) => newSearchParams.delete(k));
-
-        // Add new filter params
-        if (value && Object.keys(value).length > 0) {
-          Object.entries(value).forEach(([filterKey, filterValue]) => {
-            if (
-              filterValue !== null &&
-              filterValue !== undefined &&
-              filterValue !== ""
-            ) {
-              newSearchParams.set(
-                `${filterPrefix}${filterKey}`,
-                String(filterValue),
-              );
-            }
-          });
-        }
 
         if (key !== currentPageKey) {
           newSearchParams.set(currentPageKey, "1");
@@ -215,8 +276,12 @@ export function useSearchQueryParams(
     setSortValue: (value: string) =>
       updateUrlParam<string>(sortKey, value, setSortValueState),
     filtersValues,
-    setFiltersValues: (value: Record<string, string | null>) =>
-      updateUrlParamObject("filters", value, setFiltersValuesState),
+    setFiltersValues: (value: FiltersValues) =>
+      updateUrlParamObject(
+        "filters",
+        coerceClearedArrayFilters(value, arrayFilterKeys),
+        setFiltersValuesState,
+      ),
     isSyncing,
   };
 }

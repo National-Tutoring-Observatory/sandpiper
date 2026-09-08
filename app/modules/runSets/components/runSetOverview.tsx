@@ -1,4 +1,5 @@
 import { Collection as CollectionUI } from "@/components/ui/collection";
+import type { FiltersValues } from "@/components/ui/filters";
 import { StatItem } from "@/components/ui/stat-item";
 import { Play, Trash2 } from "lucide-react";
 import getDateString from "~/modules/app/helpers/getDateString";
@@ -53,10 +54,8 @@ export default function RunSetOverview({
   onSessionItemClicked: (id: string) => void;
   onRunsSearchValueChanged: (value: string) => void;
   onRunsCurrentPageChanged: (page: number) => void;
-  runsFiltersValues: Record<string, string | null>;
-  onRunsFiltersValueChanged: (
-    filterValue: Record<string, string | null>,
-  ) => void;
+  runsFiltersValues: FiltersValues;
+  onRunsFiltersValueChanged: (filterValue: FiltersValues) => void;
   onRunsSortValueChanged: (sort: string) => void;
   onSessionsSearchValueChanged: (value: string) => void;
   onSessionsCurrentPageChanged: (page: number) => void;

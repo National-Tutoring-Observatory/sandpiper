@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import type {
   SelectActionChange,
   SelectActionClose,
@@ -15,7 +16,9 @@ import { ProjectService } from "~/modules/projects/project";
 import ViewSessionContainer from "~/modules/sessions/containers/viewSessionContainer";
 import { SessionService } from "~/modules/sessions/session";
 import type { Session } from "~/modules/sessions/sessions.types";
+import { TagService } from "~/modules/tags/tag";
 import Sessions from "../components/sessions";
+import getSessionsFilters from "../helpers/getSessionsFilters";
 import createSessionsFromFiles from "../services/createSessionsFromFiles.server";
 import tagSessions from "../services/tagSessions.server";
 import type { Route } from "./+types/sessions.route";
@@ -47,12 +50,16 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     queryParams,
     searchableFields: ["name"],
     sortableFields: ["name", "createdAt"],
-    filterableFields: [],
+    filterableFields: ["tags"],
   });
 
   const sessions = await SessionService.paginate(query);
 
-  return { sessions, project };
+  const tags = await TagService.find({
+    match: { team: params.teamId },
+  });
+
+  return { sessions, project, tags };
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -97,7 +104,7 @@ export async function action({ request, params }: Route.ActionArgs) {
 }
 
 export default function ProjectSessionsRoute() {
-  const { sessions, project } = useLoaderData<typeof loader>();
+  const { sessions, project, tags } = useLoaderData<typeof loader>();
   const submit = useSubmit();
 
   const {
@@ -114,7 +121,9 @@ export default function ProjectSessionsRoute() {
     searchValue: "",
     currentPage: 1,
     sortValue: "name",
-    filters: {},
+    filters: {
+      tags: [],
+    },
   });
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -193,9 +202,7 @@ export default function ProjectSessionsRoute() {
     setCurrentPage(currentPage);
   };
 
-  const onFiltersValueChanged = (
-    filterValue: Record<string, string | null>,
-  ) => {
+  const onFiltersValueChanged = (filterValue: FiltersValues) => {
     setFiltersValues({ ...filtersValues, ...filterValue });
   };
 
@@ -207,6 +214,7 @@ export default function ProjectSessionsRoute() {
     <Sessions
       project={project}
       sessions={sessions.data}
+      sessionsFilters={getSessionsFilters(tags)}
       selectedItems={selectedItems}
       selectActionsValues={selectActionsValues}
       searchValue={searchValue}

@@ -1,4 +1,5 @@
 import { Collection } from "@/components/ui/collection";
+import type { FiltersValues } from "@/components/ui/filters";
 import type {
   SelectActionChange,
   SelectActionClose,
@@ -10,14 +11,15 @@ import type { Session } from "~/modules/sessions/sessions.types";
 import TagsSelectorContainer from "~/modules/tags/containers/tagsSelector.container";
 import getSessionsActions from "../helpers/getSessionsActions";
 import getSessionsEmptyAttributes from "../helpers/getSessionsEmptyAttributes";
+import type getSessionsFilters from "../helpers/getSessionsFilters";
 import getSessionsItemActions from "../helpers/getSessionsItemActions";
 import getSessionsItemAttributes from "../helpers/getSessionsItemAttributes";
-import sessionsFilters from "../helpers/sessionsFilters";
 import sessionsSortOptions from "../helpers/sessionsSortOptions";
 
 export default function Sessions({
   project,
   sessions,
+  sessionsFilters,
   selectedItems,
   selectActionsValues,
   searchValue,
@@ -38,12 +40,13 @@ export default function Sessions({
 }: {
   project: Project;
   sessions: Session[];
+  sessionsFilters: ReturnType<typeof getSessionsFilters>;
   selectedItems: string[];
   selectActionsValues: Record<string, string[]>;
   searchValue: string;
   currentPage: number;
   totalPages: number;
-  filtersValues: Record<string, string | null>;
+  filtersValues: FiltersValues;
   sortValue: string;
   isSyncing: boolean;
   onActionClicked: (action: string) => void;
@@ -53,7 +56,7 @@ export default function Sessions({
   onItemClicked: (id: string) => void;
   onSearchValueChanged: (searchValue: string) => void;
   onPaginationChanged: (currentPage: number) => void;
-  onFiltersValueChanged: (filterValue: Record<string, string | null>) => void;
+  onFiltersValueChanged: (filterValue: FiltersValues) => void;
   onSortValueChanged: (sortValue: string) => void;
 }) {
   const hasTags = useHasFeatureFlag("HAS_TAGS");

@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import find from "lodash/find";
 import throttle from "lodash/throttle";
 import {
@@ -309,7 +310,7 @@ export default function RunSetOverviewRoute({ params }: Route.ComponentProps) {
       onRunsSearchValueChanged={setRunsSearchValue}
       onRunsCurrentPageChanged={setRunsCurrentPage}
       runsFiltersValues={runsFiltersValues}
-      onRunsFiltersValueChanged={(filterValue: Record<string, string | null>) =>
+      onRunsFiltersValueChanged={(filterValue: FiltersValues) =>
         setRunsFiltersValues({ ...runsFiltersValues, ...filterValue })
       }
       onRunsSortValueChanged={setRunsSortValue}

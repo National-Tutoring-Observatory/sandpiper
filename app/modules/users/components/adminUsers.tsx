@@ -1,4 +1,5 @@
 import { Collection } from "@/components/ui/collection";
+import type { FiltersValues } from "@/components/ui/filters";
 import { PageHeader, PageHeaderLeft } from "@/components/ui/pageHeader";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
@@ -22,14 +23,14 @@ interface AdminUsersProps {
   currentPage: number;
   totalPages: number;
   sortValue: string;
-  filtersValues: Record<string, string | null>;
+  filtersValues: FiltersValues;
   isSyncing?: boolean;
   isAuditSyncing?: boolean;
   onItemActionClicked: ({ id, action }: { id: string; action: string }) => void;
   onSearchValueChanged: (searchValue: string) => void;
   onPaginationChanged: (currentPage: number) => void;
   onSortValueChanged: (sortValue: string) => void;
-  onFiltersValueChanged: (filterValue: Record<string, string | null>) => void;
+  onFiltersValueChanged: (filterValue: FiltersValues) => void;
   onAuditSearchChanged: (searchValue: string) => void;
   onAuditPageChanged: (page: number) => void;
   onAuditSortChanged: (sortValue: string) => void;

@@ -9,6 +9,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import type { FiltersValues } from "@/components/ui/filters";
 import {
   PageHeader,
   PageHeaderLeft,
@@ -98,12 +99,12 @@ export default function RunDetail({
   sessionsSearchValue: string;
   sessionsCurrentPage: number;
   sessionsSortValue: string;
-  sessionsFiltersValues: Record<string, string | null>;
+  sessionsFiltersValues: FiltersValues;
   isSessionsSyncing: boolean;
   onSessionsSearchValueChanged: (value: string) => void;
   onSessionsCurrentPageChanged: (page: number) => void;
   onSessionsSortValueChanged: (sort: string) => void;
-  onSessionsFiltersValueChanged: (value: Record<string, string | null>) => void;
+  onSessionsFiltersValueChanged: (value: FiltersValues) => void;
 }) {
   const runStatus = getRunStatusKey(run);
   const projectId =

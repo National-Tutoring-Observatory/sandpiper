@@ -1,4 +1,5 @@
 import { Collection } from "@/components/ui/collection";
+import type { FiltersValues } from "@/components/ui/filters";
 import { PageHeader, PageHeaderLeft } from "@/components/ui/pageHeader";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
@@ -15,12 +16,12 @@ interface PromptLibraryProps {
   totalPages: number;
   searchValue: string;
   currentPage: number;
-  filtersValues: Record<string, string | null>;
+  filtersValues: FiltersValues;
   sortValue: string;
   isSyncing: boolean;
   onSearchValueChanged: (value: string) => void;
   onPaginationChanged: (page: number) => void;
-  onFiltersValueChanged: (filters: Record<string, string | null>) => void;
+  onFiltersValueChanged: (filters: FiltersValues) => void;
   onSortValueChanged: (value: string) => void;
   onItemActionClicked: (args: { id: string; action: string }) => void;
 }
