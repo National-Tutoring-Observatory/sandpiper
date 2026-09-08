@@ -35,6 +35,17 @@ const FiltersItem = ({
   const [isOpen, setIsOpen] = useState(false);
 
   if (filter.options.length > 4 || filter.isMultiSelect) {
+    if (filter.isMultiSelect && !Array.isArray(value)) {
+      console.warn(
+        `FiltersItem: multiSelect filter "${filter.category}" expected an array value but received "${value}".`,
+      );
+      return null;
+    }
+
+    // Non-multiSelect combobox keeps a single string; normalise both shapes
+    // to an array for selection/membership rendering below.
+    const selectedValues = Array.isArray(value) ? value : value ? [value] : [];
+
     return (
       <div className="flex flex-col gap-2">
         <div className="flex h-4 items-baseline justify-between">
@@ -63,8 +74,11 @@ const FiltersItem = ({
               aria-expanded={isOpen}
               className="justify-between font-normal"
             >
-              {value
-                ? filter.options.find((option) => option.value === value)?.text
+              {selectedValues.length > 0
+                ? filter.options
+                    .filter((option) => selectedValues.includes(option.value))
+                    .map((option) => option.text)
+                    .join(", ")
                 : "--"}
               <ChevronDown className="opacity-30" />
             </Button>
@@ -81,22 +95,34 @@ const FiltersItem = ({
                         key={option.value}
                         value={option.value}
                         keywords={[option.text]}
-                        onSelect={(filterValue) => {
+                        onSelect={() => {
+                          if (!onFiltersValueChanged) return;
+
                           if (!filter.isMultiSelect) {
                             setIsOpen(false);
-                          }
-                          if (onFiltersValueChanged) {
                             onFiltersValueChanged({
-                              [filter.category]: filterValue,
+                              [filter.category]: option.value,
                             });
+                            return;
                           }
+
+                          const nextValues = selectedValues.includes(
+                            option.value,
+                          )
+                            ? selectedValues.filter((v) => v !== option.value)
+                            : [...selectedValues, option.value];
+
+                          onFiltersValueChanged({
+                            [filter.category]:
+                              nextValues.length > 0 ? nextValues : null,
+                          });
                         }}
                       >
                         {option.text}
                         <Check
                           className={cn(
                             "ml-auto",
-                            value === option.value
+                            selectedValues.includes(option.value)
                               ? "opacity-100"
                               : "opacity-0",
                           )}
