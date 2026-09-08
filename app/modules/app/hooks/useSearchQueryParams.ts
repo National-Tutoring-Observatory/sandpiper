@@ -16,14 +16,28 @@ function parseFiltersFromUrl(
   defaultFilters?: FiltersValues | null,
   prefix: string = "",
 ): FiltersValues {
-  const filters: FiltersValues = {};
   const filterPrefix = prefix ? `${prefix}Filter_` : "filter_";
 
-  searchParams.forEach((value, key) => {
-    if (key.startsWith(filterPrefix)) {
-      const filterKey = key.replace(filterPrefix, "");
-      filters[filterKey] = value;
+  // Filters can be an array or string value
+  const filters: FiltersValues = {};
+  const arrayFilterKeys = new Set<string>();
+  if (defaultFilters) {
+    for (const [key, defaultValue] of Object.entries(defaultFilters)) {
+      if (Array.isArray(defaultValue)) {
+        arrayFilterKeys.add(key);
+        filters[key] = [];
+      }
     }
+  }
+
+  const seenKeys = new Set<string>();
+  searchParams.forEach((_, key) => {
+    if (!key.startsWith(filterPrefix) || seenKeys.has(key)) return;
+    seenKeys.add(key);
+
+    const filterKey = key.replace(filterPrefix, "");
+    const values = searchParams.getAll(key);
+    filters[filterKey] = arrayFilterKeys.has(filterKey) ? values : values[0];
   });
 
   return Object.keys(filters).length > 0 ? filters : (defaultFilters ?? {});
@@ -40,6 +54,13 @@ export function useSearchQueryParams(
   const searchValueKey = prefix ? `${prefix}SearchValue` : "searchValue";
   const currentPageKey = prefix ? `${prefix}CurrentPage` : "currentPage";
   const sortKey = prefix ? `${prefix}Sort` : "sort";
+
+  // Map to help filter array based keys for when finding an empty array.
+  const arrayFilterKeys = new Set(
+    Object.entries(defaultQueryParams.filters ?? {})
+      .filter(([, defaultValue]) => Array.isArray(defaultValue))
+      .map(([key]) => key),
+  );
 
   const [searchValue, setSearchValueState] = useState<string>(
     searchParams.get(searchValueKey) ?? defaultQueryParams.searchValue ?? "",
@@ -177,18 +198,26 @@ export function useSearchQueryParams(
         });
         keysToDelete.forEach((k) => newSearchParams.delete(k));
 
-        // Add new filter params
+        // Add new filter params (array values become repeated params)
         if (value && Object.keys(value).length > 0) {
           Object.entries(value).forEach(([filterKey, filterValue]) => {
             if (
-              filterValue !== null &&
-              filterValue !== undefined &&
-              filterValue !== ""
+              filterValue === null ||
+              filterValue === undefined ||
+              filterValue === ""
             ) {
-              newSearchParams.set(
-                `${filterPrefix}${filterKey}`,
-                String(filterValue),
-              );
+              return;
+            }
+
+            const paramKey = `${filterPrefix}${filterKey}`;
+            if (Array.isArray(filterValue)) {
+              filterValue.forEach((entry) => {
+                if (entry !== null && entry !== undefined && entry !== "") {
+                  newSearchParams.append(paramKey, entry);
+                }
+              });
+            } else {
+              newSearchParams.set(paramKey, filterValue);
             }
           });
         }
@@ -214,8 +243,15 @@ export function useSearchQueryParams(
     setSortValue: (value: string) =>
       updateUrlParam<string>(sortKey, value, setSortValueState),
     filtersValues,
-    setFiltersValues: (value: FiltersValues) =>
-      updateUrlParamObject("filters", value, setFiltersValuesState),
+    setFiltersValues: (value: FiltersValues) => {
+      const normalised: FiltersValues = { ...value };
+      for (const key of arrayFilterKeys) {
+        if (normalised[key] === null || normalised[key] === undefined) {
+          normalised[key] = [];
+        }
+      }
+      updateUrlParamObject("filters", normalised, setFiltersValuesState);
+    },
     isSyncing,
   };
 }
