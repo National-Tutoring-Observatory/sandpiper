@@ -18,29 +18,35 @@ function parseFiltersFromUrl(
 ): FiltersValues {
   const filterPrefix = prefix ? `${prefix}Filter_` : "filter_";
 
-  // Filters can be an array or string value
-  const filters: FiltersValues = {};
   const arrayFilterKeys = new Set<string>();
   if (defaultFilters) {
     for (const [key, defaultValue] of Object.entries(defaultFilters)) {
-      if (Array.isArray(defaultValue)) {
-        arrayFilterKeys.add(key);
-        filters[key] = [];
-      }
+      if (Array.isArray(defaultValue)) arrayFilterKeys.add(key);
     }
   }
 
-  const seenKeys = new Set<string>();
+  const urlFilterKeys = new Set<string>();
   searchParams.forEach((_, key) => {
-    if (!key.startsWith(filterPrefix) || seenKeys.has(key)) return;
-    seenKeys.add(key);
+    if (key.startsWith(filterPrefix)) urlFilterKeys.add(key);
+  });
 
+  // If no filters in the URL: fall back to the defaults
+  if (urlFilterKeys.size === 0) {
+    const filters: FiltersValues = { ...(defaultFilters ?? {}) };
+    for (const key of arrayFilterKeys) {
+      if (!Array.isArray(filters[key])) filters[key] = [];
+    }
+    return filters;
+  }
+
+  const filters: FiltersValues = {};
+  for (const key of arrayFilterKeys) filters[key] = [];
+  for (const key of urlFilterKeys) {
     const filterKey = key.replace(filterPrefix, "");
     const values = searchParams.getAll(key);
     filters[filterKey] = arrayFilterKeys.has(filterKey) ? values : values[0];
-  });
-
-  return Object.keys(filters).length > 0 ? filters : (defaultFilters ?? {});
+  }
+  return filters;
 }
 
 export function useSearchQueryParams(

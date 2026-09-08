@@ -49,8 +49,8 @@ const FiltersItem = ({
     return (
       <div className="flex flex-col gap-2">
         <div className="flex h-4 items-baseline justify-between">
-          <Label htmlFor="width">{filter.text}</Label>
-          {value && (
+          <Label>{filter.text}</Label>
+          {selectedValues.length > 0 && (
             <Button
               variant="link"
               size={"sm"}
@@ -118,8 +118,7 @@ const FiltersItem = ({
                             : [...selectedValues, option.value];
 
                           onFiltersValueChanged({
-                            [filter.category]:
-                              nextValues.length > 0 ? nextValues : null,
+                            [filter.category]: nextValues,
                           });
                         }}
                       >
@@ -152,7 +151,7 @@ const FiltersItem = ({
     return (
       <div className="flex flex-col gap-2">
         <div className="flex h-4 items-baseline justify-between">
-          <Label htmlFor="width">{filter.text}</Label>
+          <Label>{filter.text}</Label>
           {value && (
             <Button
               variant="link"
