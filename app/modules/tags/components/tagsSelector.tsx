@@ -9,7 +9,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import find from "lodash/find";
 import map from "lodash/map";
-import { LoaderPinwheel, Plus, X } from "lucide-react";
+import { LoaderPinwheel, Plus, Tag as TagIcon, X } from "lucide-react";
 import type { Tag } from "../tags.types";
 
 const TagsSelector = ({
@@ -17,11 +17,13 @@ const TagsSelector = ({
   selectedTags,
   isLoading,
   onChange,
+  onCreateNewTagClicked,
 }: {
   tags: Tag[] | undefined;
   selectedTags: string[];
   isLoading: boolean;
   onChange: (tagId: string) => void;
+  onCreateNewTagClicked: () => void;
 }) => {
   return (
     <div className="flex items-center items-stretch justify-between gap-2 rounded-lg border">
@@ -52,11 +54,25 @@ const TagsSelector = ({
               Add tags
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="start">
+          <DropdownMenuContent align="end">
             {isLoading && (
               <div className="flex justify-center p-2">
                 <LoaderPinwheel size={16} className="animate-spin" />
               </div>
+            )}
+            {!isLoading && (
+              <>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full justify-start"
+                  onClick={onCreateNewTagClicked}
+                >
+                  <TagIcon />
+                  Create new tag
+                </Button>
+                <Separator className="my-1" />
+              </>
             )}
             {map(tags, (tag) => {
               return (
