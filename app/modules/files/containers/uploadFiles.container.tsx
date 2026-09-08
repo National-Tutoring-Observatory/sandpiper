@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { FetcherWithComponents } from "react-router";
 import UploadFiles from "../components/uploadFiles";
 import { SUPPORTED_FILE_TYPES } from "../constants";
@@ -15,6 +16,17 @@ export default function UploadFilesContainer({
   uploadFetcher,
 }: UploadFilesContainerProps) {
   const { acceptedFiles, addFiles, removeFile } = useFileAccumulator();
+  const [selectedTagIds, setSelectedTagIds] = useState<string[]>([]);
+
+  const handleTagChanged = (tagId: string) => {
+    setSelectedTagIds((current) => {
+      const nextSelectedTagIds = current.includes(tagId)
+        ? current.filter((id) => id !== tagId)
+        : [...current, tagId];
+      console.log("Selected tags:", nextSelectedTagIds);
+      return nextSelectedTagIds;
+    });
+  };
 
   const instructionsByType = SUPPORTED_FILE_TYPES.reduce(
     (acc, fileType) => {
@@ -61,6 +73,8 @@ export default function UploadFilesContainer({
       fetcher={uploadFetcher}
       onUploadClick={handleUpload}
       onUseMtmDatasetClicked={handleUseMtmDataset}
+      selectedTagIds={selectedTagIds}
+      onTagsChanged={handleTagChanged}
     />
   );
 }

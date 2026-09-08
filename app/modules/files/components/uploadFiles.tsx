@@ -22,6 +22,7 @@ import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import type { FetcherWithComponents } from "react-router";
 import { Link } from "react-router";
+import TagsSelectorContainer from "~/modules/tags/containers/tagsSelector.container";
 import { SUPPORTED_FILE_TYPES } from "../constants";
 import type { FileType, UploadFilesData } from "../files.types";
 import getFileUploadAccepts from "../helpers/getFileUploadAccepts";
@@ -36,6 +37,8 @@ export default function UploadFiles({
   fetcher,
   onUploadClick,
   onUseMtmDatasetClicked,
+  selectedTagIds,
+  onTagsChanged,
 }: {
   acceptedFiles: { _id: string; name: string; type: string }[];
   instructionsByType: Record<FileType, { overview: string; link: string }>;
@@ -45,6 +48,8 @@ export default function UploadFiles({
   fetcher: FetcherWithComponents<UploadFilesData>;
   onUploadClick: () => void;
   onUseMtmDatasetClicked: () => void;
+  selectedTagIds: string[];
+  onTagsChanged: (tagId: string) => void;
 }) {
   const [activeTab, setActiveTab] = useState<FileType>("CSV");
   const data = fetcher.data as UploadFilesData | undefined;
@@ -177,6 +182,12 @@ export default function UploadFiles({
                 })}
               </TableBody>
             </Table>
+          </div>
+          <div className="mt-4">
+            <TagsSelectorContainer
+              selectedTags={selectedTagIds}
+              onChange={onTagsChanged}
+            />
           </div>
           <div className="mt-2 flex justify-center">
             <Button size="lg" disabled={isUploading} onClick={onUploadClick}>

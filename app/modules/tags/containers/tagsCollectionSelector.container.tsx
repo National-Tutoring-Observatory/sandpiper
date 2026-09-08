@@ -1,14 +1,12 @@
+import type { SelectActionComponentProps } from "@/components/ui/selectAll";
 import { useEffect } from "react";
 import { useFetcher } from "react-router";
-import TagsSelector from "../components/tagsSelector";
+import TagsCollectionSelector from "../components/tagsCollectionSelector";
 
-const TagsSelectorContainer = ({
-  selectedTags,
+const TagsCollectionSelectorContainer = ({
+  value,
   onChange,
-}: {
-  selectedTags: string[];
-  onChange: (tagId: string) => void;
-}) => {
+}: SelectActionComponentProps) => {
   const fetcher = useFetcher();
 
   useEffect(() => {
@@ -26,14 +24,15 @@ const TagsSelectorContainer = ({
   if (fetcherData) {
     isLoading = false;
   }
+
   return (
-    <TagsSelector
+    <TagsCollectionSelector
       tags={fetcherData?.tags.data}
-      selectedTags={selectedTags}
       isLoading={isLoading}
-      onChange={toggleTag}
+      selectedTagIds={value}
+      toggleTag={toggleTag}
     />
   );
 };
 
-export default TagsSelectorContainer;
+export default TagsCollectionSelectorContainer;

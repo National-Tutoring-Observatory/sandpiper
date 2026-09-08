@@ -25,6 +25,7 @@ const SelectActions = ({
         const Component = action.component;
         return (
           <DropdownMenu
+            key={action.action}
             onOpenChange={(open) => {
               if (!open) {
                 onSelectActionClosed?.({

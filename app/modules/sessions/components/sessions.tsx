@@ -8,7 +8,7 @@ import { Tag } from "lucide-react";
 import useHasFeatureFlag from "~/modules/featureFlags/hooks/useHasFeatureFlag";
 import type { Project } from "~/modules/projects/projects.types";
 import type { Session } from "~/modules/sessions/sessions.types";
-import TagsSelectorContainer from "~/modules/tags/containers/tagsSelector.container";
+import TagsCollectionSelectorContainer from "~/modules/tags/containers/tagsCollectionSelector.container";
 import getSessionsActions from "../helpers/getSessionsActions";
 import getSessionsEmptyAttributes from "../helpers/getSessionsEmptyAttributes";
 import type getSessionsFilters from "../helpers/getSessionsFilters";
@@ -73,7 +73,7 @@ export default function Sessions({
                   action: "tag",
                   text: "Tag",
                   icon: <Tag />,
-                  component: TagsSelectorContainer,
+                  component: TagsCollectionSelectorContainer,
                 },
               ]
             : []
