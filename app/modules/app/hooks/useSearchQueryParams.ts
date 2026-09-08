@@ -11,7 +11,7 @@ type DefaultQueryParams = {
   filters?: FiltersValues | null;
 };
 
-function parseFiltersFromUrl(
+export function parseFiltersFromUrl(
   searchParams: URLSearchParams,
   defaultFilters?: FiltersValues | null,
   prefix: string = "",
@@ -47,6 +47,66 @@ function parseFiltersFromUrl(
     filters[filterKey] = arrayFilterKeys.has(filterKey) ? values : values[0];
   }
   return filters;
+}
+
+/**
+ * Serialise filter values into a copy of `currentSearchParams`: existing
+ * filter params are cleared, arrays become repeated params, scalars a single
+ * param, and empty/null/"" values are omitted (so a cleared filter drops out).
+ */
+export function buildFilterSearchParams(
+  currentSearchParams: URLSearchParams,
+  value: FiltersValues,
+  prefix: string = "",
+): URLSearchParams {
+  const newSearchParams = new URLSearchParams(currentSearchParams.toString());
+  const filterPrefix = prefix ? `${prefix}Filter_` : "filter_";
+
+  const keysToDelete: string[] = [];
+  newSearchParams.forEach((_, paramKey) => {
+    if (paramKey.startsWith(filterPrefix)) keysToDelete.push(paramKey);
+  });
+  keysToDelete.forEach((k) => newSearchParams.delete(k));
+
+  Object.entries(value ?? {}).forEach(([filterKey, filterValue]) => {
+    if (
+      filterValue === null ||
+      filterValue === undefined ||
+      filterValue === ""
+    ) {
+      return;
+    }
+
+    const paramKey = `${filterPrefix}${filterKey}`;
+    if (Array.isArray(filterValue)) {
+      filterValue.forEach((entry) => {
+        if (entry !== null && entry !== undefined && entry !== "") {
+          newSearchParams.append(paramKey, entry);
+        }
+      });
+    } else {
+      newSearchParams.set(paramKey, filterValue);
+    }
+  });
+
+  return newSearchParams;
+}
+
+/**
+ * Ensure cleared array-typed filters stay as an empty array (never null/
+ * undefined) so multi-select filters always receive an array.
+ */
+export function coerceClearedArrayFilters(
+  value: FiltersValues,
+  arrayFilterKeys: Iterable<string>,
+): FiltersValues {
+  const normalised: FiltersValues = { ...value };
+  for (const key of arrayFilterKeys) {
+    if (normalised[key] === null || normalised[key] === undefined) {
+      normalised[key] = [];
+    }
+  }
+  return normalised;
 }
 
 export function useSearchQueryParams(
@@ -189,44 +249,11 @@ export function useSearchQueryParams(
     setHasInitiatedNavigation(true);
     setSearchParams(
       (prevSearchParams: URLSearchParams) => {
-        const newSearchParams = new URLSearchParams(
-          prevSearchParams.toString(),
+        const newSearchParams = buildFilterSearchParams(
+          prevSearchParams,
+          value,
+          prefix,
         );
-
-        const filterPrefix = prefix ? `${prefix}Filter_` : "filter_";
-
-        // Remove all existing filter_* params
-        const keysToDelete: string[] = [];
-        newSearchParams.forEach((_, paramKey) => {
-          if (paramKey.startsWith(filterPrefix)) {
-            keysToDelete.push(paramKey);
-          }
-        });
-        keysToDelete.forEach((k) => newSearchParams.delete(k));
-
-        // Add new filter params (array values become repeated params)
-        if (value && Object.keys(value).length > 0) {
-          Object.entries(value).forEach(([filterKey, filterValue]) => {
-            if (
-              filterValue === null ||
-              filterValue === undefined ||
-              filterValue === ""
-            ) {
-              return;
-            }
-
-            const paramKey = `${filterPrefix}${filterKey}`;
-            if (Array.isArray(filterValue)) {
-              filterValue.forEach((entry) => {
-                if (entry !== null && entry !== undefined && entry !== "") {
-                  newSearchParams.append(paramKey, entry);
-                }
-              });
-            } else {
-              newSearchParams.set(paramKey, filterValue);
-            }
-          });
-        }
 
         if (key !== currentPageKey) {
           newSearchParams.set(currentPageKey, "1");
@@ -249,15 +276,12 @@ export function useSearchQueryParams(
     setSortValue: (value: string) =>
       updateUrlParam<string>(sortKey, value, setSortValueState),
     filtersValues,
-    setFiltersValues: (value: FiltersValues) => {
-      const normalised: FiltersValues = { ...value };
-      for (const key of arrayFilterKeys) {
-        if (normalised[key] === null || normalised[key] === undefined) {
-          normalised[key] = [];
-        }
-      }
-      updateUrlParamObject("filters", normalised, setFiltersValuesState);
-    },
+    setFiltersValues: (value: FiltersValues) =>
+      updateUrlParamObject(
+        "filters",
+        coerceClearedArrayFilters(value, arrayFilterKeys),
+        setFiltersValuesState,
+      ),
     isSyncing,
   };
 }
