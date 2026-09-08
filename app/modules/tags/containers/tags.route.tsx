@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import find from "lodash/find";
 import { data, redirect, useFetcher, useLoaderData } from "react-router";
 import type { Breadcrumb } from "~/modules/app/app.types";
@@ -216,9 +217,7 @@ export default function TagsRoute() {
     setCurrentPage(page);
   };
 
-  const onFiltersValueChanged = (
-    filterValue: Record<string, string | null>,
-  ) => {
+  const onFiltersValueChanged = (filterValue: FiltersValues) => {
     setFiltersValues({ ...filtersValues, ...filterValue });
   };
 

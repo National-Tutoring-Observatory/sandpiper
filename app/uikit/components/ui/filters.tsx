@@ -10,6 +10,7 @@ export type Filter = {
   icon?: ReactElement;
   category: string;
   text: string;
+  isMultiSelect?: boolean;
   options: FilterOption[];
 };
 
@@ -18,10 +19,16 @@ export type FilterOption = {
   text: string;
 };
 
+/** A single filter's selected value: one option or several options. */
+export type FilterValue = string | string[];
+
+/** Map of filter category → selected value (null when cleared). */
+export type FiltersValues = Record<string, FilterValue | null>;
+
 export type FiltersProps = {
   filters: Filter[];
-  filtersValues: Record<string, string | null>;
-  onFiltersValueChanged?: (filtersValue: Record<string, string | null>) => void;
+  filtersValues: FiltersValues;
+  onFiltersValueChanged?: (filtersValue: FiltersValues) => void;
 };
 
 const Filters = ({

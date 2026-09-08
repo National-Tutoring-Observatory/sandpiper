@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import find from "lodash/find";
 import { useContext } from "react";
 import {
@@ -260,9 +261,7 @@ export default function TeamUsersRoute() {
     setCurrentPage(currentPage);
   };
 
-  const onFiltersValueChanged = (
-    filterValue: Record<string, string | null>,
-  ) => {
+  const onFiltersValueChanged = (filterValue: FiltersValues) => {
     setFiltersValues({ ...filtersValues, ...filterValue });
   };
 

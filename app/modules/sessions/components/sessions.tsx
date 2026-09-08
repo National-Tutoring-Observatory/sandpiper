@@ -1,4 +1,5 @@
 import { Collection } from "@/components/ui/collection";
+import type { FiltersValues } from "@/components/ui/filters";
 import type {
   SelectActionChange,
   SelectActionClose,
@@ -45,7 +46,7 @@ export default function Sessions({
   searchValue: string;
   currentPage: number;
   totalPages: number;
-  filtersValues: Record<string, string | null>;
+  filtersValues: FiltersValues;
   sortValue: string;
   isSyncing: boolean;
   onActionClicked: (action: string) => void;
@@ -55,7 +56,7 @@ export default function Sessions({
   onItemClicked: (id: string) => void;
   onSearchValueChanged: (searchValue: string) => void;
   onPaginationChanged: (currentPage: number) => void;
-  onFiltersValueChanged: (filterValue: Record<string, string | null>) => void;
+  onFiltersValueChanged: (filterValue: FiltersValues) => void;
   onSortValueChanged: (sortValue: string) => void;
 }) {
   const hasTags = useHasFeatureFlag("HAS_TAGS");

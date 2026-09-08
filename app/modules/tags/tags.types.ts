@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import type { Breadcrumb } from "~/modules/app/app.types";
 
 export interface Tag {
@@ -26,13 +27,13 @@ export interface TagsProps {
   searchValue: string;
   currentPage: number;
   totalPages: number;
-  filtersValues: Record<string, string | null>;
+  filtersValues: FiltersValues;
   sortValue: string;
   isSyncing: boolean;
   onActionClicked: (action: string) => void;
   onItemActionClicked: ({ id, action }: { id: string; action: string }) => void;
   onSearchValueChanged: (searchValue: string) => void;
   onPaginationChanged: (currentPage: number) => void;
-  onFiltersValueChanged: (filterValue: Record<string, string | null>) => void;
+  onFiltersValueChanged: (filterValue: FiltersValues) => void;
   onSortValueChanged: (sortValue: string) => void;
 }

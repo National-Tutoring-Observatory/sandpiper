@@ -1,4 +1,5 @@
 import { Collection } from "@/components/ui/collection";
+import type { FiltersValues } from "@/components/ui/filters";
 import { Download } from "lucide-react";
 import triggerDownload from "~/modules/app/helpers/triggerDownload";
 import getActiveUserItemAttributes from "../helpers/getActiveUserItemAttributes";
@@ -9,11 +10,11 @@ interface ActiveUsersTableProps {
   totalPages: number;
   currentPage: number;
   sortValue: string;
-  filtersValues: Record<string, string | null>;
+  filtersValues: FiltersValues;
   isSyncing?: boolean;
   onPaginationChanged: (page: number) => void;
   onSortValueChanged: (sort: string) => void;
-  onFiltersValueChanged: (filters: Record<string, string | null>) => void;
+  onFiltersValueChanged: (filters: FiltersValues) => void;
 }
 
 export default function ActiveUsersTable({

@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import type {
   SelectActionChange,
   SelectActionClose,
@@ -120,7 +121,9 @@ export default function ProjectSessionsRoute() {
     searchValue: "",
     currentPage: 1,
     sortValue: "name",
-    filters: {},
+    filters: {
+      tags: [],
+    },
   });
 
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
@@ -199,17 +202,13 @@ export default function ProjectSessionsRoute() {
     setCurrentPage(currentPage);
   };
 
-  const onFiltersValueChanged = (
-    filterValue: Record<string, string | null>,
-  ) => {
+  const onFiltersValueChanged = (filterValue: FiltersValues) => {
     setFiltersValues({ ...filtersValues, ...filterValue });
   };
 
   const onSortValueChanged = (sortValue: string) => {
     setSortValue(sortValue);
   };
-
-  console.log(tags);
 
   return (
     <Sessions

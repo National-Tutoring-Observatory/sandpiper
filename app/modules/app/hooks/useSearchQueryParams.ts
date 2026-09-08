@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import { useEffect, useState } from "react";
 import { useNavigation, useSearchParams } from "react-router";
 
@@ -7,15 +8,15 @@ type DefaultQueryParams = {
   searchValue?: string;
   currentPage?: number;
   sortValue?: string;
-  filters?: Record<string, string | null> | null;
+  filters?: FiltersValues | null;
 };
 
 function parseFiltersFromUrl(
   searchParams: URLSearchParams,
-  defaultFilters?: Record<string, string | null> | null,
+  defaultFilters?: FiltersValues | null,
   prefix: string = "",
-): Record<string, string | null> {
-  const filters: Record<string, string | null> = {};
+): FiltersValues {
+  const filters: FiltersValues = {};
   const filterPrefix = prefix ? `${prefix}Filter_` : "filter_";
 
   searchParams.forEach((value, key) => {
@@ -54,9 +55,9 @@ export function useSearchQueryParams(
     searchParams.get(sortKey) ?? defaultQueryParams.sortValue ?? "",
   );
 
-  const [filtersValues, setFiltersValuesState] = useState<
-    Record<string, string | null>
-  >(parseFiltersFromUrl(searchParams, defaultQueryParams.filters, prefix));
+  const [filtersValues, setFiltersValuesState] = useState<FiltersValues>(
+    parseFiltersFromUrl(searchParams, defaultQueryParams.filters, prefix),
+  );
 
   // isSyncing tracks two async phases to show the Collection "Syncing" indicator:
   // 1. isPending: user is typing but debounce hasn't fired yet (no navigation started)
@@ -154,10 +155,8 @@ export function useSearchQueryParams(
 
   const updateUrlParamObject = (
     key: string,
-    value: Record<string, string | null>,
-    setStateFunction: React.Dispatch<
-      React.SetStateAction<Record<string, string | null>>
-    >,
+    value: FiltersValues,
+    setStateFunction: React.Dispatch<React.SetStateAction<FiltersValues>>,
   ) => {
     setStateFunction(value);
     setHasInitiatedNavigation(true);
@@ -215,7 +214,7 @@ export function useSearchQueryParams(
     setSortValue: (value: string) =>
       updateUrlParam<string>(sortKey, value, setSortValueState),
     filtersValues,
-    setFiltersValues: (value: Record<string, string | null>) =>
+    setFiltersValues: (value: FiltersValues) =>
       updateUrlParamObject("filters", value, setFiltersValuesState),
     isSyncing,
   };

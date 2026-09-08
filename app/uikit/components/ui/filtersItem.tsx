@@ -11,7 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from "./command";
-import type { Filter } from "./filters";
+import type { Filter, FilterValue, FiltersValues } from "./filters";
 import { Label } from "./label";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import {
@@ -29,14 +29,12 @@ const FiltersItem = ({
   onFiltersValueChanged,
 }: {
   filter: Filter;
-  value: string | undefined;
-  onFiltersValueChanged?: (
-    filterKeyAndValue: Record<string, string | null>,
-  ) => void;
+  value: FilterValue | undefined;
+  onFiltersValueChanged?: (filterKeyAndValue: FiltersValues) => void;
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  if (filter.options.length > 4) {
+  if (filter.options.length > 4 || filter.isMultiSelect) {
     return (
       <div className="flex flex-col gap-2">
         <div className="flex h-4 items-baseline justify-between">
@@ -84,7 +82,9 @@ const FiltersItem = ({
                         value={option.value}
                         keywords={[option.text]}
                         onSelect={(filterValue) => {
-                          setIsOpen(false);
+                          if (!filter.isMultiSelect) {
+                            setIsOpen(false);
+                          }
                           if (onFiltersValueChanged) {
                             onFiltersValueChanged({
                               [filter.category]: filterValue,
@@ -112,6 +112,12 @@ const FiltersItem = ({
       </div>
     );
   } else {
+    if (Array.isArray(value)) {
+      console.warn(
+        `FiltersItem: filter "${filter.category}" received an array value but is not multiSelect. Falling back to no selection.`,
+      );
+      return null;
+    }
     return (
       <div className="flex flex-col gap-2">
         <div className="flex h-4 items-baseline justify-between">
@@ -134,7 +140,7 @@ const FiltersItem = ({
         </div>
         <div className="relative">
           <Select
-            value={value ? value : ""}
+            value={value}
             onValueChange={(filterValue) => {
               if (onFiltersValueChanged) {
                 onFiltersValueChanged({ [filter.category]: filterValue });

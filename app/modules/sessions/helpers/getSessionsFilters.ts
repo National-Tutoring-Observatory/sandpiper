@@ -5,6 +5,7 @@ export default function getSessionsFilters(tags: Tag[]) {
     {
       category: "tags",
       text: "Tags",
+      isMultiSelect: true,
       options: tags.map((tag) => ({
         value: tag._id,
         text: tag.name,

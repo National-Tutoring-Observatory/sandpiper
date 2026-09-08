@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import find from "lodash/find";
 import map from "lodash/map";
 import {
@@ -152,9 +153,7 @@ export default function ProjectRunsRoute() {
     setCurrentPage(currentPage);
   };
 
-  const onFiltersValueChanged = (
-    filterValue: Record<string, string | null>,
-  ) => {
+  const onFiltersValueChanged = (filterValue: FiltersValues) => {
     setFiltersValues({ ...filtersValues, ...filterValue });
   };
 

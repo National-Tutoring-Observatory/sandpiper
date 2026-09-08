@@ -1,3 +1,4 @@
+import type { FiltersValues } from "@/components/ui/filters";
 import escapeRegExp from "lodash/escapeRegExp";
 import find from "lodash/find";
 import { useContext, useEffect } from "react";
@@ -189,9 +190,7 @@ export default function TeamProjectsRoute() {
     setCurrentPage(currentPage);
   };
 
-  const onFiltersValueChanged = (
-    filterValue: Record<string, string | null>,
-  ) => {
+  const onFiltersValueChanged = (filterValue: FiltersValues) => {
     setFiltersValues({ ...filtersValues, ...filterValue });
   };
 
