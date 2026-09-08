@@ -36,8 +36,10 @@ const Filters = ({
   filtersValues = {},
   onFiltersValueChanged,
 }: FiltersProps) => {
-  const hasAtLeastOneFilter = Object.values(filtersValues).some(
-    (value) => value !== null,
+  const hasAtLeastOneFilter = Object.values(filtersValues).some((value) =>
+    Array.isArray(value)
+      ? value.length > 0
+      : value !== null && value !== undefined && value !== "",
   );
   return (
     <Popover>

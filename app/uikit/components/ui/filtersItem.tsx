@@ -74,12 +74,17 @@ const FiltersItem = ({
               aria-expanded={isOpen}
               className="justify-between font-normal"
             >
-              {selectedValues.length > 0
-                ? filter.options
-                    .filter((option) => selectedValues.includes(option.value))
-                    .map((option) => option.text)
-                    .join(", ")
-                : "--"}
+              {(() => {
+                if (selectedValues.length === 0) return "--";
+                if (filter.isMultiSelect) {
+                  return `${selectedValues.length} selected`;
+                }
+                return (
+                  filter.options.find(
+                    (option) => option.value === selectedValues[0],
+                  )?.text ?? selectedValues[0]
+                );
+              })()}
               <ChevronDown className="opacity-30" />
             </Button>
           </PopoverTrigger>
@@ -87,7 +92,7 @@ const FiltersItem = ({
             <Command>
               <CommandInput placeholder={`Search...`} className="h-9" />
               <CommandList>
-                <CommandEmpty>No framework found.</CommandEmpty>
+                <CommandEmpty>No item found.</CommandEmpty>
                 <CommandGroup>
                   {map(filter.options, (option) => {
                     return (
