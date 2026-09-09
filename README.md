@@ -27,3 +27,16 @@ yarn app:dev
 ```
 
 Your application will be available at `http://localhost:5173`.
+
+## License
+
+Sandpiper is open source. Ownership and licensing follow contribution:
+
+- Code contributed by FreshCognate is owned by FreshCognate and licensed
+  under the Apache License 2.0 (see [LICENSE](LICENSE)).
+- Code contributed by Cornell University is owned by Cornell University and
+  licensed under the MIT License (see [LICENSE-MIT](LICENSE-MIT)).
+
+As of this change, all code in this repository is FreshCognate-contributed
+and therefore licensed under Apache 2.0. Releases up to and including
+v0.20.0 were published under the MIT License and remain so.
