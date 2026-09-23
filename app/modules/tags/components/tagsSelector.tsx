@@ -26,7 +26,7 @@ const TagsSelector = ({
   onCreateNewTagClicked: () => void;
 }) => {
   return (
-    <div className="flex items-center items-stretch justify-between gap-2 rounded-lg border">
+    <div className="flex items-center justify-between gap-2 rounded-lg border">
       <div className="flex flex-wrap items-center gap-x-1 px-1">
         {map(selectedTags, (tag) => {
           const selectedTag = find(tags, { _id: tag });
@@ -54,7 +54,10 @@ const TagsSelector = ({
               Add tags
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
+          <DropdownMenuContent
+            align="end"
+            onCloseAutoFocus={(event) => event.preventDefault()}
+          >
             {isLoading && (
               <div className="flex justify-center p-2">
                 <LoaderPinwheel size={16} className="animate-spin" />
