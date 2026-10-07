@@ -47,15 +47,40 @@ export function PrivacyPolicy() {
             before accessing or continuing the use of the tool.
           </div>
 
-          <SectionHeading num={1}>License Grant and Ownership</SectionHeading>
+          <SectionHeading num={1}>
+            License Grant, Ownership, and Open-Source Notices
+          </SectionHeading>
           <p className="text-base leading-[1.8] text-[#5D534A]">
             Cornell hereby grants to you a limited, non-exclusive,
-            non-sublicensable license to access Sandpiper solely for research
-            and educational purposes. Cornell is and remains the owner of all
-            right, title, and interest (including copyright, patent, trade
-            secret, and other proprietary rights) in and to Sandpiper. Nothing
-            in this Agreement will be construed as granting Users any title or
-            interest in the underlying technology.
+            non-sublicensable license to access the Sandpiper service as hosted
+            by Cornell (the &ldquo;Service&rdquo;), solely for research and
+            educational purposes.
+          </p>
+          <p className="text-base leading-[1.8] text-[#5D534A]">
+            Cornell is and remains the owner of all right, title, and interest
+            in and to the Service, including Cornell&rsquo;s trademarks, service
+            marks, and the content Cornell makes available through it. Ownership
+            of the Sandpiper source code follows contribution: code contributed
+            by FreshCognate is owned by FreshCognate and licensed under the
+            Apache License 2.0, and code contributed by Cornell is owned by
+            Cornell and licensed under the MIT License, in each case as set out
+            in the project repository. Nothing in this Agreement will be
+            construed as granting Users any title or interest in the Service, in
+            either party&rsquo;s marks, or any rights in the source code beyond
+            those granted by the applicable open-source license.
+          </p>
+          <p className="text-base leading-[1.8] text-[#5D534A]">
+            Sandpiper is open-source software. The source code is publicly
+            available at{" "}
+            <strong className="font-semibold text-[#2C241B]">
+              github.com/National-Tutoring-Observatory/sandpiper
+            </strong>
+            , where the applicable license terms and attribution notices are
+            published. Your rights to use, modify, and redistribute the source
+            code arise under those open-source licenses and are independent of
+            this Agreement, which governs your access to the Service. Releases
+            published on or before v0.20.0 were made available under the MIT
+            License and remain available under those terms.
           </p>
 
           <SectionHeading num={2}>
@@ -205,10 +230,10 @@ export function PrivacyPolicy() {
           <div className="mt-8 border-t border-[#E6E2D6] pt-5 text-[0.9rem] text-[#5D534A]">
             Questions? Reach us at{" "}
             <a
-              href="mailto:CIS-NTO-PARTNERSHIPS-L@list.cornell.edu"
+              href="mailto:sandpipersupport@cornell.edu"
               className="font-semibold text-[#A64B2A] underline hover:text-[#8B3D21]"
             >
-              CIS-NTO-PARTNERSHIPS-L@list.cornell.edu
+              sandpipersupport@cornell.edu
             </a>
           </div>
         </div>

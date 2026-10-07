@@ -31,7 +31,7 @@ test.describe("public privacy policy", () => {
       page.getByRole("heading", { name: /GDPR Compliance/ }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /CIS-NTO-PARTNERSHIPS-L/ }),
+      page.getByRole("link", { name: /sandpipersupport@cornell\.edu/ }),
     ).toBeVisible();
   });
 

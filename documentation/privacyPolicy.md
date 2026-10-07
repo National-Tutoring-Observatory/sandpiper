@@ -47,7 +47,7 @@ Sandpiper is designed with **FERPA-** and **COPPA-eligible** workflows in mind f
 
 1.  **Review Terms:** The full Terms of Use and Privacy Policy is presented during account registration. You must agree before using the application.
 2.  **Manage Your Data:** Use the project settings to delete your uploaded data at any time.
-3.  **Contact Us:** For questions about privacy or data practices, contact the National Tutoring Observatory at CIS-NTO-PARTNERSHIPS-L@list.cornell.edu.
+3.  **Contact Us:** For questions about privacy or data practices, contact the National Tutoring Observatory at sandpipersupport@cornell.edu.
 
 ## Related Concepts
 
