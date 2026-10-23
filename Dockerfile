@@ -1,4 +1,4 @@
-FROM node:25-alpine AS development-dependencies-env
+FROM node:26-alpine AS development-dependencies-env
 RUN apk add --no-cache yarn
 COPY ./package.json yarn.lock /app/
 COPY ./bin /app/bin
@@ -8,7 +8,7 @@ RUN --mount=type=secret,id=BULLMQ_PRO_TOKEN \
     BULLMQ_PRO_TOKEN="$(cat /run/secrets/BULLMQ_PRO_TOKEN 2>/dev/null || true)" \
     yarn install --frozen-lockfile && rm -f .npmrc
 
-FROM node:25-alpine AS production-dependencies-env
+FROM node:26-alpine AS production-dependencies-env
 RUN apk add --no-cache yarn
 COPY ./package.json yarn.lock /app/
 COPY ./bin /app/bin
@@ -18,14 +18,14 @@ RUN --mount=type=secret,id=BULLMQ_PRO_TOKEN \
     BULLMQ_PRO_TOKEN="$(cat /run/secrets/BULLMQ_PRO_TOKEN 2>/dev/null || true)" \
     yarn install --frozen-lockfile --production && rm -f .npmrc
 
-FROM node:25-alpine AS build-env
+FROM node:26-alpine AS build-env
 RUN apk add --no-cache yarn
 COPY --from=development-dependencies-env /app/node_modules /app/node_modules
 COPY . /app/
 WORKDIR /app
 RUN yarn app:build
 
-FROM node:25-alpine
+FROM node:26-alpine
 RUN apk add --no-cache yarn
 COPY --from=production-dependencies-env /app/node_modules /app/node_modules
 COPY --from=build-env /app/build /app/build
