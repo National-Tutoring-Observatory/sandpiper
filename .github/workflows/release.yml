@@ -65,7 +65,7 @@ jobs:
       # commit reachable from main; staging tags images with the 7-char short
       # SHA, and inspect_staging.yml truncates this internally to match.
       tag-commit-sha: ${{ needs.resolve.outputs.sha }}
-      bake-hours: 1
+      bake-hours: 0
 
   preflight-production:
     name: Production Preflight
