@@ -1,4 +1,4 @@
-FROM node:25-alpine
+FROM node:26-alpine
 RUN apk add --no-cache yarn
 COPY package.json yarn.lock global-bundle.pem tsconfig.json instrumentation.ts otel-register.mjs /app/
 COPY workers/package.json /app/workers/
