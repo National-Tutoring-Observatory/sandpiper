@@ -159,6 +159,7 @@ jobs:
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           TAG_COMMIT_SHA: ${{ inputs.tag-commit-sha }}
           BAKE_HOURS: ${{ inputs.bake-hours }}
+          AWS_REGION: ${{ inputs.aws-region }}
         shell: bash
         run: |
           set -euo pipefail
@@ -168,7 +169,7 @@ jobs:
           # permit sts:GetCallerIdentity via the STSIdentity SID; neither
           # permits ecr:DescribeRegistry.
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          REGISTRY_HOST="${ACCOUNT_ID}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com"
+          REGISTRY_HOST="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
           # Pull the primary deployment for each service. We've already gated on
           # exactly one deployment per service in the previous step.

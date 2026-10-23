@@ -16,9 +16,8 @@ jobs:
       - name: Set status to Shipped
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
         run: |
-          ISSUE_URL="${{ github.event.issue.html_url }}"
-
           # Get project item ID for this issue
           ITEM_ID=$(gh api graphql -f query='
             query($url: URI!) {
@@ -68,9 +67,8 @@ jobs:
       - name: Set status to In Progress
         env:
           GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+          ISSUE_URL: ${{ github.event.issue.html_url }}
         run: |
-          ISSUE_URL="${{ github.event.issue.html_url }}"
-
           ITEM_ID=$(gh api graphql -f query='
             query($url: URI!) {
               resource(url: $url) {

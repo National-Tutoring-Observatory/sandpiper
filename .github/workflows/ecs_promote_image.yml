@@ -71,6 +71,7 @@ jobs:
           ECR_REPOSITORY: ${{ vars.ECR_REPOSITORY }}
           SOURCE_TAG: ${{ inputs.source-tag }}
           TARGET_TAG: ${{ inputs.target-tag }}
+          AWS_REGION: ${{ inputs.aws-region }}
         shell: bash
         run: |
           set -euo pipefail
@@ -80,7 +81,7 @@ jobs:
           # sts:GetCallerIdentity via the STSIdentity SID; it does not
           # permit ecr:DescribeRegistry.
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          REGISTRY_HOST="${ACCOUNT_ID}.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com"
+          REGISTRY_HOST="${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 
           echo "Promoting ${ECR_REPOSITORY}:${SOURCE_TAG} → ${ECR_REPOSITORY}:${TARGET_TAG}"
 
