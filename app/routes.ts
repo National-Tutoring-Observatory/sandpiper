@@ -53,6 +53,9 @@ export default [
         route("billing", "modules/teams/containers/teamBilling.route.tsx", {
           id: "teamBilling",
         }),
+        route("api-keys", "modules/apiKeys/containers/apiKeys.route.tsx", {
+          id: "apiKeys",
+        }),
       ],
     ),
     route(

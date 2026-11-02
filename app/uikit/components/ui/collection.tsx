@@ -182,7 +182,7 @@ const Collection = ({
                   "has-focus-visible:border-ring has-focus-visible:ring-ring/50 relative rounded-none p-0 transition-colors duration-300 has-focus-visible:ring-[3px]",
                 )}
               >
-                <div className="flex items-center">
+                <div className="flex w-full items-center">
                   {selectActions && selectActions.length > 0 && (
                     <SelectItem
                       isSelected={selectedItems.includes(id)}

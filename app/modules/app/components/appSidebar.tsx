@@ -21,6 +21,7 @@ import {
   Database,
   Flag as FlagIcon,
   Folder,
+  KeyRound,
   Library,
   Link2,
   Notebook,
@@ -60,6 +61,7 @@ type NavEntry = {
   to: string;
   icon: typeof Folder;
   label: string;
+  featureFlag?: string;
 };
 
 function NavGroup({ label, entries }: { label: string; entries: NavEntry[] }) {
@@ -68,22 +70,31 @@ function NavGroup({ label, entries }: { label: string; entries: NavEntry[] }) {
       <SidebarGroupLabel>{label}</SidebarGroupLabel>
       <SidebarGroupContent>
         <SidebarMenu>
-          {entries.map((entry) => (
-            <SidebarMenuItem key={entry.to}>
-              <SidebarMenuButton asChild>
-                <NavLink to={entry.to} end={false}>
-                  {({ isActive }) => (
-                    <>
-                      <entry.icon />
-                      <span className={isActive ? "underline" : ""}>
-                        {entry.label}
-                      </span>
-                    </>
-                  )}
-                </NavLink>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {entries.map((entry) => {
+            const item = (
+              <SidebarMenuItem key={entry.to}>
+                <SidebarMenuButton asChild>
+                  <NavLink to={entry.to} end={false}>
+                    {({ isActive }) => (
+                      <>
+                        <entry.icon />
+                        <span className={isActive ? "underline" : ""}>
+                          {entry.label}
+                        </span>
+                      </>
+                    )}
+                  </NavLink>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+            return entry.featureFlag ? (
+              <FeatureFlag key={entry.to} flag={entry.featureFlag}>
+                {item}
+              </FeatureFlag>
+            ) : (
+              item
+            );
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>
@@ -155,6 +166,12 @@ export default function AppSidebar() {
           to: `/teams/${activeTeamId}/billing`,
           icon: CircleDollarSign,
           label: "Billing",
+        },
+        {
+          to: `/teams/${activeTeamId}/api-keys`,
+          icon: KeyRound,
+          label: "API keys",
+          featureFlag: "HAS_API_KEYS",
         },
       ]
     : [];
