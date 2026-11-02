@@ -36,6 +36,7 @@ export interface ControllerContext {
   req: Request;
   res: Response;
   user?: User;
+  activeTeam: string | null;
 }
 
 export interface ApiSuccess<T = unknown> {

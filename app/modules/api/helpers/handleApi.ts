@@ -1,5 +1,6 @@
 import type { RequestHandler } from "express";
 import type { ControllerMethod, ControllerMethodArgs } from "../api.types";
+import getActiveTeam from "./getActiveTeam";
 import type { ParsedRequest } from "./handleValidation";
 
 export interface HandleRouteOptions {
@@ -77,6 +78,7 @@ export default function handleRoute({
         req,
         res,
         user: req.user,
+        activeTeam: getActiveTeam(req),
       });
 
       if (

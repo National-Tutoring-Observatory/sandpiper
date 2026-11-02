@@ -40,6 +40,20 @@ describe("handleApi", () => {
     expect(res.json).toHaveBeenCalledWith({ data: { ok: true } });
   });
 
+  it("passes the active team in the controller context", async () => {
+    const teamId = "aaaaaaaaaaaaaaaaaaaaaaaa";
+    const method = vi.fn().mockResolvedValue({ data: "ok" });
+    const middleware = handleApi({ method });
+    const { req, res, next } = makeReqRes();
+    Object.assign(req, {
+      user: { teams: [{ team: teamId }] },
+      headers: { cookie: `sandpiper.activeTeamId=${teamId}` },
+    });
+    await middleware(req, res, next);
+    const [, context] = method.mock.calls[0];
+    expect(context.activeTeam).toBe(teamId);
+  });
+
   it("extracts a named path param", async () => {
     const method = vi.fn().mockResolvedValue({ data: "ok" });
     const middleware = handleApi({ param: "id", method });
