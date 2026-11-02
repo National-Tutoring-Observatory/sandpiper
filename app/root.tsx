@@ -1,3 +1,4 @@
+import { QueryClientProvider } from "@tanstack/react-query";
 import { useContext, useEffect } from "react";
 import {
   isRouteErrorResponse,
@@ -18,6 +19,7 @@ import * as ga from "~/modules/analytics/analytics";
 import { NonceContext } from "~/modules/app/helpers/nonce";
 import getSessionUser from "~/modules/authentication/helpers/getSessionUser";
 import getInitialCreditsAmount from "~/modules/billing/helpers/getInitialCreditsAmount.server";
+import queryClient from "~/modules/cache/queryClient";
 import { SystemSettingsService } from "~/modules/systemSettings/systemSettings";
 import sessionStorage from "../sessionStorage";
 import type { Route } from "./+types/root";
@@ -109,10 +111,12 @@ export function Layout({ children }: { children: React.ReactNode }) {
         <Links />
       </head>
       <body>
-        <NavigationProgress />
-        <AuthenticationContainer>{children}</AuthenticationContainer>
-        <Toaster />
-        <DialogContainer />
+        <QueryClientProvider client={queryClient}>
+          <NavigationProgress />
+          <AuthenticationContainer>{children}</AuthenticationContainer>
+          <Toaster />
+          <DialogContainer />
+        </QueryClientProvider>
         <ScrollRestoration nonce={nonce} />
         <Scripts nonce={nonce} />
       </body>
