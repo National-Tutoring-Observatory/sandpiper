@@ -1,5 +1,7 @@
 import crypto from "crypto";
 import { isValidObjectId } from "mongoose";
+import getModelPaginationByCurrentPage from "~/modules/app/helpers/getModelPaginationByCurrentPage";
+import getTotalPages from "~/modules/app/helpers/getTotalPages";
 import type { ControllerContext } from "../api/api.types";
 import { Token } from "./tokens.model";
 import type {
@@ -24,7 +26,7 @@ export async function getTokensByActiveTeam(
   if (!activeTeam) return { count: 0, data: [], currentPage, totalPages: 1 };
 
   const match = { ref: activeTeam, refType: "team", isDeleted: false };
-  const { skip, limit } = getModelPaginationByCurrentPage(currentPage, {});
+  const { skip, limit } = getModelPaginationByCurrentPage(currentPage);
   const [data, count] = await Promise.all([
     Token.find(match)
       .sort({ createdAt: -1 })

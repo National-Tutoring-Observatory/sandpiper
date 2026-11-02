@@ -110,6 +110,33 @@ describe("getTokensByActiveTeam", () => {
     expect(result.totalPages).toBe(1);
   });
 
+  it("returns 20 tokens per page with the total page count", async () => {
+    await Token.insertMany(
+      Array.from({ length: 25 }, (_, i) => ({
+        name: `Token ${i}`,
+        token: hashToken(`sp_${i}`),
+        tokenPrefix: `sp_${i}`,
+        ref: teamId,
+        refType: "team",
+      })),
+    );
+
+    const firstPage = await getTokensByActiveTeam({}, makeContext());
+    expect(firstPage.count).toBe(25);
+    expect(firstPage.data).toHaveLength(20);
+    expect(firstPage.currentPage).toBe(1);
+    expect(firstPage.totalPages).toBe(2);
+
+    const secondPage = await getTokensByActiveTeam(
+      { currentPage: 2 },
+      makeContext(),
+    );
+    expect(secondPage.count).toBe(25);
+    expect(secondPage.data).toHaveLength(5);
+    expect(secondPage.currentPage).toBe(2);
+    expect(secondPage.totalPages).toBe(2);
+  });
+
   it("returns newest first", async () => {
     await createToken({ name: "Older" }, makeContext());
     await new Promise((resolve) => setTimeout(resolve, 5));
