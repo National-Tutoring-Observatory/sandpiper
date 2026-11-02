@@ -8,6 +8,7 @@
     "prod": "tsx --import ../otel-register.mjs --import ../instrumentation.ts -r dotenv/config ./index.ts dotenv_config_path=../.env"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
     "@socket.io/redis-emitter": "^5.1.0",
     "redis": "^5.9.0"
   },

@@ -20,3 +20,5 @@ export interface Provider {
     pricing: PricingTier[];
   }>;
 }
+
+export type Providers = "OpenAI" | "Google" | "Anthropic";

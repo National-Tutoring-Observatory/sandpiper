@@ -37,12 +37,14 @@ export default async function checkPromptAndAnnotationSchemaAlignment({
 
   const schema = {
     type: "object",
+    additionalProperties: false,
     properties: {
       prompt: { type: "string" },
       annotationSchema: {
         type: "array",
         items: {
           type: "object",
+          additionalProperties: false,
           properties: {
             isSystem: { type: "boolean" },
             fieldType: {
@@ -53,7 +55,7 @@ export default async function checkPromptAndAnnotationSchemaAlignment({
             value: { type: ["boolean", "string", "number"] },
             codes: { type: "array", items: { type: "string" } },
           },
-          required: ["isSystem", "fieldType", "fieldKey", "value"],
+          required: ["isSystem", "fieldType", "fieldKey", "value", "codes"],
         },
       },
     },
@@ -72,11 +74,11 @@ export default async function checkPromptAndAnnotationSchemaAlignment({
 
   llm.addSystemMessage(
     `- Rewrite the Prompt and Annotation Schema based upon the reasoning.
-    - You need to make sure that was is written in the prompt has an annotation field associated with it. The annotation fields should match exactly as they are spelt in the prompt including casing.
+    - You need to make sure that what is written in the prompt has an annotation field associated with it. The annotation fields should match exactly as they are spelt in the prompt including casing.
     - Do not include the annotationSchema in the prompt text. Make sure this is returned in the annotationSchema array.
     - When rewriting the prompt, make sure it follows the original prompt and you are just trying to fix the issues. Keep the same formatting. The original spacing and new lines are really important.
     - Make sure the annotationSchema array has the correct annotation fields.
-    - Always return you result as the following JSON: {{output}}.
+    - Always return the result as the following JSON: {{output}}.
     `,
     {
       output: JSON.stringify({

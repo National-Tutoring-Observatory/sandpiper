@@ -28,7 +28,7 @@ registerLLM("OPEN_AI", {
       messages: messages,
     };
 
-    applySchemaToRequest(requestParams, schema);
+    applySchemaToRequest({ requestParams, schema, provider: "OpenAI" });
 
     const chatCompletion = await llm.chat.completions.create(requestParams);
     const message = chatCompletion.choices[0].message;

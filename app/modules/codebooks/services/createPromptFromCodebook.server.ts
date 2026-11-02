@@ -66,6 +66,7 @@ export default async function createPromptFromCodebook({
   try {
     const schema = {
       type: "object",
+      additionalProperties: false,
       properties: {
         prompt: { type: "string" },
       },

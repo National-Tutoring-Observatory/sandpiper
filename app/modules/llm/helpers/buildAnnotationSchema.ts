@@ -7,12 +7,42 @@ interface SchemaItem {
   codes?: string[];
 }
 
+interface JsonSchemaNode {
+  type: string;
+  enum?: string[];
+  items?: JsonSchemaNode;
+  properties?: Record<string, JsonSchemaNode>;
+  required?: string[];
+  additionalProperties?: boolean;
+}
+
 function getJsonSchemaType(value: unknown): string {
   if (typeof value === "boolean") return "boolean";
   if (typeof value === "number") return "number";
   if (Array.isArray(value)) return "array";
   if (typeof value === "object" && value !== null) return "object";
   return "string";
+}
+
+function buildPropertyNode(value: unknown): JsonSchemaNode {
+  const type = getJsonSchemaType(value);
+
+  if (type === "array") {
+    const first = Array.isArray(value) ? value[0] : undefined;
+    return { type, items: buildPropertyNode(first) };
+  }
+
+  if (type === "object") {
+    const properties: Record<string, JsonSchemaNode> = {};
+    const required: string[] = [];
+    for (const [key, nested] of Object.entries(value as object)) {
+      properties[key] = buildPropertyNode(nested);
+      required.push(key);
+    }
+    return { type, additionalProperties: false, properties, required };
+  }
+
+  return { type };
 }
 
 export default function buildAnnotationSchema(
@@ -36,13 +66,11 @@ export default function buildAnnotationSchema(
     }
   }
 
-  const properties: Record<string, { type: string; enum?: string[] }> = {};
+  const properties: Record<string, JsonSchemaNode> = {};
   const required: string[] = [];
 
   for (const [key, value] of Object.entries(exampleAnnotation)) {
-    const property: { type: string; enum?: string[] } = {
-      type: getJsonSchemaType(value),
-    };
+    const property = buildPropertyNode(value);
     if (codesMap[key]) {
       property.enum = codesMap[key];
     }
@@ -52,11 +80,13 @@ export default function buildAnnotationSchema(
 
   return {
     type: "object",
+    additionalProperties: false,
     properties: {
       annotations: {
         type: "array",
         items: {
           type: "object",
+          additionalProperties: false,
           properties,
           required,
         },

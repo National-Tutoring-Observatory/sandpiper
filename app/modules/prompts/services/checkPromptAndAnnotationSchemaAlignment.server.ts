@@ -33,6 +33,7 @@ export default async function checkPromptAndAnnotationSchemaAlignment({
 
   const schema = {
     type: "object",
+    additionalProperties: false,
     properties: {
       alignmentScore: { type: "number" },
       reasoning: { type: "string" },

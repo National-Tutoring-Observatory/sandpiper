@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import type { LlmCostSource } from "~/modules/billing/billingAnalytics.types";
 import calculateLlmCost from "./helpers/calculateLlmCost";
 import getLLM from "./helpers/getLLM";
+import getProviderFromModelCode from "./helpers/getProviderFromModelCode";
 import type { LLMUsage } from "./llm.types";
 import "./providers/aiGateway.js";
 import "./providers/openAI.js";
@@ -59,15 +60,22 @@ class LLM {
     if (!options.billingEventId.trim()) {
       throw new Error("billingEventId is required");
     }
-
-    this.options = { retries: DEFAULT_RETRIES, ...options };
+    const provider = getProviderFromModelCode(options.model);
+    this.options = {
+      retries: DEFAULT_RETRIES,
+      ...options,
+      provider,
+    };
     this.messages = [];
     this.schema = options.schema;
     const llm = getLLM(process.env.LLM_PROVIDER || "");
     this.retries = 0;
     if (llm && llm.methods) {
       this.methods = llm.methods;
-      this.llm = llm.methods.init({ timeout: options.timeout });
+      this.llm = llm.methods.init({
+        timeout: options.timeout,
+        provider,
+      });
     } else {
       console.warn(`This LLM does not exist`);
     }
