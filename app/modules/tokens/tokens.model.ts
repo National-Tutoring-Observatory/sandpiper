@@ -1,7 +1,6 @@
-import mongoose, { type InferSchemaType } from "mongoose";
+import mongoose from "mongoose";
 import tokenSchema from "~/lib/schemas/token.schema";
-
-export type TokenDoc = InferSchemaType<typeof tokenSchema>;
+import type { TokenDoc } from "./tokens.types";
 
 export const Token =
   (mongoose.models.Token as mongoose.Model<TokenDoc>) ??

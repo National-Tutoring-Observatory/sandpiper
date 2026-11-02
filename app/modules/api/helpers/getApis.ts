@@ -1,5 +1,5 @@
 import cors from "cors";
-import type { Express, RequestHandler } from "express";
+import express, { type Express, type RequestHandler } from "express";
 import rateLimit from "express-rate-limit";
 import type { RouteOperation } from "../api.types";
 import ROUTES from "../apis";
@@ -61,6 +61,7 @@ export default function getRoutes(app: Express): void {
         middlewares.push(cors());
       }
       middlewares.push(limiter);
+      middlewares.push(express.json());
       middlewares.push(...(routeItem.middleware ?? []));
       middlewares.push(
         handleValidation({

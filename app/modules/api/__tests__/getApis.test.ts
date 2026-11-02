@@ -104,6 +104,24 @@ describe("getApis", () => {
     expect(res.status).toBe(404);
   });
 
+  it("parses JSON request bodies", async () => {
+    const create = vi.fn(respondWith("ok"));
+    registerApi({
+      basePath: "/things",
+      controller: { create },
+      create: { body: { name: z.string() } },
+    });
+    const baseUrl = await startApp();
+
+    const res = await fetch(`${baseUrl}/api/things`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Alice" }),
+    });
+    expect(res.status).toBe(200);
+    expect(create.mock.calls[0][0].body).toEqual({ name: "Alice" });
+  });
+
   it("runs route middleware before the controller", async () => {
     const block: RequestHandler = (_req, res) => {
       res.status(401).json({ blocked: true });
