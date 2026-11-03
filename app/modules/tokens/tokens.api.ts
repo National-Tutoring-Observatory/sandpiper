@@ -1,6 +1,7 @@
 import { z } from "zod";
 import registerApi from "../api/helpers/registerApi";
 import { isAuthenticated } from "../authentication/authentication.middleware";
+import { isTeamAdmin } from "../teams/teams.middleware";
 import controller from "./tokens.controller.js";
 import regenerateController from "./tokensRegenerate.controller.js";
 
@@ -27,16 +28,16 @@ registerApi([
     },
     create: {
       body: createBody,
-      middleware: [isAuthenticated],
+      middleware: [isAuthenticated, isTeamAdmin],
     },
     update: {
       param: "id",
       body: updateBody,
-      middleware: [isAuthenticated],
+      middleware: [isAuthenticated, isTeamAdmin],
     },
     delete: {
       param: "id",
-      middleware: [isAuthenticated],
+      middleware: [isAuthenticated, isTeamAdmin],
     },
   },
   {
@@ -44,7 +45,7 @@ registerApi([
     controller: regenerateController,
     create: {
       param: "id",
-      middleware: [isAuthenticated],
+      middleware: [isAuthenticated, isTeamAdmin],
     },
   },
 ]);

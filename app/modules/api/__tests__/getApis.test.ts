@@ -3,6 +3,9 @@ import type { Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { z } from "zod";
+import { UserService } from "~/modules/users/user";
+import clearDocumentDB from "../../../../test/helpers/clearDocumentDB";
+import loginUser from "../../../../test/helpers/loginUser";
 import type { ControllerMethod } from "../api.types";
 import ROUTES from "../apis";
 import getApis from "../helpers/getApis";
@@ -154,6 +157,26 @@ describe("getApis", () => {
     expect(res.status).toBe(401);
     expect(await res.json()).toEqual({ blocked: true });
     expect(list).not.toHaveBeenCalled();
+  });
+
+  it("sets req.user before route middleware runs", async () => {
+    await clearDocumentDB();
+    const user = await UserService.create({ username: "test_user" });
+    const cookie = await loginUser(user._id);
+    let seenUserId: string | undefined;
+    const capture: RequestHandler = (req, _res, next) => {
+      seenUserId = req.user?._id;
+      next();
+    };
+    registerApi({
+      basePath: "/things",
+      controller: { list: respondWith("list") },
+      list: { middleware: [capture] },
+    });
+    const baseUrl = await startApp();
+
+    await fetch(`${baseUrl}/api/things`, { headers: { cookie } });
+    expect(seenUserId).toEqual(user._id);
   });
 
   it("validates the request before the controller", async () => {

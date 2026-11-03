@@ -1,6 +1,7 @@
 import cors from "cors";
 import express, { type Express, type RequestHandler } from "express";
 import rateLimit from "express-rate-limit";
+import { setUser } from "../../authentication/authentication.middleware";
 import type { RouteOperation } from "../api.types";
 import ROUTES from "../apis";
 import handleRoute from "./handleApi";
@@ -62,6 +63,7 @@ export default function getRoutes(app: Express): void {
       }
       middlewares.push(limiter);
       middlewares.push(express.json());
+      middlewares.push(setUser);
       middlewares.push(...(routeItem.middleware ?? []));
       middlewares.push(
         handleValidation({
