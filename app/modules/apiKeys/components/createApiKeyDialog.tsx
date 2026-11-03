@@ -40,6 +40,7 @@ const CreateApiKeyDialog = ({
           name="name"
           defaultValue={name}
           autoComplete="off"
+          autoFocus
           maxLength={100}
           onChange={onApiKeyNameChanged}
         />

@@ -5,6 +5,7 @@ import useCache from "~/modules/cache/hooks/useCache";
 import addDialog from "~/modules/dialogs/addDialog";
 import type { ApiKey } from "../apiKeys.types";
 import ApiKeysAuthorization from "../authorization";
+import ApiKeyCreatedDialog from "../components/apiKeyCreatedDialog";
 import ApiKeys from "../components/apiKeys";
 import CreateApiKeyDialog from "../components/createApiKeyDialog";
 import type { Route } from "./+types/apiKeys.route";
@@ -36,13 +37,22 @@ export default function ApiKeysRoute() {
     apiKeys.mutate(
       { method: "POST", data: { name } },
       {
-        onSuccess: () => {
-          addDialog(null);
-          toast.success("API key created");
+        onSuccess: (response) => {
+          addDialog(
+            <ApiKeyCreatedDialog
+              token={response.data.token}
+              onCopyClicked={onCopyApiKeyClicked}
+            />,
+          );
         },
         onError: (error) => toast.error(error.message),
       },
     );
+  };
+
+  const onCopyApiKeyClicked = (token: string) => {
+    navigator.clipboard.writeText(token);
+    toast.success("API key copied");
   };
 
   const onRenameClicked = (apiKey: ApiKey) => {

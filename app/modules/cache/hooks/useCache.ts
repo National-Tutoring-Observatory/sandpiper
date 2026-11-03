@@ -35,7 +35,7 @@ export default function useCache({
 
   const mutation = useMutation({
     mutationFn: ({ api: mutateApi = api, method, data }: MutateArgs) =>
-      requestApi({ api: mutateApi, method, data }),
+      requestApi<ApiResponse>({ api: mutateApi, method, data }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [api] }),
   });
 
