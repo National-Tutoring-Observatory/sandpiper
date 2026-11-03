@@ -5,6 +5,7 @@ export interface ApiKey {
   createdAt: string;
   expiresAt?: string;
   lastUsedAt?: string;
+  usageCount: number;
   isDeleted?: boolean;
 }
 

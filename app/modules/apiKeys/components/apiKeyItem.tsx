@@ -37,16 +37,21 @@ export default function ApiKeyItem({
   const status = getApiKeyStatus(apiKey);
 
   return (
-    <div className="text-body grid w-full grid-cols-1 items-center gap-2 md:grid-cols-[repeat(5,minmax(0,1fr))_2rem] md:gap-4">
+    <div className="text-body grid w-full grid-cols-1 items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,4fr)_auto_2rem] md:gap-4">
       <div className="truncate font-medium">{apiKey.name}</div>
-      <div className="text-muted-foreground truncate font-mono">
-        {apiKey.tokenPrefix}••••••••
-      </div>
-      <div className="text-muted-foreground">
-        {getDateString(apiKey.createdAt)}
-      </div>
-      <div className="text-muted-foreground">
-        {getDateString(apiKey.lastUsedAt, "Never used")}
+      <div className="text-muted-foreground flex flex-col gap-y-2">
+        <div className="font-mono">{apiKey.tokenPrefix}••••••••</div>
+        <div className="text-muted-foreground flex flex-wrap gap-1">
+          <Badge variant={"outline"}>
+            Created at: {getDateString(apiKey.createdAt)}
+          </Badge>
+          <Badge variant={"outline"}>
+            Last used at: {getDateString(apiKey.lastUsedAt, "Never used")}
+          </Badge>
+          {apiKey.usageCount > 0 && (
+            <Badge variant={"outline"}>Usage count: {apiKey.usageCount}</Badge>
+          )}
+        </div>
       </div>
       <div className="flex items-center justify-end">
         <Badge variant="outline" className={STATUS_CLASSES[status]}>
