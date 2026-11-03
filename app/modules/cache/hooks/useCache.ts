@@ -1,4 +1,9 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import type { ApiMethod, ApiQuery } from "../cache.types";
 import requestApi from "../helpers/requestApi";
 
@@ -32,6 +37,7 @@ export default function useCache({
     queryKey: [api, query],
     queryFn: () => requestApi<ApiResponse>({ api, query }),
     initialData: initialData === undefined ? undefined : { data: initialData },
+    placeholderData: keepPreviousData,
   });
 
   const mutation = useMutation({

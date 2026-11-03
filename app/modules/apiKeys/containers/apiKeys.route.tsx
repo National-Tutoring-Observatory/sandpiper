@@ -1,5 +1,6 @@
-import { redirect } from "react-router";
+import { redirect, useSearchParams } from "react-router";
 import { toast } from "sonner";
+import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import useCache from "~/modules/cache/hooks/useCache";
 import addDialog from "~/modules/dialogs/addDialog";
@@ -25,10 +26,24 @@ export async function loader({ request, params }: Route.LoaderArgs) {
 export default function ApiKeysRoute({ params }: Route.ComponentProps) {
   const teamQuery = { teamId: params.teamId };
 
+  const [searchParams] = useSearchParams();
+  const {
+    searchValue,
+    setSearchValue,
+    currentPage,
+    setCurrentPage,
+    isSyncing,
+  } = useSearchQueryParams({ searchValue: "", currentPage: 1 });
+
+  const debouncedSearchValue = searchParams.get("searchValue") || undefined;
+
   const apiKeys = useCache({
     api: "/api/tokens",
-    query: { ...teamQuery, currentPage: 1 },
-    initialData: [],
+    query: {
+      ...teamQuery,
+      currentPage,
+      searchValue: debouncedSearchValue,
+    },
   });
 
   // Placeholders until the dialogs and actions exist.
@@ -138,7 +153,13 @@ export default function ApiKeysRoute({ params }: Route.ComponentProps) {
 
   return (
     <ApiKeys
-      apiKeys={apiKeys.data}
+      apiKeys={apiKeys.data ?? []}
+      searchValue={searchValue}
+      currentPage={currentPage}
+      totalPages={apiKeys.totalPages ?? 1}
+      isSyncing={isSyncing || apiKeys.isFetching}
+      onSearchValueChanged={setSearchValue}
+      onPaginationChanged={setCurrentPage}
       onCreateClicked={openCreateApiKeyDialog}
       onRenameClicked={openRenameApiKeyDialog}
       onRegenerateClicked={openRegenerateApiKeyDialog}

@@ -12,6 +12,7 @@ const teamQuery = {
 const listQuery = {
   ...teamQuery,
   currentPage: z.coerce.number().int().min(1).optional(),
+  searchValue: z.string().trim().max(100).optional(),
 };
 
 const createBody = {

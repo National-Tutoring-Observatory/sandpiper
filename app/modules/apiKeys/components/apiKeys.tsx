@@ -5,6 +5,12 @@ import ApiKeyItem from "./apiKeyItem";
 
 interface Props {
   apiKeys: ApiKey[];
+  searchValue: string;
+  currentPage: number;
+  totalPages: number;
+  isSyncing: boolean;
+  onSearchValueChanged: (searchValue: string) => void;
+  onPaginationChanged: (currentPage: number) => void;
   onCreateClicked: () => void;
   onRenameClicked: (apiKey: ApiKey) => void;
   onRegenerateClicked: (apiKey: ApiKey) => void;
@@ -13,6 +19,12 @@ interface Props {
 
 export default function ApiKeys({
   apiKeys,
+  searchValue,
+  currentPage,
+  totalPages,
+  isSyncing,
+  onSearchValueChanged,
+  onPaginationChanged,
   onCreateClicked,
   onRenameClicked,
   onRegenerateClicked,
@@ -23,9 +35,14 @@ export default function ApiKeys({
       items={apiKeys}
       itemsLayout="list"
       actions={[{ action: "CREATE", text: "Create API key" }]}
-      currentPage={1}
-      totalPages={1}
-      onPaginationChanged={() => {}}
+      hasSearch
+      hasPagination
+      searchValue={searchValue}
+      currentPage={currentPage}
+      totalPages={totalPages}
+      isSyncing={isSyncing}
+      onSearchValueChanged={onSearchValueChanged}
+      onPaginationChanged={onPaginationChanged}
       filters={[]}
       filtersValues={{}}
       onSortValueChanged={() => {}}

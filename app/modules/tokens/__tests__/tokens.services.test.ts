@@ -165,6 +165,43 @@ describe("getTokensByActiveTeam", () => {
     expect(result.data[0].isDeleted).toBe(true);
   });
 
+  it("filters by name when given a search value", async () => {
+    await createToken({ name: "Production" }, makeContext());
+    await createToken({ name: "Staging" }, makeContext());
+
+    const result = await getTokensByActiveTeam(
+      { searchValue: "prod" },
+      makeContext(),
+    );
+    expect(result.count).toBe(1);
+    expect(result.data.map((t) => t.name)).toEqual(["Production"]);
+  });
+
+  it("filters by token prefix when given a search value", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    await createToken({ name: "Other" }, makeContext());
+
+    const result = await getTokensByActiveTeam(
+      { searchValue: created.tokenPrefix },
+      makeContext(),
+    );
+    expect(result.data.map((t) => t.name)).toEqual(["CI"]);
+  });
+
+  it("does not search other teams' tokens", async () => {
+    await createToken({ name: "Production" }, makeContext());
+    await createToken(
+      { name: "Production" },
+      makeContext(new Types.ObjectId().toString()),
+    );
+
+    const result = await getTokensByActiveTeam(
+      { searchValue: "Production" },
+      makeContext(),
+    );
+    expect(result.count).toBe(1);
+  });
+
   it("does not return the token hash", async () => {
     await createToken({ name: "CI" }, makeContext());
 

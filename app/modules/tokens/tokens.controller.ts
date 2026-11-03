@@ -13,8 +13,8 @@ import type {
 
 const controller: Route["controller"] = {
   list: async ({ query }, context) => {
-    const { currentPage } = query as GetTokensByActiveTeamInput;
-    return getTokensByActiveTeam({ currentPage }, context);
+    const { currentPage, searchValue } = query as GetTokensByActiveTeamInput;
+    return getTokensByActiveTeam({ currentPage, searchValue }, context);
   },
   create: async ({ body }, context) => {
     return createToken(body as CreateTokenInput, context);

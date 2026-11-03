@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { User } from "~/modules/users/users.types";
 import { isTeamAdmin } from "../teams.middleware";
 
-function makeReqRes(user?: Partial<User>, cookie?: string) {
-  const req = { user, headers: { cookie } } as unknown as Request;
+function makeReqRes(user?: Partial<User>, teamId?: string) {
+  const req = { user, query: { teamId } } as unknown as Request;
   const res = {
     status: vi.fn().mockReturnThis(),
     json: vi.fn().mockReturnThis(),
@@ -34,15 +34,16 @@ describe("isTeamAdmin", () => {
     expect403(res, next);
   });
 
-  it("returns 403 when the user is a member of the active team", () => {
-    const { req, res, next } = makeReqRes({
-      teams: [{ team: "team1", role: "MEMBER" }],
-    } as Partial<User>);
+  it("returns 403 when the user is a member of the requested team", () => {
+    const { req, res, next } = makeReqRes(
+      { teams: [{ team: "team1", role: "MEMBER" }] } as Partial<User>,
+      "team1",
+    );
     isTeamAdmin(req, res, next);
     expect403(res, next);
   });
 
-  it("returns 403 when the user is admin of a different team than the active one", () => {
+  it("returns 403 when the user is admin of a different team than the requested one", () => {
     const { req, res, next } = makeReqRes(
       {
         teams: [
@@ -50,13 +51,13 @@ describe("isTeamAdmin", () => {
           { team: "team2", role: "MEMBER" },
         ],
       } as Partial<User>,
-      "sandpiper.activeTeamId=team2",
+      "team2",
     );
     isTeamAdmin(req, res, next);
     expect403(res, next);
   });
 
-  it("calls next when the user is admin of the active team", () => {
+  it("calls next when the user is admin of the requested team", () => {
     const { req, res, next } = makeReqRes(
       {
         teams: [
@@ -64,7 +65,7 @@ describe("isTeamAdmin", () => {
           { team: "team2", role: "ADMIN" },
         ],
       } as Partial<User>,
-      "sandpiper.activeTeamId=team2",
+      "team2",
     );
     isTeamAdmin(req, res, next);
     expect(next).toHaveBeenCalledOnce();

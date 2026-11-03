@@ -5,6 +5,7 @@ export type TokenDoc = InferSchemaType<typeof tokenSchema>;
 
 export type GetTokensByActiveTeamInput = {
   currentPage?: number;
+  searchValue?: string;
 };
 
 export type CreateTokenInput = {

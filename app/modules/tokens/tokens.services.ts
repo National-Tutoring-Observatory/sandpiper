@@ -1,4 +1,5 @@
 import type { Types } from "mongoose";
+import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getModelPaginationByCurrentPage from "~/modules/app/helpers/getModelPaginationByCurrentPage";
 import getTotalPages from "~/modules/app/helpers/getTotalPages";
 import type { ControllerContext } from "../api/api.types";
@@ -17,13 +18,18 @@ import type {
 } from "./tokens.types";
 
 export async function getTokensByActiveTeam(
-  { currentPage = 1 }: GetTokensByActiveTeamInput,
+  { currentPage = 1, searchValue }: GetTokensByActiveTeamInput,
   context: ControllerContext,
 ): Promise<TokensList> {
   const { activeTeam } = context;
   if (!activeTeam) return { count: 0, data: [], currentPage, totalPages: 1 };
 
-  const match = { ref: activeTeam, refType: "team" };
+  const { match } = buildQueryFromParams({
+    match: { ref: activeTeam, refType: "team" },
+    queryParams: { searchValue },
+    searchableFields: ["name", "tokenPrefix"],
+    sortableFields: [],
+  });
   const { skip, limit } = getModelPaginationByCurrentPage(currentPage);
   const [data, count] = await Promise.all([
     Token.find(match)
