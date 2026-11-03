@@ -91,6 +91,20 @@ describe("hasApiKey", () => {
     expect(res.status).not.toHaveBeenCalled();
   });
 
+  it("returns 429 when the token is over its rate limit", async () => {
+    const apiKey = await createApiKey({
+      rateLimitCount: 10,
+      rateLimitWindowStart: new Date(),
+    });
+    const { req, res, next } = makeReqRes(`Bearer ${apiKey}`);
+    await hasApiKey(req, res, next);
+    expect(next).not.toHaveBeenCalled();
+    expect(res.status).toHaveBeenCalledWith(429);
+    expect(res.json).toHaveBeenCalledWith({
+      error: { message: "Rate limit exceeded", statusCode: 429 },
+    });
+  });
+
   it("calls next for a token that expires in the future", async () => {
     const apiKey = await createApiKey({
       expiresAt: new Date(Date.now() + 60_000),

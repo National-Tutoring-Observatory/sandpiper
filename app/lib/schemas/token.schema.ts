@@ -13,6 +13,9 @@ const tokenSchema = new mongoose.Schema({
   createdBy: { type: mongoose.Types.ObjectId, ref: "User" },
   expiresAt: { type: Date },
   lastUsedAt: { type: Date },
+  usageCount: { type: Number, default: 0 },
+  rateLimitCount: { type: Number, default: 0 },
+  rateLimitWindowStart: { type: Date },
 });
 
 tokenSchema.index({ token: 1 }, { unique: true });

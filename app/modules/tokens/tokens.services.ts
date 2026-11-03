@@ -1,3 +1,4 @@
+import type { Types } from "mongoose";
 import getModelPaginationByCurrentPage from "~/modules/app/helpers/getModelPaginationByCurrentPage";
 import getTotalPages from "~/modules/app/helpers/getTotalPages";
 import type { ControllerContext } from "../api/api.types";
@@ -90,7 +91,12 @@ export async function regenerateTokenById(
 
   const updated = await Token.findOneAndUpdate(
     match,
-    { token: hash, tokenPrefix, $unset: { lastUsedAt: 1 } },
+    {
+      token: hash,
+      tokenPrefix,
+      rateLimitCount: 0,
+      $unset: { lastUsedAt: 1, rateLimitWindowStart: 1 },
+    },
     { new: true },
   ).lean<TokenDoc>();
   if (!updated) {
@@ -126,5 +132,47 @@ export async function findValidTokenByApiKey(apiKey: string) {
       { expiresAt: { $exists: false } },
       { expiresAt: { $gt: new Date() } },
     ],
-  }).lean<TokenDoc>();
+  }).lean<TokenDoc & { _id: Types.ObjectId }>();
+}
+
+const RATE_LIMIT = 10;
+const RATE_LIMIT_WINDOW_MS = 60_000;
+
+export async function consumeTokenUsage(tokenId: string): Promise<boolean> {
+  const now = new Date();
+  const windowStart = new Date(now.getTime() - RATE_LIMIT_WINDOW_MS);
+
+  const withinWindow = await Token.updateOne(
+    {
+      _id: tokenId,
+      rateLimitWindowStart: { $gt: windowStart },
+      rateLimitCount: { $lt: RATE_LIMIT },
+    },
+    {
+      $inc: { usageCount: 1, rateLimitCount: 1 },
+      $set: { lastUsedAt: now },
+    },
+  );
+  if (withinWindow.matchedCount > 0) return true;
+
+  const newWindow = await Token.updateOne(
+    {
+      _id: tokenId,
+      $or: [
+        { rateLimitWindowStart: { $exists: false } },
+        { rateLimitWindowStart: { $lte: windowStart } },
+      ],
+    },
+    {
+      $inc: { usageCount: 1 },
+      $set: { rateLimitCount: 1, rateLimitWindowStart: now, lastUsedAt: now },
+    },
+  );
+  if (newWindow.matchedCount > 0) return true;
+
+  await Token.updateOne(
+    { _id: tokenId },
+    { $inc: { usageCount: 1 }, $set: { lastUsedAt: now } },
+  );
+  return false;
 }

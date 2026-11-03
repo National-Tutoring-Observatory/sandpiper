@@ -8,6 +8,7 @@ import type { ControllerContext } from "../../api/api.types";
 import hashToken from "../helpers/hashToken";
 import { Token } from "../tokens.model";
 import {
+  consumeTokenUsage,
   createToken,
   deleteTokenById,
   getTokensByActiveTeam,
@@ -361,6 +362,24 @@ describe("regenerateTokenById", () => {
     expect(stored?.lastUsedAt).toBeUndefined();
   });
 
+  it("resets the rate limit window but keeps usageCount", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    await Token.updateOne(
+      { _id: created._id },
+      { usageCount: 7, rateLimitCount: 7, rateLimitWindowStart: new Date() },
+    );
+
+    await regenerateTokenById(
+      { tokenId: created._id.toString() },
+      makeContext(),
+    );
+
+    const stored = await Token.findById(created._id).lean();
+    expect(stored?.usageCount).toBe(7);
+    expect(stored?.rateLimitCount).toBe(0);
+    expect(stored?.rateLimitWindowStart).toBeUndefined();
+  });
+
   it("does not regenerate a token belonging to another team", async () => {
     const { data: created } = await createToken(
       { name: "Theirs" },
@@ -393,5 +412,63 @@ describe("regenerateTokenById", () => {
         makeContext(null),
       ),
     ).rejects.toEqual({ statusCode: 400, message: "No active team" });
+  });
+});
+
+describe("consumeTokenUsage", () => {
+  async function createTokenId() {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    return created._id.toString();
+  }
+
+  it("starts a window and counts the first use", async () => {
+    const tokenId = await createTokenId();
+
+    expect(await consumeTokenUsage(tokenId)).toBe(true);
+
+    const stored = await Token.findById(tokenId).lean();
+    expect(stored?.usageCount).toBe(1);
+    expect(stored?.rateLimitCount).toBe(1);
+    expect(stored?.rateLimitWindowStart).toBeInstanceOf(Date);
+    expect(stored?.lastUsedAt).toBeInstanceOf(Date);
+  });
+
+  it("allows 10 uses per window then rejects", async () => {
+    const tokenId = await createTokenId();
+
+    for (let i = 0; i < 10; i++) {
+      expect(await consumeTokenUsage(tokenId)).toBe(true);
+    }
+    expect(await consumeTokenUsage(tokenId)).toBe(false);
+
+    const stored = await Token.findById(tokenId).lean();
+    expect(stored?.rateLimitCount).toBe(10);
+  });
+
+  it("counts rejected uses in usageCount", async () => {
+    const tokenId = await createTokenId();
+
+    for (let i = 0; i < 12; i++) await consumeTokenUsage(tokenId);
+
+    const stored = await Token.findById(tokenId).lean();
+    expect(stored?.usageCount).toBe(12);
+  });
+
+  it("starts a new window once the previous one has passed", async () => {
+    const tokenId = await createTokenId();
+    await Token.updateOne(
+      { _id: tokenId },
+      {
+        usageCount: 10,
+        rateLimitCount: 10,
+        rateLimitWindowStart: new Date(Date.now() - 61_000),
+      },
+    );
+
+    expect(await consumeTokenUsage(tokenId)).toBe(true);
+
+    const stored = await Token.findById(tokenId).lean();
+    expect(stored?.usageCount).toBe(11);
+    expect(stored?.rateLimitCount).toBe(1);
   });
 });
