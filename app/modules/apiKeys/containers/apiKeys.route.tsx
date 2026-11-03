@@ -2,9 +2,11 @@ import { redirect } from "react-router";
 import { toast } from "sonner";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import useCache from "~/modules/cache/hooks/useCache";
+import addDialog from "~/modules/dialogs/addDialog";
 import type { ApiKey } from "../apiKeys.types";
 import ApiKeysAuthorization from "../authorization";
 import ApiKeys from "../components/apiKeys";
+import CreateApiKeyDialog from "../components/createApiKeyDialog";
 import type { Route } from "./+types/apiKeys.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -24,6 +26,25 @@ export default function ApiKeysRoute() {
   });
 
   // Placeholders until the dialogs and actions exist.
+  const openCreateApiKeyDialog = () => {
+    addDialog(
+      <CreateApiKeyDialog onCreateApiKeyClicked={submitCreateApiKey} />,
+    );
+  };
+
+  const submitCreateApiKey = (name: string) => {
+    apiKeys.mutate(
+      { method: "POST", data: { name } },
+      {
+        onSuccess: () => {
+          addDialog(null);
+          toast.success("API key created");
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
   const onRenameClicked = (apiKey: ApiKey) => {
     toast.info(`Rename ${apiKey.name}`);
   };
@@ -39,6 +60,7 @@ export default function ApiKeysRoute() {
   return (
     <ApiKeys
       apiKeys={apiKeys.data}
+      onCreateClicked={openCreateApiKeyDialog}
       onRenameClicked={onRenameClicked}
       onRegenerateClicked={onRegenerateClicked}
       onRevokeClicked={onRevokeClicked}

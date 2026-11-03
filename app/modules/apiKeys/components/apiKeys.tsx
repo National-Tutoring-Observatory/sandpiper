@@ -5,6 +5,7 @@ import ApiKeyItem from "./apiKeyItem";
 
 interface Props {
   apiKeys: ApiKey[];
+  onCreateClicked: () => void;
   onRenameClicked: (apiKey: ApiKey) => void;
   onRegenerateClicked: (apiKey: ApiKey) => void;
   onRevokeClicked: (apiKey: ApiKey) => void;
@@ -12,6 +13,7 @@ interface Props {
 
 export default function ApiKeys({
   apiKeys,
+  onCreateClicked,
   onRenameClicked,
   onRegenerateClicked,
   onRevokeClicked,
@@ -20,6 +22,7 @@ export default function ApiKeys({
     <Collection
       items={apiKeys}
       itemsLayout="list"
+      actions={[{ action: "CREATE", text: "Create API key" }]}
       currentPage={1}
       totalPages={1}
       onPaginationChanged={() => {}}
@@ -29,6 +32,7 @@ export default function ApiKeys({
       emptyAttributes={{
         title: "No API keys yet",
         description: "Create an API key to access this team's data.",
+        actions: [{ action: "CREATE", text: "Create API key" }],
       }}
       getItemAttributes={getApiKeysItemAttributes}
       renderItem={(apiKey: ApiKey) => (
@@ -40,7 +44,9 @@ export default function ApiKeys({
         />
       )}
       getItemActions={() => []}
-      onActionClicked={() => {}}
+      onActionClicked={(action) => {
+        if (action === "CREATE") onCreateClicked();
+      }}
     />
   );
 }
