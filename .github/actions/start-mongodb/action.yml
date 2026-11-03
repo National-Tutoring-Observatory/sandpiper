@@ -3,9 +3,8 @@ description: Start a MongoDB container with replica set support and create a CI 
 
 inputs:
   mongo-version:
-    description: MongoDB image tag (e.g. 8.0.32)
-    # Pinned: the floating "8" tag moved to 8.0.34 on 2026-10-27 and CI broke at this step.
-    default: "8.0.32"
+    description: MongoDB image tag (e.g. 8)
+    default: "8"
 
 runs:
   using: composite
