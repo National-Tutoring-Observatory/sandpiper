@@ -36,21 +36,30 @@ beforeEach(async () => {
 
 describe("createToken", () => {
   it("returns the plaintext token with its prefix", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     expect(created.token).toMatch(/^sp_[A-Za-z0-9_-]{43}$/);
     expect(created.token.startsWith(created.tokenPrefix)).toBe(true);
     expect(created.tokenPrefix).toHaveLength(11);
   });
 
   it("stores the hash of the token, never the plaintext", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     const stored = await Token.findById(created._id).select("+token").lean();
     expect(stored?.token).toBe(hashToken(created.token));
     expect(stored?.token).not.toBe(created.token);
   });
 
   it("scopes the token to the active team and records the creator", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     const stored = await Token.findById(created._id).lean();
     expect(stored?.name).toBe("CI");
     expect(stored?.ref.toString()).toBe(teamId);
@@ -59,44 +68,45 @@ describe("createToken", () => {
     expect(stored?.isDeleted).toBe(false);
   });
 
-  it("stores expiresAt when given", async () => {
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  it("sets expiresAt the given number of days from now", async () => {
+    const before = Date.now();
     const { data: created } = await createToken(
-      { name: "CI", expiresAt },
+      { name: "CI", expiresInDays: 7 },
       makeContext(),
     );
-    expect(created.expiresAt).toEqual(expiresAt);
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    expect(created.expiresAt?.getTime()).toBeGreaterThanOrEqual(
+      before + sevenDays,
+    );
+    expect(created.expiresAt?.getTime()).toBeLessThanOrEqual(
+      Date.now() + sevenDays,
+    );
   });
 
   it("generates a different token each time", async () => {
-    const { data: first } = await createToken({ name: "One" }, makeContext());
-    const { data: second } = await createToken({ name: "Two" }, makeContext());
+    const { data: first } = await createToken(
+      { name: "One", expiresInDays: 30 },
+      makeContext(),
+    );
+    const { data: second } = await createToken(
+      { name: "Two", expiresInDays: 30 },
+      makeContext(),
+    );
     expect(first.token).not.toBe(second.token);
   });
 
   it("rejects when there is no active team", async () => {
     await expect(
-      createToken({ name: "CI" }, makeContext(null)),
+      createToken({ name: "CI", expiresInDays: 30 }, makeContext(null)),
     ).rejects.toEqual({ statusCode: 400, message: "No active team" });
-    expect(await Token.countDocuments()).toBe(0);
-  });
-
-  it("rejects an expiresAt in the past", async () => {
-    const expiresAt = new Date(Date.now() - 1000);
-    await expect(
-      createToken({ name: "CI", expiresAt }, makeContext()),
-    ).rejects.toEqual({
-      statusCode: 400,
-      message: "expiresAt must be in the future",
-    });
     expect(await Token.countDocuments()).toBe(0);
   });
 });
 
 describe("getTokensByActiveTeam", () => {
   it("returns the active team's tokens with pagination fields", async () => {
-    await createToken({ name: "One" }, makeContext());
-    await createToken({ name: "Two" }, makeContext());
+    await createToken({ name: "One", expiresInDays: 30 }, makeContext());
+    await createToken({ name: "Two", expiresInDays: 30 }, makeContext());
 
     const result = await getTokensByActiveTeam({}, makeContext());
     expect(result.count).toBe(2);
@@ -133,18 +143,18 @@ describe("getTokensByActiveTeam", () => {
   });
 
   it("returns newest first", async () => {
-    await createToken({ name: "Older" }, makeContext());
+    await createToken({ name: "Older", expiresInDays: 30 }, makeContext());
     await new Promise((resolve) => setTimeout(resolve, 5));
-    await createToken({ name: "Newer" }, makeContext());
+    await createToken({ name: "Newer", expiresInDays: 30 }, makeContext());
 
     const result = await getTokensByActiveTeam({}, makeContext());
     expect(result.data.map((t) => t.name)).toEqual(["Newer", "Older"]);
   });
 
   it("excludes tokens from other teams", async () => {
-    await createToken({ name: "Mine" }, makeContext());
+    await createToken({ name: "Mine", expiresInDays: 30 }, makeContext());
     await createToken(
-      { name: "Theirs" },
+      { name: "Theirs", expiresInDays: 30 },
       makeContext(new Types.ObjectId().toString()),
     );
 
@@ -155,7 +165,7 @@ describe("getTokensByActiveTeam", () => {
 
   it("includes deleted tokens", async () => {
     const { data: created } = await createToken(
-      { name: "Deleted" },
+      { name: "Deleted", expiresInDays: 30 },
       makeContext(),
     );
     await Token.updateOne({ _id: created._id }, { isDeleted: true });
@@ -166,8 +176,8 @@ describe("getTokensByActiveTeam", () => {
   });
 
   it("filters by name when given a search value", async () => {
-    await createToken({ name: "Production" }, makeContext());
-    await createToken({ name: "Staging" }, makeContext());
+    await createToken({ name: "Production", expiresInDays: 30 }, makeContext());
+    await createToken({ name: "Staging", expiresInDays: 30 }, makeContext());
 
     const result = await getTokensByActiveTeam(
       { searchValue: "prod" },
@@ -178,8 +188,11 @@ describe("getTokensByActiveTeam", () => {
   });
 
   it("filters by token prefix when given a search value", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
-    await createToken({ name: "Other" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
+    await createToken({ name: "Other", expiresInDays: 30 }, makeContext());
 
     const result = await getTokensByActiveTeam(
       { searchValue: created.tokenPrefix },
@@ -189,9 +202,9 @@ describe("getTokensByActiveTeam", () => {
   });
 
   it("does not search other teams' tokens", async () => {
-    await createToken({ name: "Production" }, makeContext());
+    await createToken({ name: "Production", expiresInDays: 30 }, makeContext());
     await createToken(
-      { name: "Production" },
+      { name: "Production", expiresInDays: 30 },
       makeContext(new Types.ObjectId().toString()),
     );
 
@@ -203,14 +216,14 @@ describe("getTokensByActiveTeam", () => {
   });
 
   it("does not return the token hash", async () => {
-    await createToken({ name: "CI" }, makeContext());
+    await createToken({ name: "CI", expiresInDays: 30 }, makeContext());
 
     const result = await getTokensByActiveTeam({}, makeContext());
     expect(result.data[0]).not.toHaveProperty("token");
   });
 
   it("returns an empty result when there is no active team", async () => {
-    await createToken({ name: "CI" }, makeContext());
+    await createToken({ name: "CI", expiresInDays: 30 }, makeContext());
 
     const result = await getTokensByActiveTeam({}, makeContext(null));
     expect(result).toEqual({
@@ -224,7 +237,10 @@ describe("getTokensByActiveTeam", () => {
 
 describe("deleteTokenById", () => {
   it("soft deletes the token and records who deleted it", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
 
     const result = await deleteTokenById(
       { tokenId: created._id.toString() },
@@ -239,7 +255,10 @@ describe("deleteTokenById", () => {
   });
 
   it("keeps the token in the active team's list as deleted", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     await deleteTokenById({ tokenId: created._id.toString() }, makeContext());
 
     const result = await getTokensByActiveTeam({}, makeContext());
@@ -249,7 +268,7 @@ describe("deleteTokenById", () => {
 
   it("does not delete a token belonging to another team", async () => {
     const { data: created } = await createToken(
-      { name: "Theirs" },
+      { name: "Theirs", expiresInDays: 30 },
       makeContext(new Types.ObjectId().toString()),
     );
 
@@ -262,7 +281,10 @@ describe("deleteTokenById", () => {
   });
 
   it("rejects a token that is already deleted", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     await deleteTokenById({ tokenId: created._id.toString() }, makeContext());
 
     await expect(
@@ -286,7 +308,10 @@ describe("deleteTokenById", () => {
   });
 
   it("rejects when there is no active team", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
 
     await expect(
       deleteTokenById({ tokenId: created._id.toString() }, makeContext(null)),
@@ -299,7 +324,10 @@ describe("deleteTokenById", () => {
 
 describe("updateTokenById", () => {
   it("renames the token", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
 
     const { data: updated } = await updateTokenById(
       { tokenId: created._id.toString(), name: "Renamed" },
@@ -312,7 +340,10 @@ describe("updateTokenById", () => {
   });
 
   it("does not return the token hash", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
 
     const { data: updated } = await updateTokenById(
       { tokenId: created._id.toString(), name: "Renamed" },
@@ -323,7 +354,7 @@ describe("updateTokenById", () => {
 
   it("does not rename a token belonging to another team", async () => {
     const { data: created } = await createToken(
-      { name: "Theirs" },
+      { name: "Theirs", expiresInDays: 30 },
       makeContext(new Types.ObjectId().toString()),
     );
 
@@ -339,7 +370,10 @@ describe("updateTokenById", () => {
   });
 
   it("rejects a deleted token", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     await deleteTokenById({ tokenId: created._id.toString() }, makeContext());
 
     await expect(
@@ -357,7 +391,10 @@ describe("updateTokenById", () => {
   });
 
   it("rejects when there is no active team", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
 
     await expect(
       updateTokenById(
@@ -370,7 +407,10 @@ describe("updateTokenById", () => {
 
 describe("regenerateTokenById", () => {
   it("returns a new plaintext token and replaces the stored hash", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
 
     const { data: regenerated } = await regenerateTokenById(
       { tokenId: created._id.toString() },
@@ -386,7 +426,10 @@ describe("regenerateTokenById", () => {
   });
 
   it("keeps the token's name and clears lastUsedAt", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     await Token.updateOne({ _id: created._id }, { lastUsedAt: new Date() });
 
     await regenerateTokenById(
@@ -400,7 +443,10 @@ describe("regenerateTokenById", () => {
   });
 
   it("resets the rate limit window but keeps usageCount", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     await Token.updateOne(
       { _id: created._id },
       { usageCount: 7, rateLimitCount: 7, rateLimitWindowStart: new Date() },
@@ -419,7 +465,7 @@ describe("regenerateTokenById", () => {
 
   it("does not regenerate a token belonging to another team", async () => {
     const { data: created } = await createToken(
-      { name: "Theirs" },
+      { name: "Theirs", expiresInDays: 30 },
       makeContext(new Types.ObjectId().toString()),
     );
 
@@ -432,7 +478,10 @@ describe("regenerateTokenById", () => {
   });
 
   it("rejects a deleted token", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     await deleteTokenById({ tokenId: created._id.toString() }, makeContext());
 
     await expect(
@@ -441,7 +490,10 @@ describe("regenerateTokenById", () => {
   });
 
   it("rejects when there is no active team", async () => {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
 
     await expect(
       regenerateTokenById(
@@ -454,7 +506,10 @@ describe("regenerateTokenById", () => {
 
 describe("consumeTokenUsage", () => {
   async function createTokenId() {
-    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    const { data: created } = await createToken(
+      { name: "CI", expiresInDays: 30 },
+      makeContext(),
+    );
     return created._id.toString();
   }
 

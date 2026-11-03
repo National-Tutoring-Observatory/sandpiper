@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import type { Types } from "mongoose";
 import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
 import getModelPaginationByCurrentPage from "~/modules/app/helpers/getModelPaginationByCurrentPage";
@@ -44,15 +45,12 @@ export async function getTokensByActiveTeam(
 }
 
 export async function createToken(
-  { name, expiresAt }: CreateTokenInput,
+  { name, expiresInDays }: CreateTokenInput,
   context: ControllerContext,
 ) {
   const { activeTeam, user } = context;
   if (!user || !activeTeam) {
     throw { statusCode: 400, message: "No active team" };
-  }
-  if (expiresAt && expiresAt.getTime() <= Date.now()) {
-    throw { statusCode: 400, message: "expiresAt must be in the future" };
   }
 
   const { token, hash, tokenPrefix } = generateToken();
@@ -63,7 +61,7 @@ export async function createToken(
     ref: activeTeam,
     refType: "team",
     createdBy: user._id,
-    expiresAt,
+    expiresAt: dayjs().add(expiresInDays, "day").toDate(),
   });
 
   const { token: _hash, ...created } = doc.toObject();

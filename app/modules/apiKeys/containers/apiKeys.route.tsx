@@ -4,6 +4,7 @@ import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import useCache from "~/modules/cache/hooks/useCache";
 import addDialog from "~/modules/dialogs/addDialog";
+import type { TokenExpirationDays } from "~/modules/tokens/tokens.types";
 import type { ApiKey } from "../apiKeys.types";
 import ApiKeysAuthorization from "../authorization";
 import ApiKeyCreatedDialog from "../components/apiKeyCreatedDialog";
@@ -53,9 +54,12 @@ export default function ApiKeysRoute({ params }: Route.ComponentProps) {
     );
   };
 
-  const submitCreateApiKey = (name: string) => {
+  const submitCreateApiKey = (
+    name: string,
+    expiresInDays: TokenExpirationDays,
+  ) => {
     apiKeys.mutate(
-      { method: "POST", query: teamQuery, data: { name } },
+      { method: "POST", query: teamQuery, data: { name, expiresInDays } },
       {
         onSuccess: (response) => {
           addDialog(

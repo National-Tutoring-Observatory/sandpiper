@@ -3,6 +3,7 @@ import registerApi from "../api/helpers/registerApi";
 import { isAuthenticated } from "../authentication/authentication.middleware";
 import { isTeamAdmin } from "../teams/teams.middleware";
 import controller from "./tokens.controller.js";
+import { TOKEN_EXPIRATION_DAYS } from "./tokens.types";
 import regenerateController from "./tokensRegenerate.controller.js";
 
 const teamQuery = {
@@ -17,7 +18,7 @@ const listQuery = {
 
 const createBody = {
   name: z.string().trim().min(1).max(100),
-  expiresAt: z.coerce.date().optional(),
+  expiresInDays: z.literal([...TOKEN_EXPIRATION_DAYS]),
 };
 
 const updateBody = {

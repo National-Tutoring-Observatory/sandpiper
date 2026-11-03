@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { EllipsisVertical } from "lucide-react";
 import getDateString from "~/modules/app/helpers/getDateString";
+import getRemainingTimeToDate from "~/modules/app/helpers/getRemainingTimeToDate";
 import type { ApiKey, ApiKeyStatus } from "../apiKeys.types";
 import getApiKeyStatus from "../helpers/getApiKeyStatus";
 
@@ -37,56 +38,61 @@ export default function ApiKeyItem({
   const status = getApiKeyStatus(apiKey);
 
   return (
-    <div className="text-body grid w-full grid-cols-1 items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,4fr)_auto_2rem] md:gap-4">
-      <div className="truncate font-medium">{apiKey.name}</div>
-      <div className="text-muted-foreground flex flex-col gap-y-2">
-        <div className="font-mono">{apiKey.tokenPrefix}••••••••</div>
-        <div className="text-muted-foreground flex flex-wrap gap-1">
-          <Badge variant={"outline"}>
-            Created at: {getDateString(apiKey.createdAt)}
+    <div className="w-full">
+      <div className="text-body grid w-full grid-cols-1 items-center gap-2 md:grid-cols-[minmax(0,1fr)_minmax(0,4fr)_auto_2rem] md:gap-4">
+        <div className="truncate font-medium">{apiKey.name}</div>
+        <div className="text-muted-foreground flex flex-col gap-y-2">
+          <div className="font-mono">{apiKey.tokenPrefix}••••••••</div>
+        </div>
+        <div className="flex items-center justify-end">
+          <Badge variant="outline" className={STATUS_CLASSES[status]}>
+            {status}
           </Badge>
-          <Badge variant={"outline"}>
-            Last used at: {getDateString(apiKey.lastUsedAt, "Never used")}
-          </Badge>
-          {apiKey.usageCount > 0 && (
-            <Badge variant={"outline"}>Usage count: {apiKey.usageCount}</Badge>
+        </div>
+        <div className="flex items-center justify-end">
+          {status !== "Revoked" && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="data-[state=open]:bg-muted text-muted-foreground size-8"
+                >
+                  <EllipsisVertical />
+                  <span className="sr-only">Open menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-fit">
+                <DropdownMenuItem onClick={() => onRenameClicked(apiKey)}>
+                  Rename
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onRegenerateClicked(apiKey)}>
+                  Regenerate key
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => onRevokeClicked(apiKey)}
+                >
+                  Revoke
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           )}
         </div>
       </div>
-      <div className="flex items-center justify-end">
-        <Badge variant="outline" className={STATUS_CLASSES[status]}>
-          {status}
+      <div className="text-muted-foreground mt-4 flex flex-wrap gap-1">
+        <Badge variant={"outline"}>
+          Created at: {getDateString(apiKey.createdAt)}
         </Badge>
-      </div>
-      <div className="flex items-center justify-end">
-        {status !== "Revoked" && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="data-[state=open]:bg-muted text-muted-foreground size-8"
-              >
-                <EllipsisVertical />
-                <span className="sr-only">Open menu</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-fit">
-              <DropdownMenuItem onClick={() => onRenameClicked(apiKey)}>
-                Rename
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onRegenerateClicked(apiKey)}>
-                Regenerate key
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => onRevokeClicked(apiKey)}
-              >
-                Revoke
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <Badge variant={"outline"}>
+          Last used at: {getDateString(apiKey.lastUsedAt, "Never used")}
+        </Badge>
+        <Badge variant={"outline"}>
+          Expires: {getRemainingTimeToDate(apiKey.expiresAt)}
+        </Badge>
+        {apiKey.usageCount > 0 && (
+          <Badge variant={"outline"}>Usage count: {apiKey.usageCount}</Badge>
         )}
       </div>
     </div>
