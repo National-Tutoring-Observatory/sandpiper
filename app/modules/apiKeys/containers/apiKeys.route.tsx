@@ -7,6 +7,7 @@ import type { ApiKey } from "../apiKeys.types";
 import ApiKeysAuthorization from "../authorization";
 import ApiKeyCreatedDialog from "../components/apiKeyCreatedDialog";
 import ApiKeys from "../components/apiKeys";
+import ConfirmRegenerateApiKeyDialog from "../components/confirmRegenerateApiKeyDialog";
 import CreateApiKeyDialog from "../components/createApiKeyDialog";
 import RenameApiKeyDialog from "../components/renameApiKeyDialog";
 import type { Route } from "./+types/apiKeys.route";
@@ -78,8 +79,30 @@ export default function ApiKeysRoute() {
     );
   };
 
-  const onRegenerateClicked = (apiKey: ApiKey) => {
-    toast.info(`Regenerate ${apiKey.name}`);
+  const openRegenerateApiKeyDialog = (apiKey: ApiKey) => {
+    addDialog(
+      <ConfirmRegenerateApiKeyDialog
+        apiKeyName={apiKey.name}
+        onConfirm={() => submitRegenerateApiKey(apiKey)}
+      />,
+    );
+  };
+
+  const submitRegenerateApiKey = (apiKey: ApiKey) => {
+    apiKeys.mutate(
+      { api: `/api/tokens/${apiKey._id}/regenerate`, method: "POST" },
+      {
+        onSuccess: (response) => {
+          addDialog(
+            <ApiKeyCreatedDialog
+              token={response.data.token}
+              onCopyClicked={onCopyApiKeyClicked}
+            />,
+          );
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
   };
 
   const onRevokeClicked = (apiKey: ApiKey) => {
@@ -91,7 +114,7 @@ export default function ApiKeysRoute() {
       apiKeys={apiKeys.data}
       onCreateClicked={openCreateApiKeyDialog}
       onRenameClicked={openRenameApiKeyDialog}
-      onRegenerateClicked={onRegenerateClicked}
+      onRegenerateClicked={openRegenerateApiKeyDialog}
       onRevokeClicked={onRevokeClicked}
     />
   );
