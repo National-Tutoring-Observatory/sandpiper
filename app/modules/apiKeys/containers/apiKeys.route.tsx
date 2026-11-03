@@ -65,10 +65,17 @@ export default function ApiKeysRoute() {
     );
   };
 
-  // Placeholder until the tokens API supports renaming.
   const submitRenameApiKey = (apiKey: ApiKey, name: string) => {
-    addDialog(null);
-    toast.info(`Rename ${apiKey.name} to ${name}`);
+    apiKeys.mutate(
+      { api: `/api/tokens/${apiKey._id}`, method: "PUT", data: { name } },
+      {
+        onSuccess: () => {
+          addDialog(null);
+          toast.success("API key renamed");
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
   };
 
   const onRegenerateClicked = (apiKey: ApiKey) => {
