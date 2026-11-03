@@ -3,6 +3,7 @@ import getTotalPages from "~/modules/app/helpers/getTotalPages";
 import type { ControllerContext } from "../api/api.types";
 import generateToken from "./helpers/generateToken";
 import getActiveTokenMatch from "./helpers/getActiveTokenMatch";
+import hashToken from "./helpers/hashToken";
 import { Token } from "./tokens.model";
 import type {
   CreateTokenInput,
@@ -115,4 +116,15 @@ export async function deleteTokenById(
   }
 
   return { data: { deleted: true } };
+}
+
+export async function findValidTokenByApiKey(apiKey: string) {
+  return Token.findOne({
+    token: hashToken(apiKey),
+    isDeleted: false,
+    $or: [
+      { expiresAt: { $exists: false } },
+      { expiresAt: { $gt: new Date() } },
+    ],
+  }).lean<TokenDoc>();
 }

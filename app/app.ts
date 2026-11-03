@@ -3,6 +3,7 @@ import type { Request } from "express";
 import express from "express";
 import "react-router";
 import getRoutes from "~/modules/api/helpers/getApis";
+import "~/modules/api/v1.api";
 import maintenanceMiddleware from "~/modules/systemSettings/maintenanceMiddleware";
 import "~/modules/tokens/tokens.api";
 
