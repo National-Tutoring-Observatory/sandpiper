@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import ApiKeyNameAlert from "./apiKeyNameAlert";
 
 const CreateApiKeyDialog = ({
@@ -18,6 +18,7 @@ const CreateApiKeyDialog = ({
   onCreateApiKeyClicked: (name: string) => void;
 }) => {
   const [name, setName] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const onApiKeyNameChanged = (event: React.ChangeEvent<HTMLInputElement>) => {
     setName(event.target.value);
@@ -26,7 +27,12 @@ const CreateApiKeyDialog = ({
   const isSubmitButtonDisabled = name.trim().length < 3;
 
   return (
-    <DialogContent>
+    <DialogContent
+      onOpenAutoFocus={(event) => {
+        event.preventDefault();
+        inputRef.current?.focus();
+      }}
+    >
       <DialogHeader>
         <DialogTitle>Create a new API key</DialogTitle>
         <DialogDescription>
@@ -40,7 +46,7 @@ const CreateApiKeyDialog = ({
           name="name"
           defaultValue={name}
           autoComplete="off"
-          autoFocus
+          ref={inputRef}
           maxLength={100}
           onChange={onApiKeyNameChanged}
         />

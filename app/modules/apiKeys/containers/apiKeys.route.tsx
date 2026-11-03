@@ -8,6 +8,7 @@ import ApiKeysAuthorization from "../authorization";
 import ApiKeyCreatedDialog from "../components/apiKeyCreatedDialog";
 import ApiKeys from "../components/apiKeys";
 import CreateApiKeyDialog from "../components/createApiKeyDialog";
+import RenameApiKeyDialog from "../components/renameApiKeyDialog";
 import type { Route } from "./+types/apiKeys.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -55,8 +56,19 @@ export default function ApiKeysRoute() {
     toast.success("API key copied");
   };
 
-  const onRenameClicked = (apiKey: ApiKey) => {
-    toast.info(`Rename ${apiKey.name}`);
+  const openRenameApiKeyDialog = (apiKey: ApiKey) => {
+    addDialog(
+      <RenameApiKeyDialog
+        apiKey={apiKey}
+        onRenameApiKeyClicked={submitRenameApiKey}
+      />,
+    );
+  };
+
+  // Placeholder until the tokens API supports renaming.
+  const submitRenameApiKey = (apiKey: ApiKey, name: string) => {
+    addDialog(null);
+    toast.info(`Rename ${apiKey.name} to ${name}`);
   };
 
   const onRegenerateClicked = (apiKey: ApiKey) => {
@@ -71,7 +83,7 @@ export default function ApiKeysRoute() {
     <ApiKeys
       apiKeys={apiKeys.data}
       onCreateClicked={openCreateApiKeyDialog}
-      onRenameClicked={onRenameClicked}
+      onRenameClicked={openRenameApiKeyDialog}
       onRegenerateClicked={onRegenerateClicked}
       onRevokeClicked={onRevokeClicked}
     />
