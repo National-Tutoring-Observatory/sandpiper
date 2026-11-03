@@ -3,8 +3,9 @@ description: Start a MongoDB container with replica set support and create a CI 
 
 inputs:
   mongo-version:
-    description: MongoDB image tag (e.g. 8)
-    default: "8"
+    description: MongoDB image tag (e.g. 8.0.32)
+    # Pinned: the floating "8" tag moved to 8.0.34 on 2026-10-27 and CI broke at this step.
+    default: "8.0.32"
 
 runs:
   using: composite
@@ -22,6 +23,11 @@ runs:
           echo "waiting for mongo... ($i/30)"
           sleep 2
         done
+        if [ "$(docker inspect -f '{{.State.Running}}' mongo)" != "true" ]; then
+          echo "mongo container exited during startup:"
+          docker logs mongo
+          exit 1
+        fi
         docker exec mongo mongosh --quiet --eval '
           rs.initiate({ _id: "rs0", members: [{ _id: 0, host: "localhost:27017" }] })
         '
