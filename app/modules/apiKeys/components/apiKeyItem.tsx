@@ -37,7 +37,7 @@ export default function ApiKeyItem({
   const status = getApiKeyStatus(apiKey);
 
   return (
-    <div className="text-body grid w-full grid-cols-1 items-center gap-2 md:grid-cols-[repeat(5,minmax(0,1fr))_auto] md:gap-4">
+    <div className="text-body grid w-full grid-cols-1 items-center gap-2 md:grid-cols-[repeat(5,minmax(0,1fr))_2rem] md:gap-4">
       <div className="truncate font-medium">{apiKey.name}</div>
       <div className="text-muted-foreground truncate font-mono">
         {apiKey.tokenPrefix}••••••••
@@ -54,33 +54,35 @@ export default function ApiKeyItem({
         </Badge>
       </div>
       <div className="flex items-center justify-end">
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="data-[state=open]:bg-muted text-muted-foreground size-8"
-            >
-              <EllipsisVertical />
-              <span className="sr-only">Open menu</span>
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-fit">
-            <DropdownMenuItem onClick={() => onRenameClicked(apiKey)}>
-              Rename
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => onRegenerateClicked(apiKey)}>
-              Regenerate key
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              variant="destructive"
-              onClick={() => onRevokeClicked(apiKey)}
-            >
-              Revoke
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {status !== "Revoked" && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="data-[state=open]:bg-muted text-muted-foreground size-8"
+              >
+                <EllipsisVertical />
+                <span className="sr-only">Open menu</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-fit">
+              <DropdownMenuItem onClick={() => onRenameClicked(apiKey)}>
+                Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onRegenerateClicked(apiKey)}>
+                Regenerate key
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => onRevokeClicked(apiKey)}
+              >
+                Revoke
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </div>
   );

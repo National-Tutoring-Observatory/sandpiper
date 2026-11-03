@@ -21,7 +21,7 @@ export async function getTokensByActiveTeam(
   const { activeTeam } = context;
   if (!activeTeam) return { count: 0, data: [], currentPage, totalPages: 1 };
 
-  const match = { ref: activeTeam, refType: "team", isDeleted: false };
+  const match = { ref: activeTeam, refType: "team" };
   const { skip, limit } = getModelPaginationByCurrentPage(currentPage);
   const [data, count] = await Promise.all([
     Token.find(match)

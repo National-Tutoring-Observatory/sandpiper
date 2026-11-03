@@ -152,7 +152,7 @@ describe("getTokensByActiveTeam", () => {
     expect(result.data.map((t) => t.name)).toEqual(["Mine"]);
   });
 
-  it("excludes deleted tokens", async () => {
+  it("includes deleted tokens", async () => {
     const { data: created } = await createToken(
       { name: "Deleted" },
       makeContext(),
@@ -160,8 +160,8 @@ describe("getTokensByActiveTeam", () => {
     await Token.updateOne({ _id: created._id }, { isDeleted: true });
 
     const result = await getTokensByActiveTeam({}, makeContext());
-    expect(result.count).toBe(0);
-    expect(result.data).toEqual([]);
+    expect(result.count).toBe(1);
+    expect(result.data[0].isDeleted).toBe(true);
   });
 
   it("does not return the token hash", async () => {
@@ -200,12 +200,13 @@ describe("deleteTokenById", () => {
     expect(stored?.deletedBy?.toString()).toBe(user._id.toString());
   });
 
-  it("removes the token from the active team's list", async () => {
+  it("keeps the token in the active team's list as deleted", async () => {
     const { data: created } = await createToken({ name: "CI" }, makeContext());
     await deleteTokenById({ tokenId: created._id.toString() }, makeContext());
 
     const result = await getTokensByActiveTeam({}, makeContext());
-    expect(result.count).toBe(0);
+    expect(result.count).toBe(1);
+    expect(result.data[0].isDeleted).toBe(true);
   });
 
   it("does not delete a token belonging to another team", async () => {
