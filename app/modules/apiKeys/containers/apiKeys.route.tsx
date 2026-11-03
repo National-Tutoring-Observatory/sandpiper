@@ -8,6 +8,7 @@ import ApiKeysAuthorization from "../authorization";
 import ApiKeyCreatedDialog from "../components/apiKeyCreatedDialog";
 import ApiKeys from "../components/apiKeys";
 import ConfirmRegenerateApiKeyDialog from "../components/confirmRegenerateApiKeyDialog";
+import ConfirmRevokeApiKeyDialog from "../components/confirmRevokeApiKeyDialog";
 import CreateApiKeyDialog from "../components/createApiKeyDialog";
 import RenameApiKeyDialog from "../components/renameApiKeyDialog";
 import type { Route } from "./+types/apiKeys.route";
@@ -105,8 +106,23 @@ export default function ApiKeysRoute() {
     );
   };
 
-  const onRevokeClicked = (apiKey: ApiKey) => {
-    toast.info(`Revoke ${apiKey.name}`);
+  const openRevokeApiKeyDialog = (apiKey: ApiKey) => {
+    addDialog(
+      <ConfirmRevokeApiKeyDialog
+        apiKeyName={apiKey.name}
+        onConfirm={() => submitRevokeApiKey(apiKey)}
+      />,
+    );
+  };
+
+  const submitRevokeApiKey = (apiKey: ApiKey) => {
+    apiKeys.mutate(
+      { api: `/api/tokens/${apiKey._id}`, method: "DELETE" },
+      {
+        onSuccess: () => toast.success("API key revoked"),
+        onError: (error) => toast.error(error.message),
+      },
+    );
   };
 
   return (
@@ -115,7 +131,7 @@ export default function ApiKeysRoute() {
       onCreateClicked={openCreateApiKeyDialog}
       onRenameClicked={openRenameApiKeyDialog}
       onRegenerateClicked={openRegenerateApiKeyDialog}
-      onRevokeClicked={onRevokeClicked}
+      onRevokeClicked={openRevokeApiKeyDialog}
     />
   );
 }
