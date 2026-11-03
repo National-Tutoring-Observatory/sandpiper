@@ -13,6 +13,7 @@ type ApiResponse = {
 type MutateArgs = {
   api?: string;
   method: Exclude<ApiMethod, "GET">;
+  query?: ApiQuery;
   data?: unknown;
 };
 
@@ -34,8 +35,18 @@ export default function useCache({
   });
 
   const mutation = useMutation({
-    mutationFn: ({ api: mutateApi = api, method, data }: MutateArgs) =>
-      requestApi<ApiResponse>({ api: mutateApi, method, data }),
+    mutationFn: ({
+      api: mutateApi = api,
+      method,
+      query: mutateQuery,
+      data,
+    }: MutateArgs) =>
+      requestApi<ApiResponse>({
+        api: mutateApi,
+        method,
+        query: mutateQuery,
+        data,
+      }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [api] }),
   });
 

@@ -5,7 +5,12 @@ import { isTeamAdmin } from "../teams/teams.middleware";
 import controller from "./tokens.controller.js";
 import regenerateController from "./tokensRegenerate.controller.js";
 
+const teamQuery = {
+  teamId: z.string().regex(/^[a-f0-9]{24}$/),
+};
+
 const listQuery = {
+  ...teamQuery,
   currentPage: z.coerce.number().int().min(1).optional(),
 };
 
@@ -24,19 +29,22 @@ registerApi([
     controller,
     list: {
       query: listQuery,
-      middleware: [isAuthenticated],
+      middleware: [isAuthenticated, isTeamAdmin],
     },
     create: {
       body: createBody,
+      query: teamQuery,
       middleware: [isAuthenticated, isTeamAdmin],
     },
     update: {
       param: "id",
       body: updateBody,
+      query: teamQuery,
       middleware: [isAuthenticated, isTeamAdmin],
     },
     delete: {
       param: "id",
+      query: teamQuery,
       middleware: [isAuthenticated, isTeamAdmin],
     },
   },
@@ -45,6 +53,7 @@ registerApi([
     controller: regenerateController,
     create: {
       param: "id",
+      query: teamQuery,
       middleware: [isAuthenticated, isTeamAdmin],
     },
   },

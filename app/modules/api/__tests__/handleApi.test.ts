@@ -47,7 +47,7 @@ describe("handleApi", () => {
     const { req, res, next } = makeReqRes();
     Object.assign(req, {
       user: { teams: [{ team: teamId }] },
-      headers: { cookie: `sandpiper.activeTeamId=${teamId}` },
+      query: { teamId },
     });
     await middleware(req, res, next);
     const [, context] = method.mock.calls[0];

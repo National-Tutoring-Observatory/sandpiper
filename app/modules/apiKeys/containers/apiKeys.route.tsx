@@ -22,10 +22,12 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   return {};
 }
 
-export default function ApiKeysRoute() {
+export default function ApiKeysRoute({ params }: Route.ComponentProps) {
+  const teamQuery = { teamId: params.teamId };
+
   const apiKeys = useCache({
     api: "/api/tokens",
-    query: { currentPage: 1 },
+    query: { ...teamQuery, currentPage: 1 },
     initialData: [],
   });
 
@@ -38,7 +40,7 @@ export default function ApiKeysRoute() {
 
   const submitCreateApiKey = (name: string) => {
     apiKeys.mutate(
-      { method: "POST", data: { name } },
+      { method: "POST", query: teamQuery, data: { name } },
       {
         onSuccess: (response) => {
           addDialog(
@@ -69,7 +71,12 @@ export default function ApiKeysRoute() {
 
   const submitRenameApiKey = (apiKey: ApiKey, name: string) => {
     apiKeys.mutate(
-      { api: `/api/tokens/${apiKey._id}`, method: "PUT", data: { name } },
+      {
+        api: `/api/tokens/${apiKey._id}`,
+        method: "PUT",
+        query: teamQuery,
+        data: { name },
+      },
       {
         onSuccess: () => {
           addDialog(null);
@@ -91,7 +98,11 @@ export default function ApiKeysRoute() {
 
   const submitRegenerateApiKey = (apiKey: ApiKey) => {
     apiKeys.mutate(
-      { api: `/api/tokens/${apiKey._id}/regenerate`, method: "POST" },
+      {
+        api: `/api/tokens/${apiKey._id}/regenerate`,
+        method: "POST",
+        query: teamQuery,
+      },
       {
         onSuccess: (response) => {
           addDialog(
@@ -117,7 +128,7 @@ export default function ApiKeysRoute() {
 
   const submitRevokeApiKey = (apiKey: ApiKey) => {
     apiKeys.mutate(
-      { api: `/api/tokens/${apiKey._id}`, method: "DELETE" },
+      { api: `/api/tokens/${apiKey._id}`, method: "DELETE", query: teamQuery },
       {
         onSuccess: () => toast.success("API key revoked"),
         onError: (error) => toast.error(error.message),
