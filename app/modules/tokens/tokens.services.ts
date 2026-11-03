@@ -1,22 +1,18 @@
-import crypto from "crypto";
-import { isValidObjectId } from "mongoose";
 import getModelPaginationByCurrentPage from "~/modules/app/helpers/getModelPaginationByCurrentPage";
 import getTotalPages from "~/modules/app/helpers/getTotalPages";
 import type { ControllerContext } from "../api/api.types";
+import generateToken from "./helpers/generateToken";
+import getActiveTokenMatch from "./helpers/getActiveTokenMatch";
 import { Token } from "./tokens.model";
 import type {
   CreateTokenInput,
   DeleteTokenInput,
   GetTokensByActiveTeamInput,
+  RegenerateTokenInput,
   TokenDoc,
   TokensList,
+  UpdateTokenInput,
 } from "./tokens.types";
-
-const TOKEN_PREFIX = "sp_";
-
-export function hashToken(token: string): string {
-  return crypto.createHash("sha256").update(token).digest("hex");
-}
 
 export async function getTokensByActiveTeam(
   { currentPage = 1 }: GetTokensByActiveTeamInput,
@@ -51,11 +47,11 @@ export async function createToken(
     throw { statusCode: 400, message: "expiresAt must be in the future" };
   }
 
-  const token = `${TOKEN_PREFIX}${crypto.randomBytes(32).toString("base64url")}`;
+  const { token, hash, tokenPrefix } = generateToken();
   const doc = await Token.create({
     name,
-    token: hashToken(token),
-    tokenPrefix: token.slice(0, TOKEN_PREFIX.length + 8),
+    token: hash,
+    tokenPrefix,
     ref: activeTeam,
     refType: "team",
     createdBy: user._id,
@@ -66,22 +62,54 @@ export async function createToken(
   return { data: { ...created, token } };
 }
 
+export async function updateTokenById(
+  { tokenId, name }: UpdateTokenInput,
+  context: ControllerContext,
+) {
+  const { match } = getActiveTokenMatch(tokenId, context);
+
+  const updated = await Token.findOneAndUpdate(
+    match,
+    { name },
+    { new: true },
+  ).lean<TokenDoc>();
+  if (!updated) {
+    throw { statusCode: 404, message: "Token not found" };
+  }
+
+  return { data: updated };
+}
+
+export async function regenerateTokenById(
+  { tokenId }: RegenerateTokenInput,
+  context: ControllerContext,
+) {
+  const { match } = getActiveTokenMatch(tokenId, context);
+  const { token, hash, tokenPrefix } = generateToken();
+
+  const updated = await Token.findOneAndUpdate(
+    match,
+    { token: hash, tokenPrefix, $unset: { lastUsedAt: 1 } },
+    { new: true },
+  ).lean<TokenDoc>();
+  if (!updated) {
+    throw { statusCode: 404, message: "Token not found" };
+  }
+
+  return { data: { ...updated, token } };
+}
+
 export async function deleteTokenById(
   { tokenId }: DeleteTokenInput,
   context: ControllerContext,
 ) {
-  const { activeTeam, user } = context;
-  if (!user || !activeTeam) {
-    throw { statusCode: 400, message: "No active team" };
-  }
-  if (!isValidObjectId(tokenId)) {
-    throw { statusCode: 404, message: "Token not found" };
-  }
+  const { match, user } = getActiveTokenMatch(tokenId, context);
 
-  const result = await Token.updateOne(
-    { _id: tokenId, ref: activeTeam, refType: "team", isDeleted: false },
-    { isDeleted: true, deletedAt: new Date(), deletedBy: user._id },
-  );
+  const result = await Token.updateOne(match, {
+    isDeleted: true,
+    deletedAt: new Date(),
+    deletedBy: user._id,
+  });
   if (result.matchedCount === 0) {
     throw { statusCode: 404, message: "Token not found" };
   }

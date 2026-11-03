@@ -5,12 +5,14 @@ import { UserService } from "~/modules/users/user";
 import type { User } from "~/modules/users/users.types";
 import clearDocumentDB from "../../../../test/helpers/clearDocumentDB";
 import type { ControllerContext } from "../../api/api.types";
+import hashToken from "../helpers/hashToken";
 import { Token } from "../tokens.model";
 import {
   createToken,
   deleteTokenById,
   getTokensByActiveTeam,
-  hashToken,
+  regenerateTokenById,
+  updateTokenById,
 } from "../tokens.services";
 
 let user: User;
@@ -29,14 +31,6 @@ beforeEach(async () => {
   await clearDocumentDB();
   user = await UserService.create({ username: "test_user" });
   teamId = new Types.ObjectId().toString();
-});
-
-describe("hashToken", () => {
-  it("returns the sha256 hex digest", () => {
-    expect(hashToken("sp_abc")).toMatch(/^[a-f0-9]{64}$/);
-    expect(hashToken("sp_abc")).toBe(hashToken("sp_abc"));
-    expect(hashToken("sp_abc")).not.toBe(hashToken("sp_abd"));
-  });
 });
 
 describe("createToken", () => {
@@ -261,5 +255,142 @@ describe("deleteTokenById", () => {
 
     const stored = await Token.findById(created._id).lean();
     expect(stored?.isDeleted).toBe(false);
+  });
+});
+
+describe("updateTokenById", () => {
+  it("renames the token", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+
+    const { data: updated } = await updateTokenById(
+      { tokenId: created._id.toString(), name: "Renamed" },
+      makeContext(),
+    );
+    expect(updated.name).toBe("Renamed");
+
+    const stored = await Token.findById(created._id).lean();
+    expect(stored?.name).toBe("Renamed");
+  });
+
+  it("does not return the token hash", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+
+    const { data: updated } = await updateTokenById(
+      { tokenId: created._id.toString(), name: "Renamed" },
+      makeContext(),
+    );
+    expect(updated).not.toHaveProperty("token");
+  });
+
+  it("does not rename a token belonging to another team", async () => {
+    const { data: created } = await createToken(
+      { name: "Theirs" },
+      makeContext(new Types.ObjectId().toString()),
+    );
+
+    await expect(
+      updateTokenById(
+        { tokenId: created._id.toString(), name: "Renamed" },
+        makeContext(),
+      ),
+    ).rejects.toEqual({ statusCode: 404, message: "Token not found" });
+
+    const stored = await Token.findById(created._id).lean();
+    expect(stored?.name).toBe("Theirs");
+  });
+
+  it("rejects a deleted token", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    await deleteTokenById({ tokenId: created._id.toString() }, makeContext());
+
+    await expect(
+      updateTokenById(
+        { tokenId: created._id.toString(), name: "Renamed" },
+        makeContext(),
+      ),
+    ).rejects.toEqual({ statusCode: 404, message: "Token not found" });
+  });
+
+  it("rejects an invalid token id", async () => {
+    await expect(
+      updateTokenById({ tokenId: "not-an-id", name: "Renamed" }, makeContext()),
+    ).rejects.toEqual({ statusCode: 404, message: "Token not found" });
+  });
+
+  it("rejects when there is no active team", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+
+    await expect(
+      updateTokenById(
+        { tokenId: created._id.toString(), name: "Renamed" },
+        makeContext(null),
+      ),
+    ).rejects.toEqual({ statusCode: 400, message: "No active team" });
+  });
+});
+
+describe("regenerateTokenById", () => {
+  it("returns a new plaintext token and replaces the stored hash", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+
+    const { data: regenerated } = await regenerateTokenById(
+      { tokenId: created._id.toString() },
+      makeContext(),
+    );
+    expect(regenerated.token).toMatch(/^sp_[A-Za-z0-9_-]{43}$/);
+    expect(regenerated.token).not.toBe(created.token);
+    expect(regenerated.token.startsWith(regenerated.tokenPrefix)).toBe(true);
+
+    const stored = await Token.findById(created._id).select("+token").lean();
+    expect(stored?.token).toBe(hashToken(regenerated.token));
+    expect(stored?.token).not.toBe(hashToken(created.token));
+  });
+
+  it("keeps the token's name and clears lastUsedAt", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    await Token.updateOne({ _id: created._id }, { lastUsedAt: new Date() });
+
+    await regenerateTokenById(
+      { tokenId: created._id.toString() },
+      makeContext(),
+    );
+
+    const stored = await Token.findById(created._id).lean();
+    expect(stored?.name).toBe("CI");
+    expect(stored?.lastUsedAt).toBeUndefined();
+  });
+
+  it("does not regenerate a token belonging to another team", async () => {
+    const { data: created } = await createToken(
+      { name: "Theirs" },
+      makeContext(new Types.ObjectId().toString()),
+    );
+
+    await expect(
+      regenerateTokenById({ tokenId: created._id.toString() }, makeContext()),
+    ).rejects.toEqual({ statusCode: 404, message: "Token not found" });
+
+    const stored = await Token.findById(created._id).select("+token").lean();
+    expect(stored?.token).toBe(hashToken(created.token));
+  });
+
+  it("rejects a deleted token", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+    await deleteTokenById({ tokenId: created._id.toString() }, makeContext());
+
+    await expect(
+      regenerateTokenById({ tokenId: created._id.toString() }, makeContext()),
+    ).rejects.toEqual({ statusCode: 404, message: "Token not found" });
+  });
+
+  it("rejects when there is no active team", async () => {
+    const { data: created } = await createToken({ name: "CI" }, makeContext());
+
+    await expect(
+      regenerateTokenById(
+        { tokenId: created._id.toString() },
+        makeContext(null),
+      ),
+    ).rejects.toEqual({ statusCode: 400, message: "No active team" });
   });
 });

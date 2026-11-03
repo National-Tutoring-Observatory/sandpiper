@@ -12,6 +12,15 @@ export type CreateTokenInput = {
   expiresAt?: Date;
 };
 
+export type UpdateTokenInput = {
+  tokenId: string;
+  name: string;
+};
+
+export type RegenerateTokenInput = {
+  tokenId: string;
+};
+
 export type DeleteTokenInput = {
   tokenId: string;
 };

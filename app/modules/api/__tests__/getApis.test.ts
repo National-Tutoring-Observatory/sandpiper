@@ -79,6 +79,22 @@ describe("getApis", () => {
     expect(read.mock.calls[0][0].param).toBe("abc123");
   });
 
+  it("passes a param declared in the basePath to the controller", async () => {
+    const create = vi.fn(respondWith("ok"));
+    registerApi({
+      basePath: "/things/:id/regenerate",
+      controller: { create },
+      create: { param: "id" },
+    });
+    const baseUrl = await startApp();
+
+    const res = await fetch(`${baseUrl}/api/things/abc123/regenerate`, {
+      method: "POST",
+    });
+    expect(res.status).toBe(200);
+    expect(create.mock.calls[0][0].param).toBe("abc123");
+  });
+
   it("does not mount an operation that has no controller method", async () => {
     registerApi({
       basePath: "/things",
