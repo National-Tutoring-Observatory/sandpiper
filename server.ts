@@ -24,6 +24,7 @@ setupSockets({ server, app });
 
 app.use(compression());
 app.disable("x-powered-by");
+app.set("trust proxy", 1);
 
 app.use((_req, res, next) => {
   if (securityHeadersEnabled()) {
