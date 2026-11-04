@@ -6,6 +6,7 @@ declare module "express-serve-static-core" {
   interface Request {
     files?: Record<string, unknown> | undefined;
     user?: User;
+    activeTeam?: string;
   }
 }
 
