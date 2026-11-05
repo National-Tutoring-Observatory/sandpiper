@@ -79,7 +79,7 @@ export function PrivacyPolicy() {
             published. Your rights to use, modify, and redistribute the source
             code arise under those open-source licenses and are independent of
             this Agreement, which governs your access to the Service. Releases
-            published on or before v0.20.0 were made available under the MIT
+            published on or before v0.21.0 were made available under the MIT
             License and remain available under those terms.
           </p>
 

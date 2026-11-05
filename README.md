@@ -39,4 +39,4 @@ Sandpiper is open source. Ownership and licensing follow contribution:
 
 As of this change, all code in this repository is FreshCognate-contributed
 and therefore licensed under Apache 2.0. Releases up to and including
-v0.20.0 were published under the MIT License and remain so.
+v0.21.0 were published under the MIT License and remain so.
