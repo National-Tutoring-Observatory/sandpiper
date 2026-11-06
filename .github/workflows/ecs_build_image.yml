@@ -93,11 +93,13 @@ jobs:
       - name: Derive image tag
         id: tag
         shell: bash
+        env:
+          INPUT_TAG: ${{ inputs.tag }}
         run: |
           set -euo pipefail
 
-          if [ -n "${{ inputs.tag }}" ]; then
-            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          if [ -n "$INPUT_TAG" ]; then
+            echo "tag=$INPUT_TAG" >> "$GITHUB_OUTPUT"
           else
             echo "tag=${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
           fi
@@ -107,6 +109,10 @@ jobs:
         shell: bash
         env:
           TAG: ${{ steps.tag.outputs.tag }}
+          INPUT_AWS_REGION: ${{ inputs.aws-region }}
+          INPUT_IMAGE_SUFFIX: ${{ inputs.image-suffix }}
+          INPUT_DOCKERFILE: ${{ inputs.dockerfile }}
+          INPUT_BUILD_ARGS: ${{ inputs.build-args }}
           BULLMQ_PRO_TOKEN: ${{ secrets.BULLMQ_PRO_TOKEN }}
         run: |
           set -euo pipefail
@@ -114,21 +120,19 @@ jobs:
           test -n "${{ vars.ECR_REPOSITORY }}" || { echo "ECR_REPOSITORY is not set"; exit 1; }
 
           ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-          ECR_URI="$ACCOUNT_ID.dkr.ecr.${{ inputs.aws-region }}.amazonaws.com/${{ vars.ECR_REPOSITORY }}"
+          ECR_URI="$ACCOUNT_ID.dkr.ecr.${INPUT_AWS_REGION}.amazonaws.com/${{ vars.ECR_REPOSITORY }}"
 
-          IMAGE_TAG="$TAG${{ inputs.image-suffix }}"
+          IMAGE_TAG="${TAG}${INPUT_IMAGE_SUFFIX}"
 
-          BUILD_ARGS=""
-          if [ -n "${{ inputs.build-args }}" ]; then
-            while IFS= read -r arg; do
-              [ -n "$arg" ] && BUILD_ARGS="$BUILD_ARGS --build-arg $arg"
-            done <<< "${{ inputs.build-args }}"
-          fi
+          BUILD_ARGS=()
+          while IFS= read -r arg; do
+            if [ -n "$arg" ]; then BUILD_ARGS+=(--build-arg "$arg"); fi
+          done <<< "$INPUT_BUILD_ARGS"
 
           DOCKER_BUILDKIT=1 docker build \
-            $BUILD_ARGS \
+            "${BUILD_ARGS[@]}" \
             --secret id=BULLMQ_PRO_TOKEN,env=BULLMQ_PRO_TOKEN \
-            -f "${{ inputs.dockerfile }}" \
+            -f "$INPUT_DOCKERFILE" \
             -t "${{ vars.ECR_REPOSITORY }}:$IMAGE_TAG" .
 
           docker tag \
