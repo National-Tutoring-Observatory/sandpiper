@@ -18,10 +18,11 @@ registerApi([
     controller: createController,
     create: {
       body: {
-        type: z.string(),
+        type: z.enum(["RUN_SET", "SESSION"]),
         projectId: z.string(),
-        sessions: z.array(z.string()),
+        session: z.looseObject({}),
       },
+      bodyLimit: "1mb",
       rateLimit: 10,
       middleware: [hasApiKey],
     },

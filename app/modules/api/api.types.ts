@@ -23,6 +23,7 @@ export interface RouteItemConfig {
   shouldSkipValidation?: boolean;
   shouldSkipRateLimit?: boolean;
   rateLimit?: number;
+  bodyLimit?: string;
 }
 
 export interface ControllerMethodArgs {
@@ -56,6 +57,16 @@ export type ControllerMethod = (
   args: ControllerMethodArgs,
   context: ControllerContext,
 ) => ApiSuccess | Promise<ApiSuccess>;
+
+export type CreateRunSetInput = {
+  projectId: string;
+  sessions: string[];
+};
+
+export type CreateProjectSessionInput = {
+  projectId: string;
+  session: Record<string, unknown>;
+};
 
 export interface Route {
   basePath: string;
