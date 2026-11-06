@@ -98,3 +98,15 @@ docker-compose -f docker-compose.yml -f docker-compose.app.yml up --build
 ---
 
 Happy contributing!
+
+## Licensing of contributions
+
+Ownership and licensing in this repository follow contribution (see the
+License section of README.md):
+
+- Contributions by FreshCognate employees are owned by FreshCognate and
+  licensed under the Apache License 2.0.
+- Contributions by Cornell University employees are owned by Cornell
+  University and licensed under the MIT License.
+- External contributions are accepted under the Apache License 2.0 (per
+  Section 5 of the license), unless agreed otherwise in writing.

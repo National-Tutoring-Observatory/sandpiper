@@ -1,6 +1,7 @@
 {
   "name": "sandpiper",
   "private": true,
+  "license": "Apache-2.0",
   "type": "module",
   "packageManager": "yarn@1.22.22",
   "workspaces": [
