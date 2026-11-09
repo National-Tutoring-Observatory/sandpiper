@@ -1,10 +1,21 @@
 import { createProjectSession, createRunSet } from "./api.services";
-import type { CreateRunSetInput, Route } from "./api.types";
+import type { Route } from "./api.types";
 
 const controller: Route["controller"] = {
   create: async ({ body }, context) => {
     if (body.type === "RUN_SET") {
-      return createRunSet(body as CreateRunSetInput, context);
+      return createRunSet(
+        {
+          projectId: body.projectId as string,
+          promptId: body.promptId as string | undefined,
+          models: body.models as string[] | undefined,
+          shouldRunVerification: body.shouldRunVerification as
+            | boolean
+            | undefined,
+          latestSessionLimit: body.latestSessionLimit as number | undefined,
+        },
+        context,
+      );
     }
     if (body.type === "SESSION") {
       return createProjectSession(

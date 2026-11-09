@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { getAvailableModels } from "~/modules/llm/modelRegistry";
 import controller from "./api.controller.js";
 import createController from "./api.createController.js";
 import { hasApiKey } from "./api.middleware.js";
@@ -20,7 +21,13 @@ registerApi([
       body: {
         type: z.enum(["RUN_SET", "SESSION"]),
         projectId: z.string(),
-        session: z.looseObject({}),
+        promptId: z.string().optional(),
+        models: z
+          .array(z.enum(getAvailableModels().map((model) => model.code)))
+          .optional(),
+        shouldRunVerification: z.boolean().optional(),
+        latestSessionLimit: z.number().int().positive().optional(),
+        session: z.looseObject({}).optional(),
       },
       bodyLimit: "1mb",
       rateLimit: 10,

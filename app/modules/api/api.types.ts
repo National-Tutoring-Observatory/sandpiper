@@ -60,7 +60,10 @@ export type ControllerMethod = (
 
 export type CreateRunSetInput = {
   projectId: string;
-  sessions: string[];
+  promptId?: string;
+  models?: string[];
+  shouldRunVerification?: boolean;
+  latestSessionLimit?: number;
 };
 
 export type CreateProjectSessionInput = {
