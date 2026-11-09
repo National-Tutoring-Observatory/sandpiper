@@ -62,7 +62,7 @@ export default function getRoutes(app: Express): void {
         middlewares.push(cors());
       }
       middlewares.push(limiter);
-      middlewares.push(express.json());
+      middlewares.push(express.json({ limit: routeItem.bodyLimit ?? "100kb" }));
       middlewares.push(setUser);
       middlewares.push(...(routeItem.middleware ?? []));
       middlewares.push(

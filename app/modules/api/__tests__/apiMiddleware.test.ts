@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import clearDocumentDB from "../../../../test/helpers/clearDocumentDB";
 import generateToken from "../../tokens/helpers/generateToken";
 import { Token } from "../../tokens/tokens.model";
+import { UserService } from "../../users/user";
 import { hasApiKey } from "../api.middleware";
 
 function makeReqRes(authorization?: string) {
@@ -24,14 +25,23 @@ function expect401(res: Response, next: NextFunction) {
   });
 }
 
-async function createApiKey(overrides: Record<string, unknown> = {}) {
+async function createApiKey(
+  overrides: Record<string, unknown> = {},
+  { isTeamMember = true } = {},
+) {
+  const teamId = new Types.ObjectId();
+  const user = await UserService.create({
+    username: "api-user",
+    teams: isTeamMember ? [{ team: String(teamId), role: "ADMIN" }] : [],
+  });
   const { token, hash, tokenPrefix } = generateToken();
   await Token.create({
     name: "CI",
     token: hash,
     tokenPrefix,
-    ref: new Types.ObjectId(),
+    ref: teamId,
     refType: "team",
+    createdBy: user._id,
     ...overrides,
   });
   return token;
@@ -81,6 +91,36 @@ describe("hasApiKey", () => {
     const { req, res, next } = makeReqRes(`Bearer ${apiKey}`);
     await hasApiKey(req, res, next);
     expect401(res, next);
+  });
+
+  it("returns 401 when the token has no creator", async () => {
+    const apiKey = await createApiKey({ createdBy: undefined });
+    const { req, res, next } = makeReqRes(`Bearer ${apiKey}`);
+    await hasApiKey(req, res, next);
+    expect401(res, next);
+  });
+
+  it("returns 401 when the token's creator no longer exists", async () => {
+    const apiKey = await createApiKey({ createdBy: new Types.ObjectId() });
+    const { req, res, next } = makeReqRes(`Bearer ${apiKey}`);
+    await hasApiKey(req, res, next);
+    expect401(res, next);
+  });
+
+  it("returns 401 when the token's creator is no longer in the team", async () => {
+    const apiKey = await createApiKey({}, { isTeamMember: false });
+    const { req, res, next } = makeReqRes(`Bearer ${apiKey}`);
+    await hasApiKey(req, res, next);
+    expect401(res, next);
+  });
+
+  it("sets req.user to the token's creator and req.activeTeam to its team", async () => {
+    const apiKey = await createApiKey();
+    const { req, res, next } = makeReqRes(`Bearer ${apiKey}`);
+    await hasApiKey(req, res, next);
+    expect(next).toHaveBeenCalledOnce();
+    expect(req.user?.username).toBe("api-user");
+    expect(req.activeTeam).toBe(req.user?.teams[0].team);
   });
 
   it("calls next for a valid token", async () => {
