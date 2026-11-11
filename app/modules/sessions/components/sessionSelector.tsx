@@ -15,6 +15,7 @@ import {
   ArrowUpWideNarrow,
 } from "lucide-react";
 import getDateString from "~/modules/app/helpers/getDateString";
+import TagsSelectorDropdownContainer from "~/modules/tags/containers/tagsSelectorDropdown.container";
 import type { Session } from "../sessions.types";
 import SessionRandomizer from "./sessionRandomizer";
 
@@ -42,6 +43,7 @@ function ColumnSortIcon({
 export default function SessionSelector({
   sessions = [],
   selectedSessions,
+  selectedTags,
   sampleSize,
   sortField,
   sortDirection,
@@ -50,9 +52,12 @@ export default function SessionSelector({
   onSelectSessionToggled,
   onSampleSizeChanged,
   onRandomizeClicked,
+  onSelectedTagsToggled,
+  onSelectTagsClosed,
 }: {
   sessions: Session[];
   selectedSessions: string[];
+  selectedTags: string[];
   sampleSize: number;
   sortField: SessionSortField;
   sortDirection: SortDirection;
@@ -67,6 +72,8 @@ export default function SessionSelector({
   }) => void;
   onSampleSizeChanged: (size: number) => void;
   onRandomizeClicked: () => void;
+  onSelectedTagsToggled: (tagId: string) => void;
+  onSelectTagsClosed: () => void;
 }) {
   return (
     <div>
@@ -76,12 +83,19 @@ export default function SessionSelector({
           <strong className="text-foreground">{selectedSessions.length}</strong>
           &nbsp;session(s) selected
         </span>
-        <SessionRandomizer
-          sampleSize={sampleSize}
-          maxSize={sessions.length}
-          onSampleSizeChanged={onSampleSizeChanged}
-          onRandomizeClicked={onRandomizeClicked}
-        />
+        <div className="flex items-center gap-x-2">
+          <TagsSelectorDropdownContainer
+            value={selectedTags}
+            onChange={onSelectedTagsToggled}
+            onClose={onSelectTagsClosed}
+          />
+          <SessionRandomizer
+            sampleSize={sampleSize}
+            maxSize={sessions.length}
+            onSampleSizeChanged={onSampleSizeChanged}
+            onRandomizeClicked={onRandomizeClicked}
+          />
+        </div>
       </div>
       <div className="h-80 overflow-auto rounded-md border [&>[data-slot=table-container]]:overflow-visible">
         <Table>

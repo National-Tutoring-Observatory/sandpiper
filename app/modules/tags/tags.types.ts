@@ -37,3 +37,9 @@ export interface TagsProps {
   onFiltersValueChanged: (filterValue: FiltersValues) => void;
   onSortValueChanged: (sortValue: string) => void;
 }
+
+export interface TagsSelectorDropdownProps {
+  value: string[];
+  onChange: (tagId: string) => void;
+  onClose: () => void;
+}
