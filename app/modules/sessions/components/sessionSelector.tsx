@@ -15,6 +15,7 @@ import {
   ArrowUpWideNarrow,
 } from "lucide-react";
 import getDateString from "~/modules/app/helpers/getDateString";
+import Flag from "~/modules/featureFlags/components/flag";
 import TagsSelectorDropdownContainer from "~/modules/tags/containers/tagsSelectorDropdown.container";
 import type { Session } from "../sessions.types";
 import SessionRandomizer from "./sessionRandomizer";
@@ -84,11 +85,13 @@ export default function SessionSelector({
           &nbsp;session(s) selected
         </span>
         <div className="flex items-center gap-x-2">
-          <TagsSelectorDropdownContainer
-            value={selectedTags}
-            onChange={onSelectedTagsToggled}
-            onClose={onSelectTagsClosed}
-          />
+          <Flag flag="HAS_TAGS">
+            <TagsSelectorDropdownContainer
+              value={selectedTags}
+              onChange={onSelectedTagsToggled}
+              onClose={onSelectTagsClosed}
+            />
+          </Flag>
           <SessionRandomizer
             sampleSize={sampleSize}
             maxSize={sessions.length}
