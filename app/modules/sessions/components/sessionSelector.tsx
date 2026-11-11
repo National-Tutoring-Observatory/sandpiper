@@ -83,17 +83,19 @@ export default function SessionSelector({
           <strong className="text-foreground">{selectedSessions.length}</strong>
           &nbsp;session(s) selected
         </span>
-        <TagsSelectorDropdownContainer
-          value={selectedTags}
-          onChange={onSelectedTagsToggled}
-          onClose={onSelectTagsClosed}
-        />
-        <SessionRandomizer
-          sampleSize={sampleSize}
-          maxSize={sessions.length}
-          onSampleSizeChanged={onSampleSizeChanged}
-          onRandomizeClicked={onRandomizeClicked}
-        />
+        <div className="flex items-center gap-x-2">
+          <TagsSelectorDropdownContainer
+            value={selectedTags}
+            onChange={onSelectedTagsToggled}
+            onClose={onSelectTagsClosed}
+          />
+          <SessionRandomizer
+            sampleSize={sampleSize}
+            maxSize={sessions.length}
+            onSampleSizeChanged={onSampleSizeChanged}
+            onRandomizeClicked={onRandomizeClicked}
+          />
+        </div>
       </div>
       <div className="h-80 overflow-auto rounded-md border [&>[data-slot=table-container]]:overflow-visible">
         <Table>
