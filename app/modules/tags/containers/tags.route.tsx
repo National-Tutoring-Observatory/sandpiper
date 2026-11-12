@@ -7,6 +7,7 @@ import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromR
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import addDialog from "~/modules/dialogs/addDialog";
+import { SessionService } from "~/modules/sessions/session";
 import TagAuthorization from "../authorization";
 import DeleteTagDialog from "../components/deleteTagDialog";
 import EditTagDialog from "../components/editTagDialog";
@@ -102,6 +103,7 @@ export async function action({ request, params }: Route.ActionArgs) {
     }
 
     await TagService.deleteById(existingTag._id);
+    await SessionService.removeTagFromAllSessions(existingTag._id);
 
     return data({ success: true, intent: "DELETE_TAG" });
   }

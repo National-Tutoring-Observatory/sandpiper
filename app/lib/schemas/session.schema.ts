@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-export default new mongoose.Schema({
+const sessionSchema = new mongoose.Schema({
   name: { type: String },
   project: { type: mongoose.Types.ObjectId, ref: "Project" },
   file: { type: mongoose.Types.ObjectId, ref: "File" },
@@ -18,3 +18,10 @@ export default new mongoose.Schema({
   updatedAt: { type: Date },
   updatedBy: { type: mongoose.Types.ObjectId, ref: "User" },
 });
+
+sessionSchema.index({ tags: 1 });
+sessionSchema.index({ project: 1, name: 1 });
+sessionSchema.index({ project: 1, createdAt: -1 });
+sessionSchema.index({ project: 1, hasConverted: 1 });
+
+export default sessionSchema;
