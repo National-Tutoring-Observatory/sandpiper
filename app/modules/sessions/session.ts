@@ -88,6 +88,14 @@ export class SessionService {
     return result.modifiedCount || 0;
   }
 
+  static async removeTagFromAllSessions(tagId: string): Promise<number> {
+    const result = await SessionModel.updateMany(
+      { tags: tagId },
+      { $pull: { tags: tagId } },
+    );
+    return result.modifiedCount || 0;
+  }
+
   static async deleteById(id: string): Promise<Session | null> {
     const doc = await SessionModel.findByIdAndDelete(id);
     return doc ? this.toSession(doc) : null;
