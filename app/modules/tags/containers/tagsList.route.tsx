@@ -1,5 +1,3 @@
-import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
-import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import resolveActiveTeam from "~/modules/teams/helpers/resolveActiveTeam.server";
 import { TagService } from "../tag";
@@ -10,24 +8,13 @@ export async function loader({ request }: Route.LoaderArgs) {
 
   const teamId = await resolveActiveTeam(request, user);
   if (!teamId) {
-    return { tags: { data: [], count: 0, totalPages: 0 } };
+    return { tags: [] };
   }
 
-  const queryParams = getQueryParamsFromRequest(request, {
-    searchValue: "",
-    currentPage: 1,
-    sort: "name",
-    filters: {},
-  });
-
-  const query = buildQueryFromParams({
+  const tags = await TagService.find({
     match: { team: teamId },
-    queryParams,
-    searchableFields: ["name"],
-    sortableFields: ["name", "createdAt"],
+    sort: { name: 1 },
   });
-
-  const tags = await TagService.paginate({ ...query });
 
   return { tags };
 }

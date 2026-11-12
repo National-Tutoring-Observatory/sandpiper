@@ -88,6 +88,7 @@ export default function SessionSelector({
           <Flag flag="HAS_TAGS">
             <TagsSelectorDropdownContainer
               label="Select by tags"
+              dropdownLabel="Filter sessions by tag"
               value={selectedTags}
               onChange={onSelectedTagsToggled}
               onClose={onSelectTagsClosed}

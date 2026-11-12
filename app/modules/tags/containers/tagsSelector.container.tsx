@@ -4,9 +4,10 @@ import { useFetcher } from "react-router";
 import TagsSelector from "../components/tagsSelector";
 
 const TagsSelectorContainer = ({
+  label,
   value,
   onChange,
-}: SelectActionComponentProps) => {
+}: SelectActionComponentProps & { label: string }) => {
   const fetcher = useFetcher({ key: "tagsSelector" });
 
   useEffect(() => {
@@ -27,7 +28,8 @@ const TagsSelectorContainer = ({
 
   return (
     <TagsSelector
-      tags={fetcherData?.tags.data}
+      label={label}
+      tags={fetcherData?.tags}
       isLoading={isLoading}
       selectedTagIds={value}
       toggleTag={toggleTag}

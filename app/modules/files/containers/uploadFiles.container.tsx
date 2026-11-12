@@ -67,9 +67,8 @@ export default function UploadFilesContainer({
     setSelectedTags(xor(selectedTags, [tagId]));
   };
 
-  const selectedTagsData: Tag[] = filter(
-    tagsFetcher.data?.tags?.data,
-    (tag: Tag) => includes(selectedTags, tag._id),
+  const selectedTagsData: Tag[] = filter(tagsFetcher.data?.tags, (tag: Tag) =>
+    includes(selectedTags, tag._id),
   );
 
   return (
