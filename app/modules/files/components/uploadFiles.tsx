@@ -192,6 +192,7 @@ export default function UploadFiles({
                 <>
                   <TagsSelectorDropdownContainer
                     label="Add tags"
+                    dropdownLabel="Adds tags to each session"
                     value={map(selectedTags, "_id")}
                     onChange={onSelectedTagsToggled}
                   />

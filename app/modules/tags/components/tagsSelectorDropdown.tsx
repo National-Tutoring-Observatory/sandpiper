@@ -10,6 +10,7 @@ import type { TagsSelectorDropdownProps } from "../tags.types";
 
 const TagsSelectorDropdown = ({
   label,
+  dropdownLabel,
   value,
   onChange,
   onClose,
@@ -28,7 +29,11 @@ const TagsSelectorDropdown = ({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-fit">
-          <TagsSelectorContainer value={value} onChange={onChange} />
+          <TagsSelectorContainer
+            label={dropdownLabel}
+            value={value}
+            onChange={onChange}
+          />
         </DropdownMenuContent>
       </DropdownMenu>
     </div>

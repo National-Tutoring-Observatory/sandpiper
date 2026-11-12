@@ -40,6 +40,7 @@ export interface TagsProps {
 
 export interface TagsSelectorDropdownProps {
   label: string;
+  dropdownLabel: string;
   value: string[];
   onChange: (tagId: string) => void;
   onClose?: () => void;
