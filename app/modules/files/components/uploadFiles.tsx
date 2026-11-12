@@ -22,6 +22,9 @@ import { useState } from "react";
 import { useDropzone } from "react-dropzone";
 import type { FetcherWithComponents } from "react-router";
 import { Link } from "react-router";
+import SelectedTags from "~/modules/tags/components/selectedTags";
+import TagsSelectorDropdownContainer from "~/modules/tags/containers/tagsSelectorDropdown.container";
+import type { Tag } from "~/modules/tags/tags.types";
 import { SUPPORTED_FILE_TYPES } from "../constants";
 import type { FileType, UploadFilesData } from "../files.types";
 import getFileUploadAccepts from "../helpers/getFileUploadAccepts";
@@ -36,6 +39,8 @@ export default function UploadFiles({
   fetcher,
   onUploadClick,
   onUseMtmDatasetClicked,
+  selectedTags,
+  onSelectedTagsToggled,
 }: {
   acceptedFiles: { _id: string; name: string; type: string }[];
   instructionsByType: Record<FileType, { overview: string; link: string }>;
@@ -45,6 +50,8 @@ export default function UploadFiles({
   fetcher: FetcherWithComponents<UploadFilesData>;
   onUploadClick: () => void;
   onUseMtmDatasetClicked: () => void;
+  selectedTags: Tag[];
+  onSelectedTagsToggled: (tagId: string) => void;
 }) {
   const [activeTab, setActiveTab] = useState<FileType>("CSV");
   const data = fetcher.data as UploadFilesData | undefined;
@@ -178,7 +185,19 @@ export default function UploadFiles({
               </TableBody>
             </Table>
           </div>
-          <div className="mt-2 flex justify-center">
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <div className="flex w-full items-center gap-2 pr-2">
+              <TagsSelectorDropdownContainer
+                label="Add tags"
+                value={map(selectedTags, "_id")}
+                onChange={onSelectedTagsToggled}
+              />
+              {selectedTags.length > 0 && (
+                <div className="ml-l border-l pl-2">
+                  <SelectedTags tags={selectedTags} />
+                </div>
+              )}
+            </div>
             <Button size="lg" disabled={isUploading} onClick={onUploadClick}>
               {uploadButtonText}
             </Button>

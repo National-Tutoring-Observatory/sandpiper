@@ -9,6 +9,7 @@ import TagsSelectorContainer from "../containers/tagsSelector.container";
 import type { TagsSelectorDropdownProps } from "../tags.types";
 
 const TagsSelectorDropdown = ({
+  label,
   value,
   onChange,
   onClose,
@@ -17,12 +18,12 @@ const TagsSelectorDropdown = ({
     <div>
       <DropdownMenu
         onOpenChange={(open) => {
-          if (!open) onClose();
+          if (!open) onClose?.();
         }}
       >
         <DropdownMenuTrigger asChild>
           <Button variant="outline">
-            Select by tags
+            {label}
             <ChevronDown />
           </Button>
         </DropdownMenuTrigger>

@@ -87,6 +87,7 @@ export default function SessionSelector({
         <div className="flex items-center gap-x-2">
           <Flag flag="HAS_TAGS">
             <TagsSelectorDropdownContainer
+              label="Select by tags"
               value={selectedTags}
               onChange={onSelectedTagsToggled}
               onClose={onSelectTagsClosed}

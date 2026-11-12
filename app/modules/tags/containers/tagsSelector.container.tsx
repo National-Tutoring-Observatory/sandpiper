@@ -7,7 +7,7 @@ const TagsSelectorContainer = ({
   value,
   onChange,
 }: SelectActionComponentProps) => {
-  const fetcher = useFetcher();
+  const fetcher = useFetcher({ key: "tagsSelector" });
 
   useEffect(() => {
     fetcher.load(`/api/tags`);

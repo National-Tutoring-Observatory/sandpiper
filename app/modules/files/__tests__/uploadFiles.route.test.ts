@@ -2,6 +2,7 @@ import { Types } from "mongoose";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { FileService } from "~/modules/files/file";
 import { ProjectService } from "~/modules/projects/project";
+import { TagService } from "~/modules/tags/tag";
 import "~/modules/teams/team";
 import { TeamService } from "~/modules/teams/team";
 import { UserService } from "~/modules/users/user";
@@ -194,6 +195,54 @@ describe("uploadFiles.route action", () => {
 
     expect(resp.init?.status).toBe(400);
     expect(resp.data?.errors?.files).toBe("Please select at least one file.");
+  });
+
+  it("returns 400 when a tag belongs to another team", async () => {
+    const user = await UserService.create({ username: "test_user", teams: [] });
+    const team = await TeamService.create({ name: "Test Team" });
+    const otherTeam = await TeamService.create({ name: "Other Team" });
+    await UserService.updateById(user._id, {
+      teams: [{ team: team._id, role: "ADMIN" }],
+    });
+
+    const project = await ProjectService.create({
+      name: "Test Project",
+      createdBy: user._id,
+      team: team._id,
+    });
+    const otherTeamTag = await TagService.create({
+      name: "Other tag",
+      description: "",
+      color: "#ff0000",
+      team: otherTeam._id,
+      createdBy: user._id,
+    });
+
+    const cookieHeader = await loginUser(user._id);
+
+    const formData = new FormData();
+    formData.append(
+      "files",
+      new File(["test content"], "test.json", { type: "application/json" }),
+    );
+    formData.append("tags", otherTeamTag._id);
+
+    const req = new Request(
+      `http://localhost/teams/${team._id}/projects/${project._id}/upload-files`,
+      {
+        method: "POST",
+        headers: { cookie: cookieHeader },
+        body: formData,
+      },
+    );
+
+    const resp = (await action({
+      request: req,
+      params: { teamId: team._id, projectId: project._id },
+    } as any)) as any;
+
+    expect(resp.init?.status).toBe(400);
+    expect(resp.data?.errors?.general).toBe("Invalid tags");
   });
 
   it("returns error when file processing fails", async () => {

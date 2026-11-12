@@ -102,6 +102,7 @@ export class FileService {
     files: globalThis.File[];
     team: string;
     userId: string;
+    tags: string[];
   }) {
     return processUploadedFiles(params);
   }
