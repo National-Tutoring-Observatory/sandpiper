@@ -13,6 +13,7 @@ export default async function uploadFiles({
   entityId: string;
 }) {
   let completedFiles = 0;
+  const fileIds: string[] = [];
 
   for (const file of files) {
     if (file instanceof File) {
@@ -22,6 +23,7 @@ export default async function uploadFiles({
         fileType: file.type,
         name,
       });
+      fileIds.push(newFile._id);
 
       const uploadPath = getProjectFileStoragePath(
         entityId,
@@ -49,4 +51,6 @@ export default async function uploadFiles({
     progress: 100,
     status: "DONE",
   });
+
+  return fileIds;
 }

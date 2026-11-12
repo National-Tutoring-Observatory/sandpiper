@@ -1,4 +1,10 @@
+import filter from "lodash/filter";
+import includes from "lodash/includes";
+import xor from "lodash/xor";
+import { useState } from "react";
 import type { FetcherWithComponents } from "react-router";
+import { useFetcher } from "react-router";
+import type { Tag } from "~/modules/tags/tags.types";
 import UploadFiles from "../components/uploadFiles";
 import { SUPPORTED_FILE_TYPES } from "../constants";
 import type { FileType, UploadFilesData } from "../files.types";
@@ -15,6 +21,8 @@ export default function UploadFilesContainer({
   uploadFetcher,
 }: UploadFilesContainerProps) {
   const { acceptedFiles, addFiles, removeFile } = useFileAccumulator();
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const tagsFetcher = useFetcher({ key: "tagsSelector" });
 
   const instructionsByType = SUPPORTED_FILE_TYPES.reduce(
     (acc, fileType) => {
@@ -38,6 +46,10 @@ export default function UploadFilesContainer({
       formData.append("files", file);
     });
 
+    selectedTags.forEach((tagId) => {
+      formData.append("tags", tagId);
+    });
+
     uploadFetcher.submit(formData, {
       method: "POST",
       encType: "multipart/form-data",
@@ -51,6 +63,15 @@ export default function UploadFilesContainer({
     });
   };
 
+  const onSelectedTagsToggled = (tagId: string) => {
+    setSelectedTags(xor(selectedTags, [tagId]));
+  };
+
+  const selectedTagsData: Tag[] = filter(
+    tagsFetcher.data?.tags?.data,
+    (tag: Tag) => includes(selectedTags, tag._id),
+  );
+
   return (
     <UploadFiles
       acceptedFiles={acceptedFiles}
@@ -61,6 +82,8 @@ export default function UploadFilesContainer({
       fetcher={uploadFetcher}
       onUploadClick={handleUpload}
       onUseMtmDatasetClicked={handleUseMtmDataset}
+      selectedTags={selectedTagsData}
+      onSelectedTagsToggled={onSelectedTagsToggled}
     />
   );
 }

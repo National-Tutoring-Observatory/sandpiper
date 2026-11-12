@@ -19,6 +19,7 @@ import {
   projectUrl,
 } from "~/modules/projects/helpers/projectUrls";
 import { ProjectService } from "~/modules/projects/project";
+import { TagService } from "~/modules/tags/tag";
 import type { Route } from "./+types/uploadFiles.route";
 import UploadFilesContainer from "./uploadFiles.container";
 
@@ -125,12 +126,26 @@ export async function action({ request, params }: Route.ActionArgs) {
     );
   }
 
+  const tags = formData.getAll("tags");
+  if (!tags.every((tag) => typeof tag === "string")) {
+    return data({ errors: { general: "Invalid tags" } }, { status: 400 });
+  }
+  const tagIds = [...new Set(tags as string[])];
+  const ownedTagCount = await TagService.count({
+    _id: { $in: tagIds },
+    team: project.team,
+  });
+  if (ownedTagCount !== tagIds.length) {
+    return data({ errors: { general: "Invalid tags" } }, { status: 400 });
+  }
+
   try {
     await FileService.processUploadedFiles({
       projectId: params.projectId,
       files: uploadedFiles,
       team: project.team as string,
       userId: user._id,
+      tags: tagIds,
     });
   } catch (error) {
     const errorMessage =

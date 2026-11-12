@@ -9,10 +9,14 @@ export default async function createSessionsFromFiles({
   projectId,
   shouldCreateSessionModels = true,
   attributesMapping,
+  tags = [],
+  fileIds = [],
 }: {
   projectId: string;
   shouldCreateSessionModels: boolean;
   attributesMapping?: Record<string, unknown>;
+  tags?: string[];
+  fileIds?: string[];
 }) {
   const projectFiles = await FileService.findByProject(projectId);
 
@@ -35,6 +39,7 @@ export default async function createSessionsFromFiles({
         fileType: "application/json",
         name: `${projectFile.name.replace(/\.[^.]+$/, "")}.json`,
         hasConverted: false,
+        tags: fileIds.includes(String(projectFile._id)) ? tags : [],
       });
     }
   }
