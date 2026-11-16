@@ -1,5 +1,6 @@
 import { PageHeader, PageHeaderLeft } from "@/components/ui/pageHeader";
 import { Spinner } from "@/components/ui/spinner";
+import { AnimatePresence, motion } from "motion/react";
 import type { Breadcrumb } from "~/modules/app/app.types";
 import Breadcrumbs from "~/modules/app/components/breadcrumbs";
 import type { Run, RunSession } from "~/modules/runs/runs.types";
@@ -59,17 +60,27 @@ export default function RunSessions({
           onSearchValueChanged={onSidebarSearchValueChanged}
           onPaginationChanged={onSidebarPaginationChanged}
         />
-        {isLoadingSession ? (
-          <div className="flex flex-1 items-center justify-center">
-            <Spinner className="size-6" />
-          </div>
-        ) : (
+        <div className="relative">
+          <AnimatePresence>
+            {isLoadingSession && (
+              <motion.div
+                key="session-loading"
+                className="absolute top-0 left-0 z-40 flex h-full w-full flex-1 items-center justify-center bg-black/10"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                <Spinner className="size-6" />
+              </motion.div>
+            )}
+          </AnimatePresence>
           <RunSessionViewerContainer
             run={run}
             session={session}
             sessionFile={sessionFile}
           />
-        )}
+        </div>
       </div>
     </div>
   );
