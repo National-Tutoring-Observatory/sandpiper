@@ -1,0 +1,102 @@
+{
+  "leadRole": "Tutor",
+  "note": "SYNTHETIC transcript written for a wiring test. Not real student data.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Hi Sam! Today we're solving 3x + 5 = 20. What do you think we should do first?",
+      "annotations": []
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "Um, divide by 3?",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "Not quite. Take another look at the left side. Is there something we should undo before we divide?",
+      "annotations": []
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "Oh, the plus 5. So subtract 5.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "Exactly! Subtract 5 from both sides. What do you get?",
+      "annotations": []
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "3x equals 15.",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "3x equals 15.",
+      "annotations": []
+    },
+    {
+      "_id": "7",
+      "role": "Tutor",
+      "content": "Why did we subtract 5 from both sides and not just the left?",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Student",
+      "content": "Because it has to stay balanced, like a scale.",
+      "annotations": []
+    },
+    {
+      "_id": "9",
+      "role": "Tutor",
+      "content": "So you're saying an equation is like a balance scale: whatever we do to one side, we must do to the other to keep the two sides equal.",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "What are you going to do next?",
+      "annotations": []
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "Divide by 3. x is 5.",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "Yes, x equals 5. Think of it like sharing 15 cookies equally among 3 friends: each friend gets 5.",
+      "annotations": []
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "That makes sense.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "To check an answer, first you substitute the value back into the original equation, then you simplify each side and see whether they match.",
+      "annotations": []
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "3 times 5 is 15, plus 5 is 20. It works!",
+      "annotations": []
+    }
+  ]
+}
