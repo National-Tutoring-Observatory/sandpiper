@@ -1,0 +1,144 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data. The labels are designed reference labels, fixed when the turns were written. They are not human codes and this is not a benchmark.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Hi Maya, good to see you. Today we're adding one half and one third.",
+      "annotations": []
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "Okay. I think it's two fifths.",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "No, two fifths isn't correct.",
+      "annotations": [
+        {
+          "_id": "2",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "FEEDBACK_INCORRECT",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "Oh. I just added the tops and the bottoms.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "We can't add them that way because halves and thirds are different-sized pieces. You can only add pieces when they are the same size.",
+      "annotations": [
+        {
+          "_id": "4",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "EXPLAINING_CONCEPTUAL",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "So I need to make them the same size?",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "Can you explain what the denominator of a fraction tells us?",
+      "annotations": [
+        {
+          "_id": "6",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_RELATED_CONCEPTS",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "It tells you how many pieces the whole is cut into.",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "What would you do next?",
+      "annotations": [
+        {
+          "_id": "8",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_NEXT_STEP",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "Find a common denominator. Six?",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "Yes, six is right.",
+      "annotations": [
+        {
+          "_id": "10",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "FEEDBACK_CORRECT",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "Then it's three sixths and two sixths, so five on the top and six on the bottom.",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "So the numerators add to five, over a common denominator of six.",
+      "annotations": [
+        {
+          "_id": "12",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "REVOICING",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "Yeah, five sixths.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "That's our time for today. See you on Thursday.",
+      "annotations": []
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Bye!",
+      "annotations": []
+    }
+  ]
+}

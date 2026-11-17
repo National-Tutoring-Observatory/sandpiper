@@ -12,12 +12,21 @@
  * of them in which the file name identifies the session. The first run named
  * is the base run: precision and recall are measured against it, so put human
  * codes or the reference model first.
+ *
+ * Add --per-session when the runs were made with a per-session prompt.
+ *
+ * The report pairs labels by position, so every run must hold the same
+ * utterances in the same order. This script stops if they differ.
  */
 import fse from "fs-extra";
 import path from "path";
-import type { SessionFile } from "../../app/modules/sessions/sessions.types";
+import type {
+  Annotation,
+  SessionFile,
+} from "../../app/modules/sessions/sessions.types";
 
 const SINGLE_SESSION_ID = "session";
+const PER_SESSION_FLAG = "--per-session";
 
 async function readRunSessions(
   runPath: string,
@@ -39,14 +48,36 @@ async function readRunSessions(
   return sessions;
 }
 
+function getUtteranceIds(sessionFile: SessionFile): string {
+  return (sessionFile.transcript || [])
+    .map((utterance) => utterance._id)
+    .join(",");
+}
+
+function hasFieldValue(
+  annotations: Annotation[] | undefined,
+  fieldKeys: string[],
+): boolean {
+  return (annotations || []).some((annotation) =>
+    fieldKeys.some(
+      (fieldKey) =>
+        annotation[fieldKey] !== undefined && annotation[fieldKey] !== null,
+    ),
+  );
+}
+
 async function main() {
-  const [outputPath, annotationFields, ...runArguments] = process.argv.slice(2);
+  const commandArguments = process.argv.slice(2);
+  const isPerSession = commandArguments.includes(PER_SESSION_FLAG);
+  const [outputPath, annotationFields, ...runArguments] =
+    commandArguments.filter((argument) => argument !== PER_SESSION_FLAG);
 
   if (!outputPath || !annotationFields || runArguments.length < 2) {
     throw new Error(
-      "Usage: sessionsToEvaluation.ts <outPath> <annotationFields> <name=path> <name=path> [...]",
+      "Usage: sessionsToEvaluation.ts <outPath> <annotationFields> <name=path> <name=path> [...] [--per-session]",
     );
   }
+  const fieldKeys = annotationFields.split(",");
 
   const cache: Record<string, Record<string, SessionFile>> = {};
   for (const runArgument of runArguments) {
@@ -61,11 +92,60 @@ async function main() {
   }
 
   const runNames = Object.keys(cache);
-  const commonSessionIds = Object.keys(cache[runNames[0]]).filter((sessionId) =>
+  const allSessionIds = [
+    ...new Set(runNames.flatMap((runName) => Object.keys(cache[runName]))),
+  ].sort();
+  const commonSessionIds = allSessionIds.filter((sessionId) =>
     runNames.every((runName) => cache[runName][sessionId]),
   );
   if (commonSessionIds.length === 0) {
-    throw new Error("The runs have no session in common.");
+    throw new Error(
+      "The runs have no session in common. Give every run a single file, or give every run a folder whose file names match.",
+    );
+  }
+
+  for (const sessionId of allSessionIds) {
+    if (commonSessionIds.includes(sessionId)) continue;
+    const missingFrom = runNames.filter(
+      (runName) => !cache[runName][sessionId],
+    );
+    console.warn(
+      `Left out session "${sessionId}": missing from ${missingFrom.join(", ")}.`,
+    );
+  }
+
+  for (const sessionId of commonSessionIds) {
+    const expectedIds = getUtteranceIds(cache[runNames[0]][sessionId]);
+    for (const runName of runNames.slice(1)) {
+      if (getUtteranceIds(cache[runName][sessionId]) !== expectedIds) {
+        throw new Error(
+          `Session "${sessionId}" does not hold the same utterances in "${runNames[0]}" and "${runName}". The report pairs labels by position, so the runs must start from the same transcript.`,
+        );
+      }
+    }
+  }
+
+  const hasUtteranceLabels = runNames.some((runName) =>
+    commonSessionIds.some((sessionId) =>
+      (cache[runName][sessionId].transcript || []).some((utterance) =>
+        hasFieldValue(utterance.annotations, fieldKeys),
+      ),
+    ),
+  );
+  const hasSessionLabels = runNames.some((runName) =>
+    commonSessionIds.some((sessionId) =>
+      hasFieldValue(cache[runName][sessionId].annotations, fieldKeys),
+    ),
+  );
+  if (!isPerSession && !hasUtteranceLabels && hasSessionLabels) {
+    throw new Error(
+      `These runs carry "${annotationFields}" on the session, not on its utterances. Add ${PER_SESSION_FLAG}.`,
+    );
+  }
+  if (isPerSession && !hasSessionLabels) {
+    throw new Error(
+      `${PER_SESSION_FLAG} was given, but no run carries "${annotationFields}" on a session.`,
+    );
   }
 
   const fixture = {
@@ -76,7 +156,7 @@ async function main() {
       runSet: "rs-local",
       baseRun: runNames[0],
       runs: runNames,
-      annotationFields: annotationFields.split(","),
+      annotationFields: fieldKeys,
     },
     runs: runNames.map((runName) => ({
       _id: runName,
@@ -87,7 +167,11 @@ async function main() {
         sessionId,
         status: "DONE",
       })),
-      snapshot: { prompt: { annotationType: "PER_UTTERANCE" } },
+      snapshot: {
+        prompt: {
+          annotationType: isPerSession ? "PER_SESSION" : "PER_UTTERANCE",
+        },
+      },
     })),
     cache,
     commonSessionIds,
@@ -95,7 +179,7 @@ async function main() {
 
   await fse.outputJSON(outputPath, fixture, { spaces: 2 });
   console.log(
-    `Wrote ${outputPath}: ${runNames.length} runs, ${commonSessionIds.length} session(s), base run "${runNames[0]}".`,
+    `Wrote ${outputPath}: ${runNames.length} runs, ${commonSessionIds.length} of ${allSessionIds.length} session(s), base run "${runNames[0]}".`,
   );
 }
 

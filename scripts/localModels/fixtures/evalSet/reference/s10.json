@@ -1,0 +1,152 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data. The labels are designed reference labels, fixed when the turns were written. They are not human codes and this is not a benchmark.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Hi Chris. Give me one second to share the problem.",
+      "annotations": []
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "Sure.",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "To find the mean, first add all the numbers together, then divide the total by how many numbers there are.",
+      "annotations": [
+        {
+          "_id": "2",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "EXPLAINING_PROCEDURAL",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "Four plus seven plus seven plus ten is twenty-eight.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "What comes next?",
+      "annotations": [
+        {
+          "_id": "4",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_NEXT_STEP",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "Divide by four. Seven.",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "How do you know you should divide by four and not by three?",
+      "annotations": [
+        {
+          "_id": "6",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_SELF_EXPLANATION",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "Because there are four numbers, even though seven is there twice.",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "Alright, I hear you.",
+      "annotations": [
+        {
+          "_id": "8",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "FEEDBACK_NEUTRAL",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "But I don't really get what the mean is for.",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "Picture four friends with different numbers of stickers who pool them and share them out evenly. Each friend's equal share is the mean.",
+      "annotations": [
+        {
+          "_id": "10",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "GIVING_EXAMPLE",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "So it's like the fair share. What if a fifth friend had two stickers? Is it six point five?",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "Close, but no. What is the new total when you add two?",
+      "annotations": [
+        {
+          "_id": "12",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_NEXT_STEP",
+          "designedAs": "mixed",
+          "secondaryCode": "FEEDBACK_INCORRECT"
+        }
+      ]
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "Thirty. And what would it be with a sixth friend who has zero? I can't do that in my head.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "The mean would be five.",
+      "annotations": [
+        {
+          "_id": "14",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "GIVING_ANSWER",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Thirty divided by six. Five. Okay.",
+      "annotations": []
+    }
+  ]
+}

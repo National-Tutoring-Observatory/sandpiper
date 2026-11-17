@@ -1,0 +1,102 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Our expression is three plus four times two. What do you do first?",
+      "annotations": []
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "Three plus four is seven, then times two is fourteen.",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "Fourteen is not correct.",
+      "annotations": []
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "But I went left to right like reading.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "Try a different one: at a shop you buy one drink for three dollars and four snacks at two dollars each. You'd work out the snacks first, then add the drink.",
+      "annotations": []
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "So four times two is eight, plus three is eleven.",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "Yes, eleven is correct.",
+      "annotations": []
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "Multiplication goes before adding.",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "Multiplication goes before adding.",
+      "annotations": []
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "Unless there are brackets, I think.",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "Why would brackets change the order?",
+      "annotations": []
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "Because brackets mean do this part first. So three plus four in brackets times two is ten?",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "No, that's not it. It's fourteen.",
+      "annotations": []
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "Oh, seven times two.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "Good place to pause. I'll send you three practice problems tonight.",
+      "annotations": []
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Okay, thank you.",
+      "annotations": []
+    }
+  ]
+}

@@ -8,6 +8,7 @@ Helpers for running Sandpiper's annotation on a model served on your own machine
 | `sessionsToEvaluation.ts`        | Turns annotated session files into a fixture for the agreement report in `scripts/evaluations` | Two or more annotated files |
 | `annotatePerUtterance.check.ts`  | Runs the worker's real `annotatePerUtterance` task against a local model                       | A model server              |
 | `fixtures/syntheticSession.json` | A 16-utterance tutoring exchange, invented for these checks. It is not real student data       |                             |
+| `fixtures/evalSet/`              | Ten invented sessions with a reference label for each tutor turn, for comparing models         |                             |
 
 None of them needs MongoDB, Redis, storage or an account.
 
@@ -56,6 +57,35 @@ yarn tsx scripts/evaluations/runEvaluationReport.ts tmp/local/comparison.json
 ```
 
 Each run is `name=path`. The path is one annotated session file, or a folder of them in which the file name identifies the session. The first run named is the base run, so put human codes or your reference model first.
+
+Two rules keep the comparison honest:
+
+- **Every run must start from the same transcripts.** The report pairs labels by position, so the script stops if a session holds different utterances in two runs. A session that is missing from any run is left out, and the script names it.
+- **Say when the prompt is per session.** Add `--per-session` for runs made with a per-session prompt such as the Tutoring Quality Rubric. The script stops if the flag and the files disagree.
+
+## A small evaluation set
+
+`fixtures/evalSet/` holds ten invented tutoring sessions (160 utterances, 80 of them the tutor's) and a reference label for each tutor turn under the Tutor Moves codebook. Each of the fifteen codes appears in four turns written to show that code alone. Ten more turns mix two codes, and ten carry no code. In the reference files, `designedAs` says which kind a turn is, and `secondaryCode` holds a mixed turn's second code.
+
+```bash
+for session in scripts/localModels/fixtures/evalSet/sessions/*.json; do
+  AI_GATEWAY_BASE_URL=http://127.0.0.1:11434/v1 \
+    yarn tsx scripts/localModels/annotateSession.ts \
+    --model mistral-nemo \
+    --session "$session" \
+    --out "tmp/local/mistral-nemo/$(basename "$session")"
+done
+
+yarn tsx scripts/localModels/sessionsToEvaluation.ts tmp/local/comparison.json LEARNING_SUPPORT \
+  reference=scripts/localModels/fixtures/evalSet/reference \
+  small=tmp/local/mistral-nemo
+
+yarn tsx scripts/evaluations/runEvaluationReport.ts tmp/local/comparison.json
+```
+
+Annotate the files in `sessions/`, never those in `reference/`: `annotateSession.ts` adds its labels after any already in the file, and the report reads the first label it finds.
+
+Read the scores with care. The reference labels were fixed when the turns were written, before any model saw them. They are a design, not human coding: nobody has coded these sessions independently, and invented turns are cleaner than real ones. The set shows whether a model follows the codebook and how models compare with each other. It does not show how accurate a model is on real tutoring data.
 
 ## Checking the worker task
 
