@@ -4,9 +4,15 @@ import find from "lodash/find";
 import map from "lodash/map";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Run, RunSession } from "~/modules/runs/runs.types";
+import RunSessionAnnotationFilterContainer from "../containers/runSessionAnnotationFilterContainer";
 import SessionVerificationContainer from "../containers/sessionVerificationContainer";
 import getSessionVerificationChanges from "../helpers/getSessionVerificationChanges";
-import type { Annotation, SessionFile, Utterance } from "../sessions.types";
+import type {
+  Annotation,
+  AnnotationFilter,
+  SessionFile,
+  Utterance,
+} from "../sessions.types";
 import SessionViewerAnnotation from "./runSessionViewerAnnotation";
 import SessionViewerDetails from "./runSessionViewerDetails";
 import SessionViewerUtterance from "./sessionViewerUtterance";
@@ -18,11 +24,13 @@ export default function SessionViewer({
   selectedUtteranceId,
   selectedUtteranceAnnotations,
   removedAnnotations,
+  annotationFilters,
   isVoting,
   utteranceCount,
   selectedUtteranceIndex,
   annotatedUtteranceCount,
   shouldShowVerificationDetails,
+  isSavingReason,
   onToggleVerificationDetails,
   onUtteranceClicked,
   onPreviousAnnotationClicked,
@@ -31,13 +39,17 @@ export default function SessionViewer({
   onDownVoteClicked,
   onUpVoteClicked,
   onSaveVotingReason,
-  isSavingReason,
+  onAddAnnotationFilter,
+  onRemoveAnnotationFilter,
 }: {
   run: Run;
   session: RunSession;
   sessionFile: SessionFile;
   selectedUtteranceAnnotations: Annotation[];
   removedAnnotations: Annotation[];
+  annotationFilters: AnnotationFilter[];
+  onAddAnnotationFilter: (annotationFilter: AnnotationFilter) => void;
+  onRemoveAnnotationFilter: (annotationFilter: AnnotationFilter) => void;
   selectedUtteranceId: string | null;
   isVoting: boolean;
   isSavingReason: boolean;
@@ -83,37 +95,52 @@ export default function SessionViewer({
       </SkipLink>
       <div
         id="session-viewer-scroll-container"
-        className="flex h-full w-[55%] min-w-0 flex-col overflow-y-scroll scroll-smooth border-r p-4"
+        className="flex h-full w-[55%] min-w-0 flex-col overflow-y-scroll scroll-smooth border-r"
       >
-        {map(sessionFile.transcript, (utterance: Utterance, index: number) => {
-          const isSelected = selectedUtteranceId === utterance._id;
-          const isPerUtterance = run.annotationType === "PER_UTTERANCE";
-          const hasChangedAnnotation =
-            isPerUtterance &&
-            verificationChanges?.changed.some(
-              (c) => c.after._id === utterance._id,
-            );
-          const hasAddedAnnotation =
-            isPerUtterance &&
-            verificationChanges?.added.some((a) => a._id === utterance._id);
-          const hasRemovedAnnotation =
-            isPerUtterance &&
-            verificationChanges?.removed.some((r) => r._id === utterance._id);
-          return (
-            <SessionViewerUtterance
-              key={utterance._id}
-              utteranceNumber={index + 1}
-              leadRole={sessionFile.leadRole}
-              utterance={utterance}
-              isSelected={isSelected}
-              hasChangedAnnotation={hasChangedAnnotation}
-              hasAddedAnnotation={hasAddedAnnotation}
-              hasRemovedAnnotation={hasRemovedAnnotation}
-              shouldShowVerificationDetails={shouldShowVerificationDetails}
-              onUtteranceClicked={onUtteranceClicked}
-            />
-          );
-        })}
+        <div className="sticky top-0 flex justify-end px-4 pt-2">
+          <RunSessionAnnotationFilterContainer
+            annotationFilters={annotationFilters}
+            annotationSchema={run.snapshot?.prompt.annotationSchema ?? []}
+            onAddAnnotationFilter={onAddAnnotationFilter}
+            onRemoveAnnotationFilter={onRemoveAnnotationFilter}
+          />
+        </div>
+        <div className="p-4">
+          {map(
+            sessionFile.transcript,
+            (utterance: Utterance, index: number) => {
+              const isSelected = selectedUtteranceId === utterance._id;
+              const isPerUtterance = run.annotationType === "PER_UTTERANCE";
+              const hasChangedAnnotation =
+                isPerUtterance &&
+                verificationChanges?.changed.some(
+                  (c) => c.after._id === utterance._id,
+                );
+              const hasAddedAnnotation =
+                isPerUtterance &&
+                verificationChanges?.added.some((a) => a._id === utterance._id);
+              const hasRemovedAnnotation =
+                isPerUtterance &&
+                verificationChanges?.removed.some(
+                  (r) => r._id === utterance._id,
+                );
+              return (
+                <SessionViewerUtterance
+                  key={utterance._id}
+                  utteranceNumber={index + 1}
+                  leadRole={sessionFile.leadRole}
+                  utterance={utterance}
+                  isSelected={isSelected}
+                  hasChangedAnnotation={hasChangedAnnotation}
+                  hasAddedAnnotation={hasAddedAnnotation}
+                  hasRemovedAnnotation={hasRemovedAnnotation}
+                  shouldShowVerificationDetails={shouldShowVerificationDetails}
+                  onUtteranceClicked={onUtteranceClicked}
+                />
+              );
+            },
+          )}
+        </div>
       </div>
       <div
         id="session-annotations-panel"

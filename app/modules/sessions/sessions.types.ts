@@ -52,3 +52,8 @@ export interface Annotation {
   votingReason?: string;
   [key: string]: unknown;
 }
+
+export interface AnnotationFilter {
+  fieldKey: string;
+  value: string | boolean;
+}

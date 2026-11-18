@@ -1,11 +1,17 @@
+import cloneDeep from "lodash/cloneDeep";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
+import remove from "lodash/remove";
 import { useEffect, useState } from "react";
 import { useFetcher, useLocation, useNavigate } from "react-router";
 import type { Run, RunSession } from "~/modules/runs/runs.types";
 import RunSessionViewer from "../components/runSessionViewer";
 import getSessionVerificationChanges from "../helpers/getSessionVerificationChanges";
-import type { Annotation, SessionFile } from "../sessions.types";
+import type {
+  Annotation,
+  AnnotationFilter,
+  SessionFile,
+} from "../sessions.types";
 
 export default function RunSessionViewerContainer({
   run,
@@ -21,6 +27,10 @@ export default function RunSessionViewerContainer({
 
   const [shouldShowVerificationDetails, setShowVerificationDetails] =
     useState(false);
+
+  const [annotationFilters, setAnnotationFilters] = useState<
+    AnnotationFilter[]
+  >([]);
 
   const fetcher = useFetcher();
 
@@ -162,6 +172,20 @@ export default function RunSessionViewerContainer({
     }
   };
 
+  const onAddAnnotationFilter = (annotationFilter: AnnotationFilter) => {
+    const clonedAnnotationFilters = cloneDeep(annotationFilters);
+    if (!find(annotationFilters, annotationFilter)) {
+      clonedAnnotationFilters.push(annotationFilter);
+    }
+    setAnnotationFilters(clonedAnnotationFilters);
+  };
+
+  const onRemoveAnnotationFilter = (annotationFilter: AnnotationFilter) => {
+    const clonedAnnotationFilters = cloneDeep(annotationFilters);
+    remove(clonedAnnotationFilters, annotationFilter);
+    setAnnotationFilters(clonedAnnotationFilters);
+  };
+
   return (
     <RunSessionViewer
       session={session}
@@ -174,6 +198,7 @@ export default function RunSessionViewerContainer({
       annotatedUtteranceCount={annotatedUtteranceCount}
       selectedUtteranceIndex={selectedUtteranceIndex}
       run={run}
+      annotationFilters={annotationFilters}
       shouldShowVerificationDetails={shouldShowVerificationDetails}
       onToggleVerificationDetails={() => setShowVerificationDetails((v) => !v)}
       onUtteranceClicked={onUtteranceClicked}
@@ -184,6 +209,8 @@ export default function RunSessionViewerContainer({
       onUpVoteClicked={onUpVoteClicked}
       onSaveVotingReason={onSaveVotingReason}
       isSavingReason={isSavingReason}
+      onAddAnnotationFilter={onAddAnnotationFilter}
+      onRemoveAnnotationFilter={onRemoveAnnotationFilter}
     />
   );
 }
