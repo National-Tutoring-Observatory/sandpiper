@@ -117,10 +117,30 @@ On an Apple M3 Max with 64 GB of memory and Ollama 0.32, using the bundled sessi
 
 Every reply parsed as JSON, and no annotation used an utterance id or a code outside the schema. That shows the wiring works. It says nothing about whether the labels are right: one invented session is not a benchmark.
 
+## Results on the evaluation set
+
+Each model annotated the ten sessions in `fixtures/evalSet/` on the same machine as the first runs. Kappa is Cohen's kappa against the reference labels over all 160 utterances, from `runEvaluationReport.ts` with the reference as the base run. A clear turn is one of the sixty written to show a single code. Nothing sets a temperature, so identical runs differ, and a cell with several figures lists each run.
+
+| Model          | How it read each session           | Runs | Kappa            | Clear turns labelled right (of 60) | Seconds for the ten sessions |
+| -------------- | ---------------------------------- | ---- | ---------------- | ---------------------------------- | ---------------------------- |
+| `mistral-nemo` | Whole                              | 2    | 0.61, 0.58       | 29, 28                             | 127, 138                     |
+| `mistral-nemo` | Whole, with verification           | 1    | 0.58             | 32                                 | 350                          |
+| `mistral-nemo` | In short pieces                    | 1    | 0.76             | 40                                 | 170                          |
+| `mistral-nemo` | In short pieces, with verification | 1    | 0.62             | 32                                 | 405                          |
+| `qwen3:8b`     | Whole                              | 3    | 0.77, 0.86, 0.79 | 44, 50, 46                         | 509, 460, 513                |
+| `qwen3:8b`     | In short pieces                    | 2    | 0.92, 0.90       | 56, 55                             | 1022, 917                    |
+| `qwen3:32b`    | Whole                              | 1    | 0.87             | 56                                 | 1705                         |
+
+"In short pieces" means each session was cut into four parts (utterances 1 to 3, 4 to 7, 8 to 11 and 12 to 16), each part was annotated as a session of its own, and the labels were joined back together. The scripts here don't do that cutting yet.
+
+Every run finished all ten sessions, and in the eleven runs only one label fell outside the codebook or pointed at an utterance that does not exist. Nine of the eleven runs labelled at least one student turn, which Tutor Moves doesn't code. The two short-piece runs of `qwen3:8b` agreed with each other at kappa 0.94, and its three whole-session runs at 0.74 to 0.79.
+
+Read these as scores against a design, for the reasons given above. `qwen3:32b` ran once, on whole sessions only, so it is no like-for-like match for `qwen3:8b` in short pieces.
+
 ## Limits
 
 - **The app cannot select a local model yet.** The model list comes from `app/config/ai_gateway.json`, which is bundled into the client, and billing expects a price for every model. These scripts go around the interface.
-- **Small models leave more out.** The 12B model labelled about half of the tutor turns that the 33B model labelled, and on the session-level rubric it returned four partial score sheets where the rubric asks for one. Compare any local model with human codes before trusting it.
+- **Small models leave more out.** Reading whole sessions, `mistral-nemo` left 20 to 22 of the 60 clear turns blank, `qwen3:8b` 4 to 7 and `qwen3:32b` none. In short pieces, `qwen3:8b` left 0 or 1. On the session-level rubric, `mistral-nemo` returned four partial score sheets where the rubric asks for one. Compare any local model with human codes before trusting it.
 - **Context length sets the memory bill.** Ollama loaded the 7 GB `mistral-nemo` file at 29 GB because its context window was set to 262,144 tokens. On a smaller machine, lower it in Ollama's settings or with `OLLAMA_CONTEXT_LENGTH`.
 - **Check the model's license.** Qwen3, Mistral Nemo and OLMo are Apache 2.0; some other open-weight families carry their own terms.
 - **Use data you are allowed to process.** Running locally keeps transcripts on your machine, but it does not de-identify them.
