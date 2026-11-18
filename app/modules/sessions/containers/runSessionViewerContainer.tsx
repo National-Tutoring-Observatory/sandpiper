@@ -7,6 +7,7 @@ import { useFetcher, useLocation, useNavigate } from "react-router";
 import type { Run, RunSession } from "~/modules/runs/runs.types";
 import RunSessionViewer from "../components/runSessionViewer";
 import getSessionVerificationChanges from "../helpers/getSessionVerificationChanges";
+import markUtterancesByAnnotationFilters from "../helpers/markUtterancesByAnnotationFilters";
 import type {
   Annotation,
   AnnotationFilter,
@@ -185,6 +186,13 @@ export default function RunSessionViewerContainer({
     remove(clonedAnnotationFilters, annotationFilter);
     setAnnotationFilters(clonedAnnotationFilters);
   };
+
+  markUtterancesByAnnotationFilters({
+    transcript: sessionFile.transcript,
+    annotationFilters,
+    previousContextCount: 5,
+    nextContextCount: 5,
+  });
 
   return (
     <RunSessionViewer

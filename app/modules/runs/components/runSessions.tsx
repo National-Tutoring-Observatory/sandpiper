@@ -60,7 +60,7 @@ export default function RunSessions({
           onSearchValueChanged={onSidebarSearchValueChanged}
           onPaginationChanged={onSidebarPaginationChanged}
         />
-        <div className="relative">
+        <div className="relative w-full">
           <AnimatePresence>
             {isLoadingSession && (
               <motion.div

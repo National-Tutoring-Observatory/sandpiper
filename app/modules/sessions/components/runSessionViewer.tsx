@@ -88,6 +88,8 @@ export default function SessionViewer({
     verificationChanges?.changed.some((c) => c.after._id === annotation._id) ??
     false;
 
+  const isPerUtterance = run.annotationType === "PER_UTTERANCE";
+
   return (
     <div className="flex h-full flex-1">
       <SkipLink href="#session-annotations-panel" className="focus:p-2">
@@ -97,20 +99,21 @@ export default function SessionViewer({
         id="session-viewer-scroll-container"
         className="flex h-full w-[55%] min-w-0 flex-col overflow-y-scroll scroll-smooth border-r"
       >
-        <div className="sticky top-0 flex justify-end px-4 pt-2">
-          <RunSessionAnnotationFilterContainer
-            annotationFilters={annotationFilters}
-            annotationSchema={run.snapshot?.prompt.annotationSchema ?? []}
-            onAddAnnotationFilter={onAddAnnotationFilter}
-            onRemoveAnnotationFilter={onRemoveAnnotationFilter}
-          />
-        </div>
+        {isPerUtterance && (
+          <div className="sticky top-0 flex justify-end px-4 pt-2">
+            <RunSessionAnnotationFilterContainer
+              annotationFilters={annotationFilters}
+              annotationSchema={run.snapshot?.prompt.annotationSchema ?? []}
+              onAddAnnotationFilter={onAddAnnotationFilter}
+              onRemoveAnnotationFilter={onRemoveAnnotationFilter}
+            />
+          </div>
+        )}
         <div className="p-4">
           {map(
             sessionFile.transcript,
             (utterance: Utterance, index: number) => {
               const isSelected = selectedUtteranceId === utterance._id;
-              const isPerUtterance = run.annotationType === "PER_UTTERANCE";
               const hasChangedAnnotation =
                 isPerUtterance &&
                 verificationChanges?.changed.some(
@@ -124,6 +127,13 @@ export default function SessionViewer({
                 verificationChanges?.removed.some(
                   (r) => r._id === utterance._id,
                 );
+
+              if (
+                annotationFilters.length > 0 &&
+                !utterance.isFiltered &&
+                !utterance.isNeighbourFiltered
+              )
+                return null;
               return (
                 <SessionViewerUtterance
                   key={utterance._id}
@@ -131,6 +141,8 @@ export default function SessionViewer({
                   leadRole={sessionFile.leadRole}
                   utterance={utterance}
                   isSelected={isSelected}
+                  isFiltered={utterance.isFiltered}
+                  isNeighbourFiltered={utterance.isNeighbourFiltered}
                   hasChangedAnnotation={hasChangedAnnotation}
                   hasAddedAnnotation={hasAddedAnnotation}
                   hasRemovedAnnotation={hasRemovedAnnotation}

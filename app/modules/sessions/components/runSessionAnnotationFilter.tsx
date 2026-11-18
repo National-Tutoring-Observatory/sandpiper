@@ -1,3 +1,4 @@
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -42,9 +43,14 @@ const RunSessionAnnotationFilter = ({
         <Button
           variant="ghost"
           size="icon"
-          className="data-[state=open]:bg-muted rounded-full bg-white shadow"
+          className="data-[state=open]:bg-muted relative rounded-full bg-white shadow"
         >
           <FilterIcon />
+          {annotationFilters.length > 0 && (
+            <Badge className="bg-sandpiper-accent absolute -top-1 -right-1 h-4 min-w-4 rounded-full px-1 text-[10px] leading-none text-white tabular-nums">
+              {annotationFilters.length}
+            </Badge>
+          )}
           <span className="sr-only">Filter annotations</span>
         </Button>
       </DropdownMenuTrigger>

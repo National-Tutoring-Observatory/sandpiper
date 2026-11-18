@@ -43,6 +43,10 @@ export interface Utterance {
   session_id: string;
   sequence_id: string | number;
   annotations: Annotation[];
+  isFiltered?: boolean;
+  isNeighbourFiltered?: boolean;
+  isFirstNeighbourFiltered?: boolean;
+  isLastNeighbourFiltered?: boolean;
 }
 
 export interface Annotation {
