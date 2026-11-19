@@ -1,0 +1,153 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data. The labels are designed reference labels, fixed when the turns were written. They are not human codes and this is not a benchmark.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "To start, what does the word percent mean?",
+      "annotations": [
+        {
+          "_id": "0",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_RELATED_CONCEPTS",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "Out of a hundred.",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "Out of a hundred.",
+      "annotations": [
+        {
+          "_id": "2",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "RESTATING",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "So twenty percent is twenty out of a hundred. But how do I get twenty percent of forty-five?",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "Here's a clue: ten percent of a number is that number divided by ten.",
+      "annotations": [
+        {
+          "_id": "4",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "GIVING_HINT",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "Ten percent of forty-five is four point five.",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "Good, four point five. And how could you get from ten percent to twenty percent?",
+      "annotations": [
+        {
+          "_id": "6",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_NEXT_STEP",
+          "designedAs": "mixed",
+          "secondaryCode": "FEEDBACK_CORRECT"
+        }
+      ]
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "Double it. Nine.",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "Okay, I'm following you.",
+      "annotations": [
+        {
+          "_id": "8",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "FEEDBACK_NEUTRAL",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "Is there a faster way for any percent?",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "First write the percent as a decimal, so twenty percent becomes zero point two. Then multiply that decimal by the number.",
+      "annotations": [
+        {
+          "_id": "10",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "EXPLAINING_PROCEDURAL",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "Zero point two times forty-five is ninety.",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "Not quite. Remember that zero point two is less than one, so the answer must be smaller than forty-five.",
+      "annotations": [
+        {
+          "_id": "12",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "GIVING_HINT",
+          "designedAs": "mixed",
+          "secondaryCode": "FEEDBACK_INCORRECT"
+        }
+      ]
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "Oh. Nine point zero. Nine.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "We're almost out of time. Let's stop here for today.",
+      "annotations": []
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Okay, thanks.",
+      "annotations": []
+    }
+  ]
+}

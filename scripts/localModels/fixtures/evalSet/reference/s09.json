@@ -1,0 +1,153 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data. The labels are designed reference labels, fixed when the turns were written. They are not human codes and this is not a benchmark.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Welcome back, Ana. How was the field trip?",
+      "annotations": []
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "It was fun. We went to the science museum.",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "Today is dividing fractions. First, can you remind me what a reciprocal is?",
+      "annotations": [
+        {
+          "_id": "2",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_RELATED_CONCEPTS",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "It's when you flip the fraction upside down.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "So the reciprocal swaps the numerator and the denominator.",
+      "annotations": [
+        {
+          "_id": "4",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "REVOICING",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "Right. But why do we flip when we divide?",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "Dividing asks how many of one amount fit inside another. Three quarters divided by one eighth asks how many eighths fit in three quarters, and counting eighths is the same as multiplying by eight.",
+      "annotations": [
+        {
+          "_id": "6",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "EXPLAINING_CONCEPTUAL",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "So three quarters times eight. That's twenty-four quarters... so twenty-four?",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "You've made a slip in the last part. Go back over it and see if you can fix it yourself.",
+      "annotations": [
+        {
+          "_id": "8",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_SELF_CORRECTION",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "Twenty-four quarters. Hmm, I'm stuck on what that is.",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "Think about how many quarters make one whole.",
+      "annotations": [
+        {
+          "_id": "10",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "GIVING_HINT",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "Four. So twenty-four divided by four is six.",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "Exactly, six. How could you check that with a picture?",
+      "annotations": [
+        {
+          "_id": "12",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_ALTERNATIVE_REPRESENTATION",
+          "designedAs": "mixed",
+          "secondaryCode": "FEEDBACK_CORRECT"
+        }
+      ]
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "I could draw three quarters and cut it into eighths. There are six.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "Great. Next time, first flip the second fraction, then multiply across, then simplify.",
+      "annotations": [
+        {
+          "_id": "14",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "EXPLAINING_PROCEDURAL",
+          "designedAs": "mixed",
+          "secondaryCode": "FEEDBACK_CORRECT"
+        }
+      ]
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Flip, multiply, simplify. Got it.",
+      "annotations": []
+    }
+  ]
+}

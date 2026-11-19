@@ -1,0 +1,102 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Hi Priya. Did you get the worksheet I sent?",
+      "annotations": []
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "Yes, I have it open.",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "A ratio compares two amounts, and it stays the same when both amounts are multiplied by the same number. That is why a bigger batch still tastes the same.",
+      "annotations": []
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "So two cups of flour for three cups of milk.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "Two cups of flour for three cups of milk.",
+      "annotations": []
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "And we want nine cups of milk. I don't know how to start.",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "Notice that nine is three times three.",
+      "annotations": []
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "So I multiply the flour by three too? Six cups?",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "How do you know that six is right?",
+      "annotations": []
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "Because I did the same thing to both numbers.",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "Mm-hm, I see what you're saying.",
+      "annotations": []
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "Could I also write it as a table?",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "Please show the same ratio as a table with two columns.",
+      "annotations": []
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "Flour two, four, six. Milk three, six, nine.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "And for twelve cups of milk, the answer is eight cups of flour.",
+      "annotations": []
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Okay, eight.",
+      "annotations": []
+    }
+  ]
+}
