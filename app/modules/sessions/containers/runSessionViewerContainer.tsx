@@ -50,6 +50,19 @@ export default function RunSessionViewerContainer({
     (u) => u.annotations && u.annotations.length > 0,
   );
 
+  markUtterancesByAnnotationFilters({
+    transcript: sessionFile.transcript,
+    annotationFilters,
+    previousContextCount: annotationFilterSettings.previousContextCount,
+    nextContextCount: annotationFilterSettings.nextContextCount,
+  });
+
+  const filteredAnnotatedUtterances =
+    annotationFilters.length > 0
+      ? annotatedUtterances.filter((u) => u.isFiltered)
+      : annotatedUtterances;
+  const filteredAnnotatedUtteranceCount = filteredAnnotatedUtterances.length;
+
   const verificationChanges = getSessionVerificationChanges(run, sessionFile);
 
   const removedAnnotationUtteranceIds = new Set(
@@ -60,7 +73,7 @@ export default function RunSessionViewerContainer({
     ? hash.replace("#session-viewer-utterance-", "")
     : null;
   const hashUtteranceIndex = hashUtteranceId
-    ? findIndex(annotatedUtterances, { _id: hashUtteranceId })
+    ? findIndex(filteredAnnotatedUtterances, { _id: hashUtteranceId })
     : -1;
   const selectedUtteranceId =
     hashUtteranceIndex !== -1 ||
@@ -76,7 +89,9 @@ export default function RunSessionViewerContainer({
   };
 
   const onUtteranceClicked = (utteranceId: string) => {
-    const newIndex = findIndex(annotatedUtterances, { _id: utteranceId });
+    const newIndex = findIndex(filteredAnnotatedUtterances, {
+      _id: utteranceId,
+    });
     if (newIndex !== -1 || removedAnnotationUtteranceIds.has(utteranceId)) {
       navigateToUtterance(utteranceId);
     }
@@ -84,19 +99,23 @@ export default function RunSessionViewerContainer({
 
   const onPreviousAnnotationClicked = () => {
     if (selectedUtteranceIndex !== null && selectedUtteranceIndex > 0) {
-      navigateToUtterance(annotatedUtterances[selectedUtteranceIndex - 1]._id);
+      navigateToUtterance(
+        filteredAnnotatedUtterances[selectedUtteranceIndex - 1]._id,
+      );
     }
   };
 
   const onNextAnnotationClicked = () => {
     if (selectedUtteranceIndex === null) {
-      if (annotatedUtterances.length > 0) {
-        navigateToUtterance(annotatedUtterances[0]._id);
+      if (filteredAnnotatedUtterances.length > 0) {
+        navigateToUtterance(filteredAnnotatedUtterances[0]._id);
       }
       return;
     }
-    if (selectedUtteranceIndex < annotatedUtterances.length - 1) {
-      navigateToUtterance(annotatedUtterances[selectedUtteranceIndex + 1]._id);
+    if (selectedUtteranceIndex < filteredAnnotatedUtterances.length - 1) {
+      navigateToUtterance(
+        filteredAnnotatedUtterances[selectedUtteranceIndex + 1]._id,
+      );
     }
   };
 
@@ -175,8 +194,8 @@ export default function RunSessionViewerContainer({
     : [];
 
   const onJumpToFirstAnnotation = () => {
-    if (annotatedUtterances.length > 0) {
-      navigateToUtterance(annotatedUtterances[0]._id);
+    if (filteredAnnotatedUtterances.length > 0) {
+      navigateToUtterance(filteredAnnotatedUtterances[0]._id);
     }
   };
 
@@ -204,13 +223,6 @@ export default function RunSessionViewerContainer({
     setAnnotationFilterSettings(annotationFilterSettings);
   };
 
-  markUtterancesByAnnotationFilters({
-    transcript: sessionFile.transcript,
-    annotationFilters,
-    previousContextCount: annotationFilterSettings.previousContextCount,
-    nextContextCount: annotationFilterSettings.nextContextCount,
-  });
-
   return (
     <RunSessionViewer
       session={session}
@@ -221,6 +233,7 @@ export default function RunSessionViewerContainer({
       isVoting={isVoting}
       utteranceCount={utteranceCount}
       annotatedUtteranceCount={annotatedUtteranceCount}
+      filteredAnnotatedUtteranceCount={filteredAnnotatedUtteranceCount}
       selectedUtteranceIndex={selectedUtteranceIndex}
       run={run}
       annotationFilters={annotationFilters}

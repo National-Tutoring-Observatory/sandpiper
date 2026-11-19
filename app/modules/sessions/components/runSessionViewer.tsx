@@ -31,6 +31,7 @@ export default function SessionViewer({
   utteranceCount,
   selectedUtteranceIndex,
   annotatedUtteranceCount,
+  filteredAnnotatedUtteranceCount,
   shouldShowVerificationDetails,
   isSavingReason,
   onToggleVerificationDetails,
@@ -65,6 +66,7 @@ export default function SessionViewer({
   utteranceCount: number;
   selectedUtteranceIndex: number | null;
   annotatedUtteranceCount: number;
+  filteredAnnotatedUtteranceCount: number;
   shouldShowVerificationDetails: boolean;
   onToggleVerificationDetails: () => void;
   onUtteranceClicked: (utteranceId: string) => void;
@@ -223,7 +225,7 @@ export default function SessionViewer({
             </div>
           </div>
         )}
-        {(annotatedUtteranceCount > 0 ||
+        {(filteredAnnotatedUtteranceCount > 0 ||
           (shouldShowVerificationDetails && removedAnnotations.length > 0)) && (
           <div className="flex flex-col p-4 pb-0">
             <div className="mb-2 flex items-center justify-between">
@@ -251,7 +253,7 @@ export default function SessionViewer({
                   className="text-muted-foreground text-body"
                 >
                   {hasSelectedAnnotation
-                    ? `${selectedUtteranceIndex + 1}/${annotatedUtteranceCount}`
+                    ? `${selectedUtteranceIndex + 1}/${filteredAnnotatedUtteranceCount}`
                     : ""}
                 </div>
                 <div className="flex gap-1">
@@ -273,7 +275,8 @@ export default function SessionViewer({
                     onClick={onNextAnnotationClicked}
                     disabled={
                       hasSelectedAnnotation &&
-                      selectedUtteranceIndex == annotatedUtteranceCount - 1
+                      selectedUtteranceIndex ==
+                        filteredAnnotatedUtteranceCount - 1
                     }
                   >
                     <ChevronRight className="h-4 w-4" />
