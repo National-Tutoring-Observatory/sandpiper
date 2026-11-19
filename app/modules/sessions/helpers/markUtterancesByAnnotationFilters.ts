@@ -5,19 +5,21 @@ import type { AnnotationFilter, Utterance } from "../sessions.types";
 export default ({
   transcript,
   annotationFilters,
-  previousContextCount = 5,
-  nextContextCount = 5,
+  previousContextCount,
+  nextContextCount,
 }: {
   transcript: Utterance[];
   annotationFilters: AnnotationFilter[];
   previousContextCount: number;
   nextContextCount: number;
 }) => {
-  each(transcript, (utterance, index) => {
+  each(transcript, (utterance) => {
     utterance.isFiltered = false;
     utterance.isNeighbourFiltered = false;
     utterance.isFirstNeighbourFiltered = false;
     utterance.isLastNeighbourFiltered = false;
+  });
+  each(transcript, (utterance, index) => {
     const isFiltered = some(utterance.annotations, (annotation) =>
       some(
         annotationFilters,
