@@ -56,8 +56,8 @@ export default function RunSessionAnnotationFilterForm({
           {find(availableFilters, { fieldKey: selectedFilterKey })
             ?.fieldType === "boolean" && (
             <>
-              <SelectItem value={"false"}>False</SelectItem>
-              <SelectItem value={"true"}>True</SelectItem>
+              <SelectItem value={"false"}>false</SelectItem>
+              <SelectItem value={"true"}>true</SelectItem>
             </>
           )}
         </SelectContent>
