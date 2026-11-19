@@ -183,6 +183,27 @@ Every run finished all ten sessions, and in the eleven runs only one label fell 
 
 Read these as scores against a design, for the reasons given above. `qwen3:32b` ran once, on whole sessions only, so it is no like-for-like match for `qwen3:8b` in short pieces.
 
+## A test on human-coded sessions
+
+`qwen3:8b` also annotated 80 real tutoring sessions that trained coders had already coded, 1,715 tutor lines in all, using the coders' own codebook of 29 tutor moves rather than the Tutor Moves sample prompt. The sessions aren't ours to share, so neither they nor any of their text are in this repository; only the aggregate scores below are. The model was not fine-tuned. It ran with thinking on, through Sandpiper's own annotation code, served by Ollama on the Mac Studio above and reached over SSH as that section describes, so no transcript went to an outside service. Exact agreement is the share of tutor lines on which the model's first code matches the coders' primary code. Kappa is Cohen's kappa on the same pairs, counting a line left uncoded as a code of its own, with 95 percent intervals from a bootstrap over sessions.
+
+**The codebook prompt, unchanged**, two runs each way on all 80 sessions:
+
+| How it read each session     | Runs | Kappa [95% interval]                 | Exact agreement | Tutor lines left uncoded (coders: 278) |
+| ---------------------------- | ---- | ------------------------------------ | --------------- | -------------------------------------- |
+| In pieces of two tutor turns | 2    | 0.41 [0.39, 0.44], 0.40 [0.37, 0.42] | 0.47, 0.45      | 153, 136                               |
+| Whole                        | 2    | 0.27 [0.24, 0.30], 0.26 [0.22, 0.30] | 0.35, 0.34      | 547, 546                               |
+
+Each run in pieces took about two hours on the clock, four requests at a time (about 7.6 hours of model time). The two runs gave the same first code on 68 percent of tutor lines. Where they agreed, the model matched the coders' primary code on 54 percent of lines (kappa 0.49); where they differed, the first run matched it on 31 percent. Disagreement between runs looks like a useful flag for sending a line to a person.
+
+**A clearer prompt, tested on sessions it never saw.** The 80 sessions were split once, by seed, into 40 to tune the prompt on and 40 held out. One prompt added eight coding conventions to the codebook, drawn only from the errors on the tuning half; a second added 30 coded examples on top. On the tuning half's 870 tutor lines they scored 0.49 and 0.48, against 0.40 for the unchanged prompt, so only the first went to the held-out half, once. There, on 845 tutor lines, it scored 0.52 [0.49, 0.55], against 0.42 and 0.41 for the unchanged prompt's two runs on the same lines: gains of 0.10 [0.07, 0.14] and 0.11 [0.08, 0.15]. It stopped over-using a rapport code (given first on 3 lines, against the coders' 13 and the unchanged prompt's 67) and began over-using a managing code (47 against the coders' 3).
+
+**Against the coders' own agreement.** For each of the 16 codes with at least 15 lines, a presence kappa asks whether the model used the code on a line at all, against the coders' primary and secondary codes. Weighted by how often each code occurs, the clearer prompt averaged 0.58 on the held-out half. The coded data comes with a kappa per code for two versions of its human coding, and with the same weights those average 0.74. So the clearer prompt reached 79 percent of the coders' agreement with each other, against 70 and 68 percent for the unchanged prompt's runs on the same lines. Unweighted, the averages are 0.47 and 0.68. The human figures come from every session in the coded data, and they assume the two versions were coded independently.
+
+**The verification pass**, in which the model checks its own labels, changed kappa by +0.000 to +0.014 in all four comparisons (three prompts on the tuning half, one on the held-out half), none clear of zero. In the LAK '26 study at <https://arxiv.org/abs/2511.09785>, a self-check of this kind doubled frontier models' mean agreement with reference coding, from 0.32 to 0.64. This model seems to need different help.
+
+These scores sit far below the evaluation set's, which used our own reference labels on invented turns; the direction, pieces over whole sessions, still holds. This is one model, one codebook and one dataset, and the conventions describe these coders' habits, so they may not carry to another codebook. The held-out half was a little easier for every prompt, which is why the gains above compare prompts on the same lines. Like the short pieces above, the pieces of two tutor turns were cut by scripts that aren't in this branch yet.
+
 ## Limits
 
 - **The app cannot select a local model yet.** The model list comes from `app/config/ai_gateway.json`, which is bundled into the client, and billing expects a price for every model. These scripts go around the interface.
