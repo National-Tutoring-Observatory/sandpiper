@@ -27,22 +27,38 @@ The script prints a summary (annotations, tokens, seconds, and how many annotati
 
 Any server that speaks the OpenAI chat API should work the same way: llama.cpp's `llama-server`, LM Studio, vLLM or a LiteLLM proxy. Only Ollama has been tried so far.
 
+The script stops if `AI_GATEWAY_BASE_URL` is not on this machine (127.0.0.1, localhost or [::1]), so transcripts can't leave it by mistake. To use a model on another machine, see [Running the model on a second machine](#running-the-model-on-a-second-machine), or pass `--allowRemote`.
+
 ## `annotateSession.ts`
 
 It reuses the worker's system prompts, the response schema built by `buildAnnotationSchema`, and the app's `LLM` client, so its output is comparable with a run made in the app.
 
-| Option      | Required | Description                                                                                     |
-| ----------- | -------- | ----------------------------------------------------------------------------------------------- |
-| `--model`   | Yes      | The model name as the server knows it, for example `mistral-nemo` or `qwen3:32b`                |
-| `--session` | No       | A session file in Sandpiper's format. Defaults to the bundled synthetic session                 |
-| `--prompt`  | No       | The name of a default prompt. Defaults to `Tutor Moves (sample prompt)`                         |
-| `--verify`  | No       | Adds the verification pass; the first-pass annotations are kept as `preVerificationAnnotations` |
-| `--out`     | No       | Where to write the annotated session file                                                       |
+| Option             | Required | Description                                                                                                      |
+| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
+| `--model`          | Yes      | The model name as the server knows it, for example `mistral-nemo` or `qwen3:32b`                                 |
+| `--session`        | No       | A session file in Sandpiper's format. Defaults to the bundled synthetic session                                  |
+| `--prompt`         | No       | The name of a default prompt. Defaults to `Tutor Moves (sample prompt)`                                          |
+| `--promptFile`     | No       | A prompt of your own, as a JSON file (see [Your own codebook](#your-own-codebook)). Use it instead of `--prompt` |
+| `--verify`         | No       | Adds the verification pass; the first-pass annotations are kept as `preVerificationAnnotations`                  |
+| `--timeoutMinutes` | No       | How long to wait for each reply from the model. Defaults to 10                                                   |
+| `--allowRemote`    | No       | Lets `AI_GATEWAY_BASE_URL` point at another machine                                                              |
+| `--out`            | No       | Where to write the annotated session file                                                                        |
 
-| Environment variable  | Required | Description                                                     |
-| --------------------- | -------- | --------------------------------------------------------------- |
-| `AI_GATEWAY_BASE_URL` | Yes      | The server's OpenAI-compatible address, usually ending in `/v1` |
-| `AI_GATEWAY_KEY`      | No       | Defaults to `local`. Most local servers ignore it               |
+| Environment variable  | Required | Description                                                                                                                 |
+| --------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `AI_GATEWAY_BASE_URL` | Yes      | The server's OpenAI-compatible address, usually ending in `/v1`. It must be on this machine unless you pass `--allowRemote` |
+| `AI_GATEWAY_KEY`      | No       | Defaults to `local`. Most local servers ignore it                                                                           |
+
+### Your own codebook
+
+`--promptFile` reads a JSON file with the same fields as an entry in `app/modules/prompts/helpers/defaultPrompts.ts`: `name`, `annotationType` (`PER_UTTERANCE` or `PER_SESSION`), `userPrompt` and `annotationSchema`. The easiest start is a default prompt written out to a file, then edited:
+
+```bash
+mkdir -p tmp/local
+yarn tsx -e 'import prompts from "./app/modules/prompts/helpers/defaultPrompts"; console.log(JSON.stringify(prompts.find((p) => p.name === "Tutor Moves (sample prompt)"), null, 2));' > tmp/local/my-codebook.json
+```
+
+Keep the three system fields (`_id`, `identifiedBy` and `reasoning`) in `annotationSchema`, and list each coded field's allowed codes in its `codes`.
 
 ## Comparing models
 
@@ -97,6 +113,36 @@ AI_GATEWAY_BASE_URL=http://127.0.0.1:11434/v1 LOCAL_MODEL=mistral-nemo \
 ```
 
 Add `LOCAL_VERIFY=true` to include the verification pass. The check has its own vitest config and skips itself when the variables are unset, so the main test suite and CI never call a model.
+
+## Running the model on a second machine
+
+A laptop can drive a model on a bigger machine without sending transcripts anywhere else. Start the server on the second machine bound to its own 127.0.0.1, so nothing on the network can reach it, and forward a port on the laptop to it over SSH. The script then talks to a local address, and the transcripts travel only inside the SSH connection.
+
+```bash
+# On the second machine: listen on its own loopback address, four requests at a time
+OLLAMA_HOST=127.0.0.1:11434 OLLAMA_NUM_PARALLEL=4 ollama serve
+
+# On the laptop: forward local port 11435 to it
+ssh -N -L 127.0.0.1:11435:127.0.0.1:11434 second-machine
+
+# On the laptop, in another terminal
+AI_GATEWAY_BASE_URL=http://127.0.0.1:11435/v1 \
+  yarn tsx scripts/localModels/annotateSession.ts \
+  --model qwen3:8b \
+  --session path/to/session.json \
+  --out tmp/local/qwen3-8b/session.json
+```
+
+Each run of the script annotates one session, so start several at once to keep the second machine busy. Ollama queues any request beyond `OLLAMA_NUM_PARALLEL`.
+
+On a Mac Studio (M5 Max, 32-core GPU, 36 GB) with Ollama 0.32 and `qwen3:8b`, thinking on, four requests at a time, with a per-utterance prompt holding a long codebook:
+
+| Each request holds               | Tokens in, average | Tokens out, average | Model time per request, median | Requests an hour |
+| -------------------------------- | ------------------ | ------------------- | ------------------------------ | ---------------- |
+| The codebook and a few lines     | about 4,300        | about 160           | 26 to 27 seconds               | about 450        |
+| The codebook and a whole session | about 5,900        | about 960           | 87 to 89 seconds               | about 160        |
+
+Model time is measured with four requests sharing the GPU, so each one takes longer than it would alone. A long session read whole can take more than the default ten minutes on a laptop; raise `--timeoutMinutes` for those.
 
 ## What the server has to support
 
