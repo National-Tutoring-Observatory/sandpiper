@@ -12,6 +12,10 @@
  * prompt. The script stops if the endpoint is not on this machine, unless you
  * pass --allowRemote.
  *
+ * Pass --tutorTurnsPerPiece N with a per-utterance prompt to annotate a few
+ * tutor turns at a time, each piece as a conversation of its own, instead of
+ * sending the whole session in one request.
+ *
  * See scripts/localModels/README.md.
  */
 import fse from "fs-extra";
@@ -27,6 +31,7 @@ import type {
   SessionFile,
 } from "../../app/modules/sessions/sessions.types";
 import getPromptText from "../../workers/helpers/getPromptText";
+import cutSessionIntoPieces from "./cutSessionIntoPieces";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 
@@ -99,6 +104,9 @@ async function main() {
   const timeoutMinutes = Number(getArgument("timeoutMinutes", "10"));
   const shouldRunVerification = hasFlag("verify");
   const shouldAllowRemote = hasFlag("allowRemote");
+  const tutorTurnsArgument = getArgument("tutorTurnsPerPiece");
+  const tutorTurnsPerPiece =
+    tutorTurnsArgument === undefined ? undefined : Number(tutorTurnsArgument);
 
   if (!model) {
     throw new Error("--model is required, for example --model mistral-nemo");
@@ -108,6 +116,12 @@ async function main() {
   }
   if (!Number.isFinite(timeoutMinutes) || timeoutMinutes <= 0) {
     throw new Error("--timeoutMinutes must be a positive number of minutes");
+  }
+  if (
+    tutorTurnsPerPiece !== undefined &&
+    (!Number.isInteger(tutorTurnsPerPiece) || tutorTurnsPerPiece < 1)
+  ) {
+    throw new Error("--tutorTurnsPerPiece must be a positive whole number");
   }
   const endpoint = process.env.AI_GATEWAY_BASE_URL;
   if (!endpoint) {
@@ -129,6 +143,11 @@ async function main() {
   const timeout = timeoutMinutes * 60_000;
 
   const isPerUtterance = prompt.annotationType === "PER_UTTERANCE";
+  if (tutorTurnsPerPiece !== undefined && !isPerUtterance) {
+    throw new Error(
+      "--tutorTurnsPerPiece works only with a per-utterance prompt. A per-session prompt scores the whole session at once.",
+    );
+  }
   const annotateTask = isPerUtterance
     ? "annotatePerUtterance"
     : "annotatePerSession";
@@ -152,60 +171,115 @@ async function main() {
 
   const startedAt = Date.now();
 
-  const llm = new LLM({
-    model,
-    userId: "local",
-    schema: responseSchema,
-    source: `annotation:${source}`,
-    billingEventId: "local:annotation",
-    timeout,
-  });
-  llm.addSystemMessage(getPromptText(annotateTask), {
-    annotationSchema: JSON.stringify(annotationSchema),
-    leadRole,
-  });
-  llm.addUserMessage(`${prompt.userPrompt}\n\nConversation: {{conversation}}`, {
-    conversation,
-  });
-
-  const response = await llm.createChat();
-  let annotations: Annotation[] = response.annotations || [];
-  const usage = llm.getUsage();
-
-  if (shouldRunVerification) {
-    sessionFile.preVerificationAnnotations = annotations;
-
-    const verifyLlm = new LLM({
+  // One request, plus the verification pass when asked, for one conversation.
+  const annotateConversation = async (conversation: string) => {
+    const llm = new LLM({
       model,
       userId: "local",
       schema: responseSchema,
-      source: `verification:${source}`,
-      billingEventId: "local:verification",
+      source: `annotation:${source}`,
+      billingEventId: "local:annotation",
       timeout,
     });
-    verifyLlm.addSystemMessage(getPromptText(verifyTask), {
+    llm.addSystemMessage(getPromptText(annotateTask), {
       annotationSchema: JSON.stringify(annotationSchema),
       leadRole,
     });
-    verifyLlm.addUserMessage(
-      `Original prompt: {{originalPrompt}}\n\nConversation: {{conversation}}\n\nAnnotations to review: {{annotations}}`,
-      {
-        originalPrompt: prompt.userPrompt,
-        conversation,
-        annotations: JSON.stringify(annotations),
-      },
+    llm.addUserMessage(
+      `${prompt.userPrompt}\n\nConversation: {{conversation}}`,
+      { conversation },
     );
 
-    const verifyResponse = await verifyLlm.createChat();
-    annotations = verifyResponse.annotations || annotations;
+    const response = await llm.createChat();
+    let annotations: Annotation[] = response.annotations || [];
+    const usage = llm.getUsage();
+    const firstPassAnnotations = annotations;
 
-    const verifyUsage = verifyLlm.getUsage();
-    usage.inputTokens += verifyUsage.inputTokens;
-    usage.outputTokens += verifyUsage.outputTokens;
+    if (shouldRunVerification) {
+      const verifyLlm = new LLM({
+        model,
+        userId: "local",
+        schema: responseSchema,
+        source: `verification:${source}`,
+        billingEventId: "local:verification",
+        timeout,
+      });
+      verifyLlm.addSystemMessage(getPromptText(verifyTask), {
+        annotationSchema: JSON.stringify(annotationSchema),
+        leadRole,
+      });
+      verifyLlm.addUserMessage(
+        `Original prompt: {{originalPrompt}}\n\nConversation: {{conversation}}\n\nAnnotations to review: {{annotations}}`,
+        {
+          originalPrompt: prompt.userPrompt,
+          conversation,
+          annotations: JSON.stringify(annotations),
+        },
+      );
+
+      const verifyResponse = await verifyLlm.createChat();
+      annotations = verifyResponse.annotations || annotations;
+
+      const verifyUsage = verifyLlm.getUsage();
+      usage.inputTokens += verifyUsage.inputTokens;
+      usage.outputTokens += verifyUsage.outputTokens;
+    }
+
+    return { annotations, firstPassAnnotations, usage };
+  };
+
+  let annotations: Annotation[] = [];
+  const usage = { inputTokens: 0, outputTokens: 0 };
+  let pieceCount: number | undefined;
+  let unmatchedIds = 0;
+
+  if (tutorTurnsPerPiece === undefined) {
+    const result = await annotateConversation(conversation);
+    annotations = result.annotations;
+    usage.inputTokens = result.usage.inputTokens;
+    usage.outputTokens = result.usage.outputTokens;
+    if (shouldRunVerification) {
+      sessionFile.preVerificationAnnotations = result.firstPassAnnotations;
+    }
+  } else {
+    const pieces = cutSessionIntoPieces(
+      sessionFile.transcript,
+      leadRole,
+      tutorTurnsPerPiece,
+    );
+    pieceCount = pieces.length;
+    const preVerificationAnnotations: Annotation[] = [];
+    let firstUtterance = 1;
+    for (const [index, piece] of pieces.entries()) {
+      const pieceStartedAt = Date.now();
+      const pieceIds = new Set(piece.map((item) => item._id));
+      const result = await annotateConversation(
+        getConversationFromJSON({ ...sessionFile, transcript: piece }),
+      );
+      const keepInPiece = (list: Annotation[]) =>
+        list.filter((annotation) => pieceIds.has(annotation._id));
+      const kept = keepInPiece(result.annotations);
+      unmatchedIds += result.annotations.length - kept.length;
+      annotations.push(...kept);
+      preVerificationAnnotations.push(
+        ...keepInPiece(result.firstPassAnnotations),
+      );
+      usage.inputTokens += result.usage.inputTokens;
+      usage.outputTokens += result.usage.outputTokens;
+
+      const lastUtterance = firstUtterance + piece.length - 1;
+      const pieceSeconds = (Date.now() - pieceStartedAt) / 1000;
+      console.error(
+        `piece ${index + 1} of ${pieces.length}: utterances ${firstUtterance}-${lastUtterance}, ${kept.length} annotated, ${pieceSeconds.toFixed(1)} s`,
+      );
+      firstUtterance = lastUtterance + 1;
+    }
+    if (shouldRunVerification) {
+      sessionFile.preVerificationAnnotations = preVerificationAnnotations;
+    }
   }
 
   const utteranceIds = new Set(sessionFile.transcript.map((item) => item._id));
-  let unmatchedIds = 0;
 
   if (isPerUtterance) {
     for (const annotation of annotations) {
@@ -242,6 +316,9 @@ async function main() {
         model,
         prompt: prompt.name,
         verified: shouldRunVerification,
+        ...(tutorTurnsPerPiece === undefined
+          ? {}
+          : { tutorTurnsPerPiece, pieces: pieceCount }),
         utterances: utteranceIds.size,
         annotations: annotations.length,
         unmatchedIds,

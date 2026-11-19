@@ -33,21 +33,35 @@ The script stops if `AI_GATEWAY_BASE_URL` is not on this machine (127.0.0.1, loc
 
 It reuses the worker's system prompts, the response schema built by `buildAnnotationSchema`, and the app's `LLM` client, so its output is comparable with a run made in the app.
 
-| Option             | Required | Description                                                                                                      |
-| ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------- |
-| `--model`          | Yes      | The model name as the server knows it, for example `mistral-nemo` or `qwen3:32b`                                 |
-| `--session`        | No       | A session file in Sandpiper's format. Defaults to the bundled synthetic session                                  |
-| `--prompt`         | No       | The name of a default prompt. Defaults to `Tutor Moves (sample prompt)`                                          |
-| `--promptFile`     | No       | A prompt of your own, as a JSON file (see [Your own codebook](#your-own-codebook)). Use it instead of `--prompt` |
-| `--verify`         | No       | Adds the verification pass; the first-pass annotations are kept as `preVerificationAnnotations`                  |
-| `--timeoutMinutes` | No       | How long to wait for each reply from the model. Defaults to 10                                                   |
-| `--allowRemote`    | No       | Lets `AI_GATEWAY_BASE_URL` point at another machine                                                              |
-| `--out`            | No       | Where to write the annotated session file                                                                        |
+| Option                 | Required | Description                                                                                                                                                      |
+| ---------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--model`              | Yes      | The model name as the server knows it, for example `mistral-nemo` or `qwen3:32b`                                                                                 |
+| `--session`            | No       | A session file in Sandpiper's format. Defaults to the bundled synthetic session                                                                                  |
+| `--prompt`             | No       | The name of a default prompt. Defaults to `Tutor Moves (sample prompt)`                                                                                          |
+| `--promptFile`         | No       | A prompt of your own, as a JSON file (see [Your own codebook](#your-own-codebook)). Use it instead of `--prompt`                                                 |
+| `--verify`             | No       | Adds the verification pass; the first-pass annotations are kept as `preVerificationAnnotations`                                                                  |
+| `--tutorTurnsPerPiece` | No       | Annotates the session a few tutor turns at a time instead of whole (see [Reading a session in pieces](#reading-a-session-in-pieces)). Per-utterance prompts only |
+| `--timeoutMinutes`     | No       | How long to wait for each reply from the model. Defaults to 10                                                                                                   |
+| `--allowRemote`        | No       | Lets `AI_GATEWAY_BASE_URL` point at another machine                                                                                                              |
+| `--out`                | No       | Where to write the annotated session file                                                                                                                        |
 
 | Environment variable  | Required | Description                                                                                                                 |
 | --------------------- | -------- | --------------------------------------------------------------------------------------------------------------------------- |
 | `AI_GATEWAY_BASE_URL` | Yes      | The server's OpenAI-compatible address, usually ending in `/v1`. It must be on this machine unless you pass `--allowRemote` |
 | `AI_GATEWAY_KEY`      | No       | Defaults to `local`. Most local servers ignore it                                                                           |
+
+### Reading a session in pieces
+
+`--tutorTurnsPerPiece 2` cuts the session into pieces of two tutor turns each, with the student turns that came before each one, and annotates every piece as a conversation of its own. A piece is a separate request with the same prompts, the piece's utterances in place of the whole session, and the original ids. Pieces run one after another, and with `--verify` the verification pass runs on each piece. The script keeps only annotations whose id belongs to the piece, counts any others in `unmatchedIds`, adds up tokens and time over the pieces, prints one line per piece to stderr, and adds `tutorTurnsPerPiece` and `pieces` to the summary. Any student turns after the last tutor turn join the last piece. The tutor is the session's `leadRole`, which defaults to `TEACHER`.
+
+```bash
+AI_GATEWAY_BASE_URL=http://127.0.0.1:11434/v1 \
+  yarn tsx scripts/localModels/annotateSession.ts \
+  --model qwen3:8b \
+  --tutorTurnsPerPiece 2
+```
+
+The value must be a positive whole number, and the script stops if the prompt is per session, since a rubric scores the whole conversation.
 
 ### Your own codebook
 
@@ -165,21 +179,24 @@ Every reply parsed as JSON, and no annotation used an utterance id or a code out
 
 ## Results on the evaluation set
 
-Each model annotated the ten sessions in `fixtures/evalSet/` on the same machine as the first runs. Kappa is Cohen's kappa against the reference labels over all 160 utterances, from `runEvaluationReport.ts` with the reference as the base run. A clear turn is one of the sixty written to show a single code. Nothing sets a temperature, so identical runs differ, and a cell with several figures lists each run.
+Each model annotated the ten sessions in `fixtures/evalSet/` on the same machine as the first runs, except the two runs noted below the table. Kappa is Cohen's kappa against the reference labels over all 160 utterances, from `runEvaluationReport.ts` with the reference as the base run. A clear turn is one of the sixty written to show a single code. Nothing sets a temperature, so identical runs differ, and a cell with several figures lists each run.
 
-| Model          | How it read each session           | Runs | Kappa            | Clear turns labelled right (of 60) | Seconds for the ten sessions |
-| -------------- | ---------------------------------- | ---- | ---------------- | ---------------------------------- | ---------------------------- |
-| `mistral-nemo` | Whole                              | 2    | 0.61, 0.58       | 29, 28                             | 127, 138                     |
-| `mistral-nemo` | Whole, with verification           | 1    | 0.58             | 32                                 | 350                          |
-| `mistral-nemo` | In short pieces                    | 1    | 0.76             | 40                                 | 170                          |
-| `mistral-nemo` | In short pieces, with verification | 1    | 0.62             | 32                                 | 405                          |
-| `qwen3:8b`     | Whole                              | 3    | 0.77, 0.86, 0.79 | 44, 50, 46                         | 509, 460, 513                |
-| `qwen3:8b`     | In short pieces                    | 2    | 0.92, 0.90       | 56, 55                             | 1022, 917                    |
-| `qwen3:32b`    | Whole                              | 1    | 0.87             | 56                                 | 1705                         |
+| Model          | How it read each session                       | Runs | Kappa            | Clear turns labelled right (of 60) | Seconds for the ten sessions |
+| -------------- | ---------------------------------------------- | ---- | ---------------- | ---------------------------------- | ---------------------------- |
+| `mistral-nemo` | Whole                                          | 2    | 0.61, 0.58       | 29, 28                             | 127, 138                     |
+| `mistral-nemo` | Whole, with verification                       | 1    | 0.58             | 32                                 | 350                          |
+| `mistral-nemo` | In short pieces                                | 1    | 0.76             | 40                                 | 170                          |
+| `mistral-nemo` | In short pieces, with verification             | 1    | 0.62             | 32                                 | 405                          |
+| `qwen3:8b`     | Whole                                          | 3    | 0.77, 0.86, 0.79 | 44, 50, 46                         | 509, 460, 513                |
+| `qwen3:8b`     | In short pieces                                | 2    | 0.92, 0.90       | 56, 55                             | 1022, 917                    |
+| `qwen3:8b`     | In short pieces, with `--tutorTurnsPerPiece 2` | 2    | 0.86, 0.88       | 54, 52                             | 533, 544                     |
+| `qwen3:32b`    | Whole                                          | 1    | 0.87             | 56                                 | 1705                         |
 
-"In short pieces" means each session was cut into four parts (utterances 1 to 3, 4 to 7, 8 to 11 and 12 to 16), each part was annotated as a session of its own, and the labels were joined back together. The scripts here don't do that cutting yet.
+"In short pieces" means each session was cut into four parts (utterances 1 to 3, 4 to 7, 8 to 11 and 12 to 16), each part was annotated as a session of its own, and the labels were joined back together. `--tutorTurnsPerPiece 2` now makes these same cuts: it ends a piece after every second tutor turn, and on these ten sessions that gives exactly these four parts.
 
-Every run finished all ten sessions, and in the eleven runs only one label fell outside the codebook or pointed at an utterance that does not exist. Nine of the eleven runs labelled at least one student turn, which Tutor Moves doesn't code. The two short-piece runs of `qwen3:8b` agreed with each other at kappa 0.94, and its three whole-session runs at 0.74 to 0.79.
+Every run finished all ten sessions, and in the thirteen runs only one label fell outside the codebook or pointed at an utterance that does not exist. Eleven of the thirteen runs labelled at least one student turn, which Tutor Moves doesn't code. The two short-piece runs of `qwen3:8b` agreed with each other at kappa 0.94, its two runs with `--tutorTurnsPerPiece 2` at 0.87, and its three whole-session runs at 0.74 to 0.79.
+
+The two runs with `--tutorTurnsPerPiece 2` were made by the script itself, on the Mac Studio described earlier rather than the machine behind the other rows, which is why their times are shorter. They scored 0.86 and 0.88, a little below the two earlier runs in short pieces (0.92 and 0.90), and two runs each can't say whether that gap is more than the run-to-run spread.
 
 Read these as scores against a design, for the reasons given above. `qwen3:32b` ran once, on whole sessions only, so it is no like-for-like match for `qwen3:8b` in short pieces.
 
@@ -202,7 +219,7 @@ Each run in pieces took about two hours on the clock, four requests at a time (a
 
 **The verification pass**, in which the model checks its own labels, changed kappa by +0.000 to +0.014 in all four comparisons (three prompts on the tuning half, one on the held-out half), none clear of zero. In the LAK '26 study at <https://arxiv.org/abs/2511.09785>, a self-check of this kind doubled frontier models' mean agreement with reference coding, from 0.32 to 0.64. This model seems to need different help.
 
-These scores sit far below the evaluation set's, which used our own reference labels on invented turns; the direction, pieces over whole sessions, still holds. This is one model, one codebook and one dataset, and the conventions describe these coders' habits, so they may not carry to another codebook. The held-out half was a little easier for every prompt, which is why the gains above compare prompts on the same lines. Like the short pieces above, the pieces of two tutor turns were cut by scripts that aren't in this branch yet.
+These scores sit far below the evaluation set's, which used our own reference labels on invented turns; the direction, pieces over whole sessions, still holds. This is one model, one codebook and one dataset, and the conventions describe these coders' habits, so they may not carry to another codebook. The held-out half was a little easier for every prompt, which is why the gains above compare prompts on the same lines. The two-tutor-turn results can be run with `--tutorTurnsPerPiece 2`; the runs above were cut by scripts that aren't in this branch.
 
 ## Limits
 
