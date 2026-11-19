@@ -61,3 +61,8 @@ export interface AnnotationFilter {
   fieldKey: string;
   value: string | boolean;
 }
+
+export interface AnnotationFilterSettings {
+  previousContextCount: number;
+  nextContextCount: number;
+}

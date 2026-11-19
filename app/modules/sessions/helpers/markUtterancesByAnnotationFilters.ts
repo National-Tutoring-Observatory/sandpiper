@@ -14,6 +14,10 @@ export default ({
   nextContextCount: number;
 }) => {
   each(transcript, (utterance, index) => {
+    utterance.isFiltered = false;
+    utterance.isNeighbourFiltered = false;
+    utterance.isFirstNeighbourFiltered = false;
+    utterance.isLastNeighbourFiltered = false;
     const isFiltered = some(utterance.annotations, (annotation) =>
       some(
         annotationFilters,

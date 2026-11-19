@@ -3,18 +3,27 @@ import find from "lodash/find";
 import { useState } from "react";
 import type { AnnotationSchemaItem } from "~/modules/prompts/prompts.types";
 import RunSessionAnnotationFilter from "../components/runSessionAnnotationFilter";
-import type { AnnotationFilter } from "../sessions.types";
+import type {
+  AnnotationFilter,
+  AnnotationFilterSettings,
+} from "../sessions.types";
 
 const RunSessionAnnotationFilterContainer = ({
   annotationFilters,
+  annotationFilterSettings,
   annotationSchema,
   onAddAnnotationFilter,
   onRemoveAnnotationFilter,
+  onAnnotationFilterSettingsChanged,
 }: {
   annotationFilters: AnnotationFilter[];
+  annotationFilterSettings: AnnotationFilterSettings;
   annotationSchema: AnnotationSchemaItem[];
   onAddAnnotationFilter: (annotationFilter: AnnotationFilter) => void;
   onRemoveAnnotationFilter: (annotationFilter: AnnotationFilter) => void;
+  onAnnotationFilterSettingsChanged: (
+    annotationFilterSettings: AnnotationFilterSettings,
+  ) => void;
 }) => {
   const availableFilters = filter(
     annotationSchema,
@@ -49,6 +58,7 @@ const RunSessionAnnotationFilterContainer = ({
   return (
     <RunSessionAnnotationFilter
       annotationFilters={annotationFilters}
+      annotationFilterSettings={annotationFilterSettings}
       availableFilters={availableFilters}
       selectedFilterKey={selectedFilterKey}
       selectedFilterValue={selectedFilterValue}
@@ -56,6 +66,7 @@ const RunSessionAnnotationFilterContainer = ({
       onSelectedFilterValueChanged={onSelectedFilterValueChanged}
       onAddFilterClicked={onAddFilterClicked}
       onRemoveFilterClicked={onRemoveAnnotationFilter}
+      onAnnotationFilterSettingsChanged={onAnnotationFilterSettingsChanged}
     />
   );
 };

@@ -1,9 +1,12 @@
 import { Button } from "@/components/ui/button";
+import { XIcon } from "lucide-react";
 
 export default function SessionViewerFilteredAnnotationNotice({
   label,
+  onRemoveFiltersClicked,
 }: {
   label: string;
+  onRemoveFiltersClicked: () => void;
 }) {
   return (
     <div className="primary relative mb-4 flex justify-center">
@@ -14,9 +17,15 @@ export default function SessionViewerFilteredAnnotationNotice({
           maskRepeat: "repeat-x",
         }}
       />
-      <Button className="group bg-primary! relative z-10 w-56 rounded-full text-xs">
+      <Button
+        className="group bg-primary! relative z-10 w-56 rounded-full text-xs"
+        onClick={onRemoveFiltersClicked}
+      >
         <span className="group-hover:hidden">{label}</span>
-        <span className="hidden w-full group-hover:block">Remove filters</span>
+        <span className="hidden w-full items-center justify-center gap-x-1 group-hover:flex">
+          <XIcon />
+          Remove filters
+        </span>
       </Button>
     </div>
   );

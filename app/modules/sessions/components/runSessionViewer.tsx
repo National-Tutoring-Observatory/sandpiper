@@ -10,6 +10,7 @@ import getSessionVerificationChanges from "../helpers/getSessionVerificationChan
 import type {
   Annotation,
   AnnotationFilter,
+  AnnotationFilterSettings,
   SessionFile,
   Utterance,
 } from "../sessions.types";
@@ -25,6 +26,7 @@ export default function SessionViewer({
   selectedUtteranceAnnotations,
   removedAnnotations,
   annotationFilters,
+  annotationFilterSettings,
   isVoting,
   utteranceCount,
   selectedUtteranceIndex,
@@ -41,6 +43,8 @@ export default function SessionViewer({
   onSaveVotingReason,
   onAddAnnotationFilter,
   onRemoveAnnotationFilter,
+  onRemoveFiltersClicked,
+  onAnnotationFilterSettingsChanged,
 }: {
   run: Run;
   session: RunSession;
@@ -48,8 +52,13 @@ export default function SessionViewer({
   selectedUtteranceAnnotations: Annotation[];
   removedAnnotations: Annotation[];
   annotationFilters: AnnotationFilter[];
+  annotationFilterSettings: AnnotationFilterSettings;
   onAddAnnotationFilter: (annotationFilter: AnnotationFilter) => void;
   onRemoveAnnotationFilter: (annotationFilter: AnnotationFilter) => void;
+  onRemoveFiltersClicked: () => void;
+  onAnnotationFilterSettingsChanged: (
+    annotationFilterSettings: AnnotationFilterSettings,
+  ) => void;
   selectedUtteranceId: string | null;
   isVoting: boolean;
   isSavingReason: boolean;
@@ -100,12 +109,16 @@ export default function SessionViewer({
         className="flex h-full w-[55%] min-w-0 flex-col overflow-y-scroll scroll-smooth border-r"
       >
         {isPerUtterance && (
-          <div className="sticky top-0 flex justify-end px-4 pt-2">
+          <div className="sticky top-0 z-10 flex justify-end px-4 pt-2">
             <RunSessionAnnotationFilterContainer
               annotationFilters={annotationFilters}
+              annotationFilterSettings={annotationFilterSettings}
               annotationSchema={run.snapshot?.prompt.annotationSchema ?? []}
               onAddAnnotationFilter={onAddAnnotationFilter}
               onRemoveAnnotationFilter={onRemoveAnnotationFilter}
+              onAnnotationFilterSettingsChanged={
+                onAnnotationFilterSettingsChanged
+              }
             />
           </div>
         )}
@@ -148,6 +161,7 @@ export default function SessionViewer({
                   hasRemovedAnnotation={hasRemovedAnnotation}
                   shouldShowVerificationDetails={shouldShowVerificationDetails}
                   onUtteranceClicked={onUtteranceClicked}
+                  onRemoveFiltersClicked={onRemoveFiltersClicked}
                 />
               );
             },

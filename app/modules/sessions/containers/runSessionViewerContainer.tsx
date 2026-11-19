@@ -11,6 +11,7 @@ import markUtterancesByAnnotationFilters from "../helpers/markUtterancesByAnnota
 import type {
   Annotation,
   AnnotationFilter,
+  AnnotationFilterSettings,
   SessionFile,
 } from "../sessions.types";
 
@@ -32,6 +33,12 @@ export default function RunSessionViewerContainer({
   const [annotationFilters, setAnnotationFilters] = useState<
     AnnotationFilter[]
   >([]);
+
+  const [annotationFilterSettings, setAnnotationFilterSettings] =
+    useState<AnnotationFilterSettings>({
+      previousContextCount: 0,
+      nextContextCount: 0,
+    });
 
   const fetcher = useFetcher();
 
@@ -187,11 +194,21 @@ export default function RunSessionViewerContainer({
     setAnnotationFilters(clonedAnnotationFilters);
   };
 
+  const onRemoveFiltersClicked = () => {
+    setAnnotationFilters([]);
+  };
+
+  const onAnnotationFilterSettingsChanged = (
+    annotationFilterSettings: AnnotationFilterSettings,
+  ) => {
+    setAnnotationFilterSettings(annotationFilterSettings);
+  };
+
   markUtterancesByAnnotationFilters({
     transcript: sessionFile.transcript,
     annotationFilters,
-    previousContextCount: 5,
-    nextContextCount: 5,
+    previousContextCount: annotationFilterSettings.previousContextCount,
+    nextContextCount: annotationFilterSettings.nextContextCount,
   });
 
   return (
@@ -207,6 +224,7 @@ export default function RunSessionViewerContainer({
       selectedUtteranceIndex={selectedUtteranceIndex}
       run={run}
       annotationFilters={annotationFilters}
+      annotationFilterSettings={annotationFilterSettings}
       shouldShowVerificationDetails={shouldShowVerificationDetails}
       onToggleVerificationDetails={() => setShowVerificationDetails((v) => !v)}
       onUtteranceClicked={onUtteranceClicked}
@@ -219,6 +237,8 @@ export default function RunSessionViewerContainer({
       isSavingReason={isSavingReason}
       onAddAnnotationFilter={onAddAnnotationFilter}
       onRemoveAnnotationFilter={onRemoveAnnotationFilter}
+      onRemoveFiltersClicked={onRemoveFiltersClicked}
+      onAnnotationFilterSettingsChanged={onAnnotationFilterSettingsChanged}
     />
   );
 }

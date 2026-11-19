@@ -18,6 +18,7 @@ export default function SessionViewerUtterance({
   hasRemovedAnnotation,
   shouldShowVerificationDetails,
   onUtteranceClicked,
+  onRemoveFiltersClicked,
 }: {
   utterance: Utterance;
   utteranceNumber: number;
@@ -30,11 +31,15 @@ export default function SessionViewerUtterance({
   hasRemovedAnnotation?: boolean;
   shouldShowVerificationDetails: boolean;
   onUtteranceClicked: (utteranceId: string) => void;
+  onRemoveFiltersClicked: () => void;
 }) {
   return (
     <>
       {utterance.isFirstNeighbourFiltered && (
-        <SessionViewerFilteredAnnotationNotice label="Previous annotations hidden" />
+        <SessionViewerFilteredAnnotationNotice
+          label="Previous annotations hidden"
+          onRemoveFiltersClicked={onRemoveFiltersClicked}
+        />
       )}
       <div
         key={utterance._id}
@@ -90,7 +95,10 @@ export default function SessionViewerUtterance({
         </div>
       </div>
       {utterance.isLastNeighbourFiltered && (
-        <SessionViewerFilteredAnnotationNotice label="Some annotations are hidden" />
+        <SessionViewerFilteredAnnotationNotice
+          label="Some annotations are hidden"
+          onRemoveFiltersClicked={onRemoveFiltersClicked}
+        />
       )}
     </>
   );
