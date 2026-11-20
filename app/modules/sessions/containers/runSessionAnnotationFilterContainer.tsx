@@ -52,6 +52,11 @@ const RunSessionAnnotationFilterContainer = ({
         fieldKey: currentAnnotationSchemaItem.fieldKey,
         value: selectedFilterValue === "true" ? true : false,
       });
+    } else if (selectedFilterKey && selectedFilterValue) {
+      onAddAnnotationFilter({
+        fieldKey: selectedFilterKey,
+        value: selectedFilterValue,
+      });
     }
   };
 
