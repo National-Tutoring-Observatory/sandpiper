@@ -59,7 +59,7 @@ export interface Annotation {
 
 export interface AnnotationFilter {
   fieldKey: string;
-  value: string | boolean;
+  value: string | boolean | number;
 }
 
 export interface AnnotationFilterSettings {

@@ -31,9 +31,9 @@ const RunSessionAnnotationFilter = ({
   annotationFilterSettings: AnnotationFilterSettings;
   availableFilters: AnnotationSchemaItem[];
   selectedFilterKey?: string;
-  selectedFilterValue?: string;
+  selectedFilterValue?: string | number;
   onSelectedFilterKeyChanged: (selectedFilterKey: string) => void;
-  onSelectedFilterValueChanged: (selectedFilterValue: string) => void;
+  onSelectedFilterValueChanged: (selectedFilterValue: string | number) => void;
   onAddFilterClicked: () => void;
   onRemoveFilterClicked: (annotationFilter: AnnotationFilter) => void;
   onAnnotationFilterSettingsChanged: (

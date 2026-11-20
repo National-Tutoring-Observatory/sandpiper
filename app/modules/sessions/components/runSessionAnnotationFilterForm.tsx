@@ -21,7 +21,7 @@ export default function RunSessionAnnotationFilterForm({
 }: {
   availableFilters: AnnotationSchemaItem[];
   selectedFilterKey?: string;
-  selectedFilterValue?: string;
+  selectedFilterValue?: string | number;
   onSelectedFilterKeyChanged: (selectedFilterKey: string) => void;
   onSelectedFilterValueChanged: (selectedFilterValue: string | number) => void;
   onAddFilterClicked: () => void;
@@ -54,7 +54,7 @@ export default function RunSessionAnnotationFilterForm({
           (selectedFilter?.fieldType === "string" &&
             (selectedFilter.codes?.length ?? 0) > 0)) && (
           <Select
-            value={selectedFilterValue}
+            value={selectedFilterValue?.toString()}
             onValueChange={onSelectedFilterValueChanged}
             disabled={!selectedFilterKey}
           >

@@ -31,13 +31,17 @@ const RunSessionAnnotationFilterContainer = ({
   );
 
   const [selectedFilterKey, setSelectedFilterKey] = useState<string>();
-  const [selectedFilterValue, setSelectedFilterValue] = useState<string>();
+  const [selectedFilterValue, setSelectedFilterValue] = useState<
+    string | number
+  >();
 
   const onSelectedFilterKeyChanged = (selectedFilterKey: string) => {
     setSelectedFilterKey(selectedFilterKey);
   };
 
-  const onSelectedFilterValueChanged = (selectedFilterValue: string) => {
+  const onSelectedFilterValueChanged = (
+    selectedFilterValue: string | number,
+  ) => {
     setSelectedFilterValue(selectedFilterValue);
   };
 
