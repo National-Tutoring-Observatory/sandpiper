@@ -16,6 +16,7 @@ import type {
 } from "../sessions.types";
 import SessionViewerAnnotation from "./runSessionViewerAnnotation";
 import SessionViewerDetails from "./runSessionViewerDetails";
+import SessionViewerFilteredAnnotationNotice from "./sessionViewerFilteredAnnotationNotice";
 import SessionViewerUtterance from "./sessionViewerUtterance";
 
 export default function SessionViewer({
@@ -125,6 +126,13 @@ export default function SessionViewer({
           </div>
         )}
         <div className="p-4">
+          {annotationFilters.length > 0 &&
+            filteredAnnotatedUtteranceCount === 0 && (
+              <SessionViewerFilteredAnnotationNotice
+                label="No annotations match these filters"
+                onRemoveFiltersClicked={onRemoveFiltersClicked}
+              />
+            )}
           {map(
             sessionFile.transcript,
             (utterance: Utterance, index: number) => {
