@@ -13,6 +13,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import type { Tag } from "../tags.types";
 
+export const TAG_NAME_MAX = 50;
+export const TAG_DESCRIPTION_MAX = 280;
+
 const EditTagDialog = ({
   tag,
   onEditTagClicked,
@@ -53,8 +56,12 @@ const EditTagDialog = ({
           defaultValue={updatedTag.name}
           autoComplete="off"
           autoFocus
+          maxLength={TAG_NAME_MAX}
           onChange={onNameChanged}
         />
+        <div className="text-muted-foreground text-caption -mt-2 text-right">
+          {updatedTag.name.length} / {TAG_NAME_MAX}
+        </div>
         <div>
           <Label htmlFor="description-1">Description</Label>
         </div>
@@ -63,8 +70,12 @@ const EditTagDialog = ({
           name="description"
           placeholder="State what this tag is trying to achieve."
           defaultValue={updatedTag.description}
+          maxLength={TAG_DESCRIPTION_MAX}
           onChange={onDescriptionChanged}
         />
+        <div className="text-muted-foreground text-caption -mt-2 text-right">
+          {updatedTag.description?.length ?? 0} / {TAG_DESCRIPTION_MAX}
+        </div>
         <div className="flex items-center justify-between">
           <div>
             <Label htmlFor="color-1">Color</Label>

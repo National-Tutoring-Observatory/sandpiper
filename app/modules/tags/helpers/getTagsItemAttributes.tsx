@@ -5,6 +5,7 @@ export default function getTagsItemAttributes(item: Tag) {
   return {
     id: item._id,
     title: item.name,
+    description: item.description || "",
     meta: [
       {
         text: `Created at - ${getDateString(item.createdAt)}`,
