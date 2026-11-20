@@ -1,11 +1,19 @@
+import cloneDeep from "lodash/cloneDeep";
 import find from "lodash/find";
 import findIndex from "lodash/findIndex";
+import remove from "lodash/remove";
 import { useEffect, useState } from "react";
 import { useFetcher, useLocation, useNavigate } from "react-router";
 import type { Run, RunSession } from "~/modules/runs/runs.types";
 import RunSessionViewer from "../components/runSessionViewer";
 import getSessionVerificationChanges from "../helpers/getSessionVerificationChanges";
-import type { Annotation, SessionFile } from "../sessions.types";
+import markUtterancesByAnnotationFilters from "../helpers/markUtterancesByAnnotationFilters";
+import type {
+  Annotation,
+  AnnotationFilter,
+  AnnotationFilterSettings,
+  SessionFile,
+} from "../sessions.types";
 
 export default function RunSessionViewerContainer({
   run,
@@ -22,6 +30,16 @@ export default function RunSessionViewerContainer({
   const [shouldShowVerificationDetails, setShowVerificationDetails] =
     useState(false);
 
+  const [annotationFilters, setAnnotationFilters] = useState<
+    AnnotationFilter[]
+  >([]);
+
+  const [annotationFilterSettings, setAnnotationFilterSettings] =
+    useState<AnnotationFilterSettings>({
+      previousContextCount: 0,
+      nextContextCount: 0,
+    });
+
   const fetcher = useFetcher();
 
   const utteranceCount = sessionFile.transcript.length;
@@ -32,6 +50,19 @@ export default function RunSessionViewerContainer({
     (u) => u.annotations && u.annotations.length > 0,
   );
 
+  markUtterancesByAnnotationFilters({
+    transcript: sessionFile.transcript,
+    annotationFilters,
+    previousContextCount: annotationFilterSettings.previousContextCount,
+    nextContextCount: annotationFilterSettings.nextContextCount,
+  });
+
+  const filteredAnnotatedUtterances =
+    annotationFilters.length > 0
+      ? annotatedUtterances.filter((u) => u.isFiltered)
+      : annotatedUtterances;
+  const filteredAnnotatedUtteranceCount = filteredAnnotatedUtterances.length;
+
   const verificationChanges = getSessionVerificationChanges(run, sessionFile);
 
   const removedAnnotationUtteranceIds = new Set(
@@ -41,11 +72,18 @@ export default function RunSessionViewerContainer({
   const hashUtteranceId = hash
     ? hash.replace("#session-viewer-utterance-", "")
     : null;
+  const visibleAnnotatedUtterances =
+    annotationFilters.length > 0
+      ? annotatedUtterances.filter((u) => u.isFiltered || u.isNeighbourFiltered)
+      : annotatedUtterances;
   const hashUtteranceIndex = hashUtteranceId
-    ? findIndex(annotatedUtterances, { _id: hashUtteranceId })
+    ? findIndex(filteredAnnotatedUtterances, { _id: hashUtteranceId })
     : -1;
+  const isHashUtteranceVisible = hashUtteranceId
+    ? findIndex(visibleAnnotatedUtterances, { _id: hashUtteranceId }) !== -1
+    : false;
   const selectedUtteranceId =
-    hashUtteranceIndex !== -1 ||
+    isHashUtteranceVisible ||
     (hashUtteranceId !== null &&
       removedAnnotationUtteranceIds.has(hashUtteranceId))
       ? hashUtteranceId
@@ -58,7 +96,9 @@ export default function RunSessionViewerContainer({
   };
 
   const onUtteranceClicked = (utteranceId: string) => {
-    const newIndex = findIndex(annotatedUtterances, { _id: utteranceId });
+    const newIndex = findIndex(visibleAnnotatedUtterances, {
+      _id: utteranceId,
+    });
     if (newIndex !== -1 || removedAnnotationUtteranceIds.has(utteranceId)) {
       navigateToUtterance(utteranceId);
     }
@@ -66,19 +106,23 @@ export default function RunSessionViewerContainer({
 
   const onPreviousAnnotationClicked = () => {
     if (selectedUtteranceIndex !== null && selectedUtteranceIndex > 0) {
-      navigateToUtterance(annotatedUtterances[selectedUtteranceIndex - 1]._id);
+      navigateToUtterance(
+        filteredAnnotatedUtterances[selectedUtteranceIndex - 1]._id,
+      );
     }
   };
 
   const onNextAnnotationClicked = () => {
     if (selectedUtteranceIndex === null) {
-      if (annotatedUtterances.length > 0) {
-        navigateToUtterance(annotatedUtterances[0]._id);
+      if (filteredAnnotatedUtterances.length > 0) {
+        navigateToUtterance(filteredAnnotatedUtterances[0]._id);
       }
       return;
     }
-    if (selectedUtteranceIndex < annotatedUtterances.length - 1) {
-      navigateToUtterance(annotatedUtterances[selectedUtteranceIndex + 1]._id);
+    if (selectedUtteranceIndex < filteredAnnotatedUtterances.length - 1) {
+      navigateToUtterance(
+        filteredAnnotatedUtterances[selectedUtteranceIndex + 1]._id,
+      );
     }
   };
 
@@ -157,9 +201,33 @@ export default function RunSessionViewerContainer({
     : [];
 
   const onJumpToFirstAnnotation = () => {
-    if (annotatedUtterances.length > 0) {
-      navigateToUtterance(annotatedUtterances[0]._id);
+    if (filteredAnnotatedUtterances.length > 0) {
+      navigateToUtterance(filteredAnnotatedUtterances[0]._id);
     }
+  };
+
+  const onAddAnnotationFilter = (annotationFilter: AnnotationFilter) => {
+    const clonedAnnotationFilters = cloneDeep(annotationFilters);
+    if (!find(annotationFilters, annotationFilter)) {
+      clonedAnnotationFilters.push(annotationFilter);
+    }
+    setAnnotationFilters(clonedAnnotationFilters);
+  };
+
+  const onRemoveAnnotationFilter = (annotationFilter: AnnotationFilter) => {
+    const clonedAnnotationFilters = cloneDeep(annotationFilters);
+    remove(clonedAnnotationFilters, annotationFilter);
+    setAnnotationFilters(clonedAnnotationFilters);
+  };
+
+  const onRemoveFiltersClicked = () => {
+    setAnnotationFilters([]);
+  };
+
+  const onAnnotationFilterSettingsChanged = (
+    annotationFilterSettings: AnnotationFilterSettings,
+  ) => {
+    setAnnotationFilterSettings(annotationFilterSettings);
   };
 
   return (
@@ -172,8 +240,11 @@ export default function RunSessionViewerContainer({
       isVoting={isVoting}
       utteranceCount={utteranceCount}
       annotatedUtteranceCount={annotatedUtteranceCount}
+      filteredAnnotatedUtteranceCount={filteredAnnotatedUtteranceCount}
       selectedUtteranceIndex={selectedUtteranceIndex}
       run={run}
+      annotationFilters={annotationFilters}
+      annotationFilterSettings={annotationFilterSettings}
       shouldShowVerificationDetails={shouldShowVerificationDetails}
       onToggleVerificationDetails={() => setShowVerificationDetails((v) => !v)}
       onUtteranceClicked={onUtteranceClicked}
@@ -184,6 +255,10 @@ export default function RunSessionViewerContainer({
       onUpVoteClicked={onUpVoteClicked}
       onSaveVotingReason={onSaveVotingReason}
       isSavingReason={isSavingReason}
+      onAddAnnotationFilter={onAddAnnotationFilter}
+      onRemoveAnnotationFilter={onRemoveAnnotationFilter}
+      onRemoveFiltersClicked={onRemoveFiltersClicked}
+      onAnnotationFilterSettingsChanged={onAnnotationFilterSettingsChanged}
     />
   );
 }

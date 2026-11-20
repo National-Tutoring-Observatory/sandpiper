@@ -43,6 +43,10 @@ export interface Utterance {
   session_id: string;
   sequence_id: string | number;
   annotations: Annotation[];
+  isFiltered?: boolean;
+  isNeighbourFiltered?: boolean;
+  isFirstNeighbourFiltered?: boolean;
+  isLastNeighbourFiltered?: boolean;
 }
 
 export interface Annotation {
@@ -51,4 +55,14 @@ export interface Annotation {
   markedAs?: "UP_VOTED" | "DOWN_VOTED";
   votingReason?: string;
   [key: string]: unknown;
+}
+
+export interface AnnotationFilter {
+  fieldKey: string;
+  value: string | boolean | number;
+}
+
+export interface AnnotationFilterSettings {
+  previousContextCount: number;
+  nextContextCount: number;
 }

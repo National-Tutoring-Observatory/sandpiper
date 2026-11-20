@@ -44,6 +44,7 @@ export default function ViewSession({
                 isSelected={false}
                 shouldShowVerificationDetails={false}
                 onUtteranceClicked={() => {}}
+                onRemoveFiltersClicked={() => {}}
               />
             );
           })}
