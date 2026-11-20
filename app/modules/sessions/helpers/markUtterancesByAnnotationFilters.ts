@@ -40,12 +40,14 @@ export default ({
     }
     utterance.isFiltered = isFiltered;
   });
+  const isVisible = (utterance?: Utterance) =>
+    !!utterance && (utterance.isFiltered || utterance.isNeighbourFiltered);
   let hasSetFirstNeighbour = false;
   each(transcript, (utterance, index) => {
     if (
-      utterance.isNeighbourFiltered &&
+      isVisible(utterance) &&
       transcript[index - 1] &&
-      !transcript[index - 1].isNeighbourFiltered
+      !isVisible(transcript[index - 1])
     ) {
       if (!hasSetFirstNeighbour) {
         hasSetFirstNeighbour = true;
@@ -53,10 +55,9 @@ export default ({
       }
     }
     if (
-      utterance.isNeighbourFiltered &&
+      isVisible(utterance) &&
       transcript[index + 1] &&
-      !transcript[index + 1].isNeighbourFiltered &&
-      !transcript[index + 1].isFiltered
+      !isVisible(transcript[index + 1])
     ) {
       utterance.isLastNeighbourFiltered = true;
     }

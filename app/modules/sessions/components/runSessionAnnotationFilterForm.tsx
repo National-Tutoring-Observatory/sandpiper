@@ -50,10 +50,9 @@ export default function RunSessionAnnotationFilterForm({
             ))}
           </SelectContent>
         </Select>
-        {((selectedFilter?.fieldType === "boolean" ||
+        {(selectedFilter?.fieldType === "boolean" ||
           (selectedFilter?.fieldType === "string" &&
-            selectedFilter.codes?.length)) ??
-          0 > 0) && (
+            (selectedFilter.codes?.length ?? 0) > 0)) && (
           <Select
             value={selectedFilterValue}
             onValueChange={onSelectedFilterValueChanged}

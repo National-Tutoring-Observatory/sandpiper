@@ -72,11 +72,18 @@ export default function RunSessionViewerContainer({
   const hashUtteranceId = hash
     ? hash.replace("#session-viewer-utterance-", "")
     : null;
+  const visibleAnnotatedUtterances =
+    annotationFilters.length > 0
+      ? annotatedUtterances.filter((u) => u.isFiltered || u.isNeighbourFiltered)
+      : annotatedUtterances;
   const hashUtteranceIndex = hashUtteranceId
     ? findIndex(filteredAnnotatedUtterances, { _id: hashUtteranceId })
     : -1;
+  const isHashUtteranceVisible = hashUtteranceId
+    ? findIndex(visibleAnnotatedUtterances, { _id: hashUtteranceId }) !== -1
+    : false;
   const selectedUtteranceId =
-    hashUtteranceIndex !== -1 ||
+    isHashUtteranceVisible ||
     (hashUtteranceId !== null &&
       removedAnnotationUtteranceIds.has(hashUtteranceId))
       ? hashUtteranceId
@@ -89,7 +96,7 @@ export default function RunSessionViewerContainer({
   };
 
   const onUtteranceClicked = (utteranceId: string) => {
-    const newIndex = findIndex(filteredAnnotatedUtterances, {
+    const newIndex = findIndex(visibleAnnotatedUtterances, {
       _id: utteranceId,
     });
     if (newIndex !== -1 || removedAnnotationUtteranceIds.has(utteranceId)) {

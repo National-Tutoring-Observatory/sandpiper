@@ -47,12 +47,19 @@ const RunSessionAnnotationFilterContainer = ({
     const currentAnnotationSchemaItem = find(annotationSchema, {
       fieldKey: selectedFilterKey,
     });
+    if (
+      !selectedFilterKey ||
+      selectedFilterValue === undefined ||
+      selectedFilterValue === ""
+    ) {
+      return;
+    }
     if (currentAnnotationSchemaItem?.fieldType === "boolean") {
       onAddAnnotationFilter({
         fieldKey: currentAnnotationSchemaItem.fieldKey,
         value: selectedFilterValue === "true" ? true : false,
       });
-    } else if (selectedFilterKey && selectedFilterValue) {
+    } else {
       onAddAnnotationFilter({
         fieldKey: selectedFilterKey,
         value: selectedFilterValue,
