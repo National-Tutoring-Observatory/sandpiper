@@ -11,9 +11,11 @@ runs:
   steps:
     - name: Start MongoDB replica set
       shell: bash
+      env:
+        MONGO_VERSION: ${{ inputs.mongo-version }}
       run: |
         docker run -d --name mongo -p 27017:27017 \
-          mongo:${{ inputs.mongo-version }} mongod --replSet rs0 --bind_ip_all
+          "mongo:${MONGO_VERSION}" mongod --replSet rs0 --bind_ip_all
         for i in {1..30}; do
           if docker exec mongo mongosh --quiet --eval 'db.runCommand("ping").ok' 2>/dev/null; then
             echo "mongo is up"
