@@ -150,6 +150,33 @@ describe("outputRunDataToCSV", () => {
       expect(rows[2]).toHaveProperty("session_id", "ORIGINAL_S2");
     });
 
+    it("includes timestamp column", async () => {
+      const run = makeRun({ annotationType: "PER_UTTERANCE" });
+
+      const transcripts = [
+        makeTranscript("S1", { utteranceAnnotations: true }),
+        makeTranscript("S2", { utteranceAnnotations: true }),
+      ];
+      transcripts[0].transcript[0].timestamp = "00:01";
+      let callIndex = 0;
+      vi.mocked(fse.readJSON).mockImplementation(
+        async () => transcripts[callIndex++],
+      );
+
+      await handler({
+        body: {
+          run: run as any,
+          teamId: "team1",
+          inputFolder: "storage/proj1/runs/run1",
+          outputFolder: "storage/proj1/runs/run1/exports",
+        },
+      });
+
+      const rows = parseCsv("utterances.csv");
+
+      expect(rows[0]).toHaveProperty("timestamp", "00:01");
+    });
+
     it("includes annotation columns", async () => {
       const run = makeRun({ annotationType: "PER_UTTERANCE" });
 
