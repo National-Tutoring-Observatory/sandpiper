@@ -1,0 +1,102 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Hello Jordan. Can you see my screen okay?",
+      "annotations": []
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "Yes, I can see it.",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "Here is the equation: two x minus seven equals nine. What is your first step?",
+      "annotations": []
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "Add seven to both sides. So two x equals sixteen.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "Why did you add seven instead of subtracting it?",
+      "annotations": []
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "Because it says minus seven, and adding undoes it.",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "That's correct.",
+      "annotations": []
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "Then x is sixteen minus two, so fourteen.",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "There's a mistake in that last step. Can you find it and fix it?",
+      "annotations": []
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "Oh, I should divide. Sixteen divided by two is eight.",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "Sixteen divided by two is eight.",
+      "annotations": []
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "So x equals eight?",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "Can you draw this equation as a balance scale to show what we did?",
+      "annotations": []
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "Okay, I drew two boxes with seven taken away on the left, and nine on the right.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "To check an answer, first put your value in place of x, then work out the left side, then compare it with the right side.",
+      "annotations": []
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Two times eight is sixteen, minus seven is nine. It works.",
+      "annotations": []
+    }
+  ]
+}

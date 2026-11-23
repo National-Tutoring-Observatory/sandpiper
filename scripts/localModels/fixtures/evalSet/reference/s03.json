@@ -1,0 +1,158 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data. The labels are designed reference labels, fixed when the turns were written. They are not human codes and this is not a benchmark.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Before we begin, can you tell me what perimeter means?",
+      "annotations": [
+        {
+          "_id": "0",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_RELATED_CONCEPTS",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "It's the distance around the outside.",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "Okay, thanks for sharing that.",
+      "annotations": [
+        {
+          "_id": "2",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "FEEDBACK_NEUTRAL",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "And area is the inside, I think.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "Can you sketch the rectangle and mark the six and the four on its sides?",
+      "annotations": [
+        {
+          "_id": "4",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "PROMPTING_ALTERNATIVE_REPRESENTATION",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "Done. Six on the long side, four on the short side.",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "Remember, a rectangle has two long sides and two short sides.",
+      "annotations": [
+        {
+          "_id": "6",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "GIVING_HINT",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "So six plus six plus four plus four is twenty.",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "Exactly, twenty is right.",
+      "annotations": [
+        {
+          "_id": "8",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "FEEDBACK_CORRECT",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "For the area I added six and four and got ten.",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "No, ten is not the area.",
+      "annotations": [
+        {
+          "_id": "10",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "FEEDBACK_INCORRECT",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "Hmm. Do I multiply?",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "Think of a chocolate bar with three rows of five squares. You wouldn't count every square, you'd see three rows of five.",
+      "annotations": [
+        {
+          "_id": "12",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "GIVING_EXAMPLE",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "Oh, so four rows of six. Twenty-four.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "So the area is twenty-four square units.",
+      "annotations": [
+        {
+          "_id": "14",
+          "identifiedBy": "DESIGN",
+          "LEARNING_SUPPORT": "REVOICING",
+          "designedAs": "clear"
+        }
+      ]
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Twenty-four square units.",
+      "annotations": []
+    }
+  ]
+}

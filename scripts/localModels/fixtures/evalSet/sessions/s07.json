@@ -1,0 +1,102 @@
+{
+  "leadRole": "Tutor",
+  "note": "INVENTED transcript, written for scripts/localModels. Not real student data.",
+  "transcript": [
+    {
+      "_id": "0",
+      "role": "Tutor",
+      "content": "Hi Dev. Is your microphone working now?",
+      "annotations": []
+    },
+    {
+      "_id": "1",
+      "role": "Student",
+      "content": "Yeah, it's fine. We're doing slope, right?",
+      "annotations": []
+    },
+    {
+      "_id": "2",
+      "role": "Tutor",
+      "content": "Slope tells us how steep a line is. It measures how much the line rises for each step it moves to the right, which is why we compare the change in y with the change in x.",
+      "annotations": []
+    },
+    {
+      "_id": "3",
+      "role": "Student",
+      "content": "Okay. The points are one, two and three, eight. I did three minus one over eight minus two and got one third.",
+      "annotations": []
+    },
+    {
+      "_id": "4",
+      "role": "Tutor",
+      "content": "One part of that is the wrong way round. Can you find which part and correct it?",
+      "annotations": []
+    },
+    {
+      "_id": "5",
+      "role": "Student",
+      "content": "Oh, the up-and-down part goes on top. So six over two.",
+      "annotations": []
+    },
+    {
+      "_id": "6",
+      "role": "Tutor",
+      "content": "So the rise is six and the run is two.",
+      "annotations": []
+    },
+    {
+      "_id": "7",
+      "role": "Student",
+      "content": "Yeah. And six over two is three.",
+      "annotations": []
+    },
+    {
+      "_id": "8",
+      "role": "Tutor",
+      "content": "Can you plot both points on a grid and draw the steps between them?",
+      "annotations": []
+    },
+    {
+      "_id": "9",
+      "role": "Student",
+      "content": "I went right two and up six.",
+      "annotations": []
+    },
+    {
+      "_id": "10",
+      "role": "Tutor",
+      "content": "Okay. How did you decide to go right two?",
+      "annotations": []
+    },
+    {
+      "_id": "11",
+      "role": "Student",
+      "content": "Because x went from one to three.",
+      "annotations": []
+    },
+    {
+      "_id": "12",
+      "role": "Tutor",
+      "content": "Yes. So the run is the change in x.",
+      "annotations": []
+    },
+    {
+      "_id": "13",
+      "role": "Student",
+      "content": "What about a line through zero, zero and two, ten? I can't figure it out.",
+      "annotations": []
+    },
+    {
+      "_id": "14",
+      "role": "Tutor",
+      "content": "The slope of that one is five.",
+      "annotations": []
+    },
+    {
+      "_id": "15",
+      "role": "Student",
+      "content": "Oh, ten over two.",
+      "annotations": []
+    }
+  ]
+}
