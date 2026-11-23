@@ -163,6 +163,7 @@ export default function ProjectSessionsRoute() {
         ...current,
         tag: [],
       }));
+      setSelectedItems([]);
     }
   };
 
