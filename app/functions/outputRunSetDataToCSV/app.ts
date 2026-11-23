@@ -36,6 +36,7 @@ export const handler = async (event: {
     "content",
     "start_time",
     "end_time",
+    "timestamp",
   ];
   const annotationColumnKeys = new Set<string>();
   let utterancesArray: Record<string, unknown>[] = [];

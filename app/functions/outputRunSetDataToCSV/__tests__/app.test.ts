@@ -227,6 +227,32 @@ describe("outputRunSetDataToCSV", () => {
       expect(rows[1]).toHaveProperty("annotator[AI-0][0]votingReason", "");
     });
 
+    it("includes timestamp column", async () => {
+      const runs = [makeRun(1), makeRun(2)];
+      const runSet = makeRunSet({ annotationType: "PER_UTTERANCE" });
+      vi.mocked(fse.readJSON).mockImplementation(async () => {
+        const transcript = makeTranscript("ORIGINAL_S1", {
+          utteranceAnnotations: true,
+        });
+        transcript.transcript[0].timestamp = "00:01";
+        return transcript;
+      });
+
+      await handler({
+        body: {
+          runSet: runSet as any,
+          runs: runs as any,
+          teamId: "team1",
+          inputFolder: "storage/proj1/runs",
+          outputFolder: "storage/proj1/run-sets/runset1/exports",
+        },
+      });
+
+      const rows = parseCsv("utterances.csv");
+
+      expect(rows[0]).toHaveProperty("timestamp", "00:01");
+    });
+
     it("does not include _sessionRef in CSV output", async () => {
       const runs = [makeRun(1), makeRun(2)];
       const runSet = makeRunSet({ annotationType: "PER_UTTERANCE" });
