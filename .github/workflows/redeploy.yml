@@ -19,8 +19,10 @@ jobs:
 
     steps:
       - name: Validate Confirmation
+        env:
+          CONFIRM: ${{ github.event.inputs.confirm }}
         run: |
-          if [ "${{ github.event.inputs.confirm }}" != "REDEPLOY" ]; then
+          if [ "$CONFIRM" != "REDEPLOY" ]; then
             echo "Confirmation failed — type exactly 'REDEPLOY'."
             exit 1
           fi

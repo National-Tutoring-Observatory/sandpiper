@@ -56,11 +56,15 @@ jobs:
       - name: Extract version from release tag
         id: version
         shell: bash
+        env:
+          # Release fields are attacker-influenced text (anyone who can publish
+          # a release names the tag and branch). Pass them through env, never
+          # interpolate them into the script: ${{ }} is expanded before bash
+          # parses the script, so the format check below would run too late.
+          TAG: ${{ github.event.release.tag_name }}
+          REF: ${{ github.event.release.target_commitish }}
         run: |
           set -euo pipefail
-
-          TAG="${{ github.event.release.tag_name }}"
-          REF="${{ github.event.release.target_commitish }}"
 
           # Validate format. Digits only, no suffixes. Same shape release.yml
           # accepts, but here we additionally require the patch digit be > 0.
