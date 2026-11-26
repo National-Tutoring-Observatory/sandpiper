@@ -1,3 +1,4 @@
+import type { AnnotationTypeOptions } from "../annotations/helpers/annotationTypes";
 import type { Team } from "../teams/teams.types";
 import type { User } from "../users/users.types";
 
@@ -45,3 +46,50 @@ export interface CodebookVersion {
   createdAt: string;
   updatedAt: string;
 }
+
+export type GetCodebooksByActiveTeamInput = {
+  currentPage?: number;
+  searchValue?: string;
+  sort?: string;
+};
+
+export type CreateCodebookInput = {
+  name: string;
+  description?: string;
+};
+
+export type UpdateCodebookInput = {
+  codebookId: string;
+  name: string;
+  description?: string;
+};
+
+export type CodebookIdInput = {
+  codebookId: string;
+};
+
+export type CreateCodebookVersionInput = {
+  codebookId: string;
+  version: number;
+};
+
+export type CodebookVersionInput = {
+  codebookId: string;
+  version: number;
+};
+
+export type UpdateCodebookVersionInput = {
+  codebookId: string;
+  version: number;
+  name: string;
+  categories: CodebookCategory[];
+};
+
+export type CreatePromptFromCodebookInput = {
+  codebookId: string;
+  codebookVersionId: string;
+  annotationType: AnnotationTypeOptions;
+  categoryIds?: string[];
+  hasFlattenedCategories?: boolean;
+  flattenedAnnotationField?: string;
+};
