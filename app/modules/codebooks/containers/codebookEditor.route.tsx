@@ -1,11 +1,9 @@
-import {
-  redirect,
-  useLoaderData,
-  useNavigation,
-  useSubmit,
-} from "react-router";
+import { useQueryClient } from "@tanstack/react-query";
+import { redirect } from "react-router";
+import { toast } from "sonner";
 import getReferenceId from "~/helpers/getReferenceId";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import useCache from "~/modules/cache/hooks/useCache";
 import addDialog from "~/modules/dialogs/addDialog";
 import CodebookAuthorization from "../authorization";
 import { CodebookService } from "../codebook";
@@ -40,10 +38,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     return redirect("/");
   }
 
-  return {
-    codebook: { data: codebook },
-    codebookVersion: { data: codebookVersion },
-  };
+  return {};
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -92,12 +87,22 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function CodebookEditorRoute() {
-  const data = useLoaderData<typeof loader>();
-  const navigation = useNavigation();
-  const submit = useSubmit();
+export default function CodebookEditorRoute({ params }: Route.ComponentProps) {
+  const { teamId, codebookId, version } = params;
+  const queryClient = useQueryClient();
 
-  const { codebook, codebookVersion } = data;
+  const teamQuery = { teamId };
+  const codebookVersionsApi = `/api/codebooks/${codebookId}/versions`;
+  const codebook = useCache({
+    api: `/api/codebooks/${codebookId}`,
+    query: teamQuery,
+  });
+  const codebookVersion = useCache({
+    api: `${codebookVersionsApi}/${version}`,
+    query: teamQuery,
+  });
+
+  if (!codebook.data || !codebookVersion.data) return null;
 
   const onSaveCodebookVersion = ({
     name,
@@ -108,28 +113,33 @@ export default function CodebookEditorRoute() {
   }) => {
     addDialog(
       <SaveCodebookVersionDialog
-        onSaveClicked={() => {
-          submit(
-            JSON.stringify({
-              intent: "UPDATE_CODEBOOK_VERSION",
-              entityId: codebookVersion.data._id,
-              payload: { name, categories },
-            }),
-            { method: "PUT", encType: "application/json" },
-          );
-        }}
+        onSaveClicked={() => submitSaveCodebookVersion({ name, categories })}
       />,
     );
   };
 
-  const onMakeCodebookVersionProduction = () => {
-    submit(
-      JSON.stringify({
-        intent: "MAKE_CODEBOOK_VERSION_PRODUCTION",
-        entityId: codebookVersion.data._id,
-        payload: {},
-      }),
-      { method: "POST", encType: "application/json" },
+  const submitSaveCodebookVersion = (data: {
+    name: string;
+    categories: CodebookCategory[];
+  }) => {
+    codebookVersion.mutate(
+      { method: "PUT", query: teamQuery, data },
+      {
+        onSuccess: () =>
+          queryClient.invalidateQueries({ queryKey: [codebookVersionsApi] }),
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
+  const submitMakeCodebookVersionProduction = () => {
+    codebook.mutate(
+      {
+        api: `${codebookVersionsApi}/${version}/production`,
+        method: "POST",
+        query: teamQuery,
+      },
+      { onError: (error) => toast.error(error.message) },
     );
   };
 
@@ -137,12 +147,12 @@ export default function CodebookEditorRoute() {
     <CodebookEditor
       key={codebookVersion.data._id}
       codebookVersion={codebookVersion.data}
-      isLoading={navigation.state === "loading"}
+      isLoading={codebookVersion.isFetching || codebookVersion.isMutating}
       onSaveCodebookVersion={onSaveCodebookVersion}
       isProduction={
         codebook.data.productionVersion === codebookVersion.data.version
       }
-      onMakeCodebookVersionProduction={onMakeCodebookVersionProduction}
+      onMakeCodebookVersionProduction={submitMakeCodebookVersionProduction}
     />
   );
 }
