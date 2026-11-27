@@ -3,27 +3,25 @@ import { useEffect } from "react";
 import {
   data,
   redirect,
-  useActionData,
-  useLoaderData,
   useNavigate,
   useOutletContext,
-  useParams,
   useSearchParams,
-  useSubmit,
 } from "react-router";
-import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
-import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
+import { toast } from "sonner";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import useCache from "~/modules/cache/hooks/useCache";
 import CodebookAuthorization from "~/modules/codebooks/authorization";
 import { CodebookService } from "~/modules/codebooks/codebook";
+import type { Codebook } from "~/modules/codebooks/codebooks.types";
 import { CodebookVersionService } from "~/modules/codebooks/codebookVersion";
 import CreateCodebookDialog from "~/modules/codebooks/components/createCodebookDialog";
+import DeleteCodebookDialog from "~/modules/codebooks/components/deleteCodebookDialog";
+import EditCodebookDialog from "~/modules/codebooks/components/editCodebookDialog";
 import {
   CODEBOOKS_CREATE_PARAM,
   codebookUrl,
 } from "~/modules/codebooks/helpers/codebookUrls";
-import { useCodebookActions } from "~/modules/codebooks/hooks/useCodebookActions";
 import addDialog from "~/modules/dialogs/addDialog";
 import TeamAuthorization from "../authorization";
 import TeamCodebooks from "../components/teamCodebooks";
@@ -36,23 +34,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     return redirect("/");
   }
 
-  const queryParams = getQueryParamsFromRequest(request, {
-    searchValue: "",
-    currentPage: 1,
-    sort: "name",
-    filters: {},
-  });
-
-  const query = buildQueryFromParams({
-    match: { team: params.teamId, deletedAt: { $exists: false } },
-    queryParams,
-    searchableFields: ["name"],
-    sortableFields: ["name", "createdAt"],
-  });
-
-  const codebooks = await CodebookService.paginate(query);
-
-  return { codebooks };
+  return {};
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -112,18 +94,11 @@ export async function action({ request, params }: Route.ActionArgs) {
   return {};
 }
 
-export default function TeamCodebooksRoute() {
-  const loaderData = useLoaderData<typeof loader>();
+export default function TeamCodebooksRoute({ params }: Route.ComponentProps) {
+  const { teamId } = params;
   const ctx = useOutletContext<{ team: Team }>();
-  const actionData = useActionData();
-  const submit = useSubmit();
   const navigate = useNavigate();
-  const params = useParams();
-  const teamId = params.teamId;
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const { openEditCodebookDialog, openDeleteCodebookDialog } =
-    useCodebookActions();
 
   const {
     searchValue,
@@ -140,22 +115,76 @@ export default function TeamCodebooksRoute() {
     filters: {},
   });
 
-  useEffect(() => {
-    if (actionData?.intent === "CREATE_CODEBOOK") {
-      navigate(
-        codebookUrl(
-          teamId!,
-          actionData.data._id,
-          actionData.data.productionVersion,
-        ),
-      );
-    }
-  }, [actionData, navigate, teamId]);
+  const teamQuery = { teamId };
+  const debouncedSearchValue = searchParams.get("searchValue") || undefined;
+
+  const codebooks = useCache({
+    api: "/api/codebooks",
+    query: {
+      ...teamQuery,
+      currentPage,
+      searchValue: debouncedSearchValue,
+      sort: sortValue || undefined,
+    },
+  });
+
+  const openEditCodebookDialog = (codebook: Codebook) => {
+    addDialog(
+      <EditCodebookDialog
+        codebook={codebook}
+        onEditCodebookClicked={submitEditCodebook}
+      />,
+    );
+  };
+
+  const submitEditCodebook = (codebook: Codebook) => {
+    codebooks.mutate(
+      {
+        api: `/api/codebooks/${codebook._id}`,
+        method: "PUT",
+        query: teamQuery,
+        data: { name: codebook.name, description: codebook.description },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Codebook updated");
+          addDialog(null);
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
+  const openDeleteCodebookDialog = (codebook: Codebook) => {
+    addDialog(
+      <DeleteCodebookDialog
+        codebook={codebook}
+        onDeleteCodebookClicked={() => submitDeleteCodebook(codebook)}
+      />,
+    );
+  };
+
+  const submitDeleteCodebook = (codebook: Codebook) => {
+    codebooks.mutate(
+      {
+        api: `/api/codebooks/${codebook._id}`,
+        method: "DELETE",
+        query: teamQuery,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Codebook deleted");
+          addDialog(null);
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
 
   const onCreateCodebookButtonClicked = () => {
     addDialog(
       <CreateCodebookDialog
-        onCreateNewCodebookClicked={onCreateNewCodebookClicked}
+        onCreateNewCodebookClicked={submitCreateCodebook}
       />,
     );
   };
@@ -173,19 +202,26 @@ export default function TeamCodebooksRoute() {
     );
   }, [searchParams, setSearchParams]);
 
-  const onCreateNewCodebookClicked = ({
+  const submitCreateCodebook = ({
     name,
     description,
   }: {
     name: string;
     description: string;
   }) => {
-    submit(
-      JSON.stringify({
-        intent: "CREATE_CODEBOOK",
-        payload: { name, description },
-      }),
-      { method: "POST", encType: "application/json" },
+    codebooks.mutate(
+      { method: "POST", query: teamQuery, data: { name, description } },
+      {
+        onSuccess: (response) =>
+          navigate(
+            codebookUrl(
+              teamId,
+              response.data._id,
+              response.data.productionVersion,
+            ),
+          ),
+        onError: (error) => toast.error(error.message),
+      },
     );
   };
 
@@ -195,6 +231,8 @@ export default function TeamCodebooksRoute() {
     }
   };
 
+  const codebookItems: Codebook[] = codebooks.data ?? [];
+
   const onItemActionClicked = ({
     id,
     action,
@@ -202,7 +240,7 @@ export default function TeamCodebooksRoute() {
     id: string;
     action: string;
   }) => {
-    const codebook = find(loaderData.codebooks.data, { _id: id });
+    const codebook = find(codebookItems, { _id: id });
     if (!codebook) return null;
     switch (action) {
       case "EDIT":
@@ -214,34 +252,20 @@ export default function TeamCodebooksRoute() {
     }
   };
 
-  const onSearchValueChanged = (searchValue: string) => {
-    setSearchValue(searchValue);
-  };
-
-  const onPaginationChanged = (currentPage: number) => {
-    setCurrentPage(currentPage);
-  };
-
-  const onSortValueChanged = (sortValue: string) => {
-    setSortValue(sortValue);
-  };
-
-  const codebooks = loaderData.codebooks.data ?? [];
-
   return (
     <TeamCodebooks
-      codebooks={codebooks}
+      codebooks={codebookItems}
       team={ctx.team}
       searchValue={searchValue}
       currentPage={currentPage}
-      totalPages={loaderData.codebooks.totalPages}
+      totalPages={codebooks.totalPages ?? 1}
       sortValue={sortValue}
-      isSyncing={isSyncing}
+      isSyncing={isSyncing || codebooks.isFetching}
       onActionClicked={onActionClicked}
       onItemActionClicked={onItemActionClicked}
-      onSearchValueChanged={onSearchValueChanged}
-      onPaginationChanged={onPaginationChanged}
-      onSortValueChanged={onSortValueChanged}
+      onSearchValueChanged={setSearchValue}
+      onPaginationChanged={setCurrentPage}
+      onSortValueChanged={setSortValue}
     />
   );
 }

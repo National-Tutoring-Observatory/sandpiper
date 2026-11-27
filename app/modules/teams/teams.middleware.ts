@@ -14,3 +14,14 @@ export const isTeamAdmin: RequestHandler = (req, res, next) => {
 
   next();
 };
+
+export const isTeamMember: RequestHandler = (req, res, next) => {
+  if (!getActiveTeam(req)) {
+    res.status(403).json({
+      error: { message: "Team member required", statusCode: 403 },
+    });
+    return;
+  }
+
+  next();
+};

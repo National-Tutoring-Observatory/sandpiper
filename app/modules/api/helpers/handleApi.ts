@@ -50,6 +50,17 @@ function errorMessage(error: unknown): string {
   return String(error);
 }
 
+function getRawParams(
+  params: Record<string, string | string[]>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(params).map(([key, value]) => [
+      key,
+      Array.isArray(value) ? value[0] : value,
+    ]),
+  );
+}
+
 export default function handleRoute({
   param,
   props,
@@ -60,6 +71,7 @@ export default function handleRoute({
       const parsed = res.locals.parsed as ParsedRequest | undefined;
 
       const methodArguments: ControllerMethodArgs = {
+        params: getRawParams(req.params),
         body: parsed?.body ?? {},
         query: parsed?.query ?? {},
         files: parsed?.files ?? {},

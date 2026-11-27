@@ -1,28 +1,23 @@
-import { useContext, useEffect, useRef } from "react";
-import {
-  data,
-  redirect,
-  useFetcher,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { useContext, useRef } from "react";
+import { data, redirect, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import getReferenceId from "~/helpers/getReferenceId";
 import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
 import { isAnnotationType } from "~/modules/annotations/helpers/annotationTypes";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import useCache from "~/modules/cache/hooks/useCache";
 import CodebookAuthorization from "~/modules/codebooks/authorization";
 import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "~/modules/prompts/authorization";
 import { promptsUrl } from "~/modules/prompts/helpers/promptUrls";
 import createGeneralJob from "~/modules/queues/helpers/createGeneralJob";
 import { CodebookService } from "../codebook";
+import type { Codebook as CodebookType } from "../codebooks.types";
 import { CodebookVersionService } from "../codebookVersion";
 import Codebook from "../components/codebook";
+import DeleteCodebookDialog from "../components/deleteCodebookDialog";
+import EditCodebookDialog from "../components/editCodebookDialog";
 import { codebookUrl, codebooksUrl } from "../helpers/codebookUrls";
-import { useCodebookActions } from "../hooks/useCodebookActions";
 import type { Route } from "./+types/codebook.route";
 import CreatePromptFromCodebookDialogContainer from "./createPromptFromCodebookDialog.container";
 
@@ -38,11 +33,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!CodebookAuthorization.canView(user, codebook)) {
     throw new Error("You do not have permission to view this codebook.");
   }
-  const codebookVersions = await CodebookVersionService.find({
-    match: { codebook: params.codebookId },
-    sort: { version: -1 },
-  });
-  return { codebook, codebookVersions };
+  return {};
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -186,86 +177,88 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function CodebookRoute() {
-  const loaderData = useLoaderData<typeof loader>();
+export default function CodebookRoute({ params }: Route.ComponentProps) {
+  const { teamId, codebookId } = params;
+  const { version } = useParams();
   const navigate = useNavigate();
-
-  const { teamId, codebookId, version } = useParams();
-
-  const fetcher = useFetcher();
+  const user = useContext(AuthenticationContext);
   const createPromptToastId = useRef<string | number | undefined>(undefined);
 
-  const { codebook, codebookVersions } = loaderData;
-  const user = useContext(AuthenticationContext);
-  const canDelete = CodebookAuthorization.canDelete(user, codebook);
+  const teamQuery = { teamId };
+  const codebook = useCache({
+    api: `/api/codebooks/${codebookId}`,
+    query: teamQuery,
+  });
+  const codebookVersions = useCache({
+    api: `/api/codebooks/${codebookId}/versions`,
+    query: teamQuery,
+  });
 
-  const { openEditCodebookDialog, openDeleteCodebookDialog } =
-    useCodebookActions({
-      onDeleteSuccess: () => navigate(codebooksUrl(teamId!)),
-    });
+  if (!codebook.data || !codebookVersions.data) return null;
 
-  const submitCreateCodebookVersion = () => {
-    fetcher.submit(
-      JSON.stringify({
-        intent: "CREATE_CODEBOOK_VERSION",
-        entityId: codebookId,
-        payload: { version },
-      }),
-      { method: "POST", encType: "application/json" },
+  const openEditCodebookDialog = (codebook: CodebookType) => {
+    addDialog(
+      <EditCodebookDialog
+        codebook={codebook}
+        onEditCodebookClicked={submitEditCodebook}
+      />,
     );
   };
 
-  useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data) {
-      if (
-        fetcher.data.success &&
-        fetcher.data.intent === "CREATE_PROMPT_FROM_CODEBOOK"
-      ) {
-        toast.dismiss(createPromptToastId.current);
-        toast.success("Prompt created from codebook");
-        addDialog(null);
-        navigate(
-          promptsUrl(
-            getReferenceId(codebook.team),
-            fetcher.data.data._id,
-            fetcher.data.data.productionVersion,
-          ),
-        );
-      } else if (
-        fetcher.data.success &&
-        fetcher.data.intent === "CREATE_CODEBOOK_VERSION"
-      ) {
-        navigate(
-          codebookUrl(
-            teamId!,
-            getReferenceId(fetcher.data.data.codebook),
-            fetcher.data.data.version,
-          ),
-        );
-      } else if (fetcher.data.errors) {
-        toast.dismiss(createPromptToastId.current);
-        toast.error(fetcher.data.errors.general || "An error occurred");
-      }
-    }
-  }, [fetcher.state, fetcher.data, navigate, teamId]);
+  const submitEditCodebook = ({ name, description }: CodebookType) => {
+    codebook.mutate(
+      { method: "PUT", query: teamQuery, data: { name, description } },
+      {
+        onSuccess: () => {
+          toast.success("Codebook updated");
+          addDialog(null);
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
 
-  const breadcrumbs = [
-    {
-      text: "Codebooks",
-      link: codebooksUrl(getReferenceId(codebook.team)),
-    },
-    {
-      text: codebook.name,
-    },
-  ];
+  const openDeleteCodebookDialog = (codebook: CodebookType) => {
+    addDialog(
+      <DeleteCodebookDialog
+        codebook={codebook}
+        onDeleteCodebookClicked={submitDeleteCodebook}
+      />,
+    );
+  };
+
+  const submitDeleteCodebook = () => {
+    codebook.mutate(
+      { method: "DELETE", query: teamQuery },
+      {
+        onSuccess: () => {
+          toast.success("Codebook deleted");
+          addDialog(null);
+          navigate(codebooksUrl(teamId));
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
+  const submitCreateCodebookVersion = () => {
+    codebookVersions.mutate(
+      { method: "POST", query: teamQuery, data: { version: Number(version) } },
+      {
+        onSuccess: (response) =>
+          navigate(codebookUrl(teamId, codebookId, response.data.version)),
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
 
   const openCreatePromptFromCodebookDialog = () => {
     addDialog(
       <CreatePromptFromCodebookDialogContainer
-        codebookVersions={codebookVersions}
-        productionVersion={codebook.productionVersion}
+        codebookVersions={codebookVersions.data}
+        productionVersion={codebook.data.productionVersion}
         onCreatePromptClicked={submitCreatePromptFromCodebook}
-        isSubmitting={fetcher.state === "submitting"}
+        isSubmitting={codebook.isMutating}
       />,
     );
   };
@@ -277,23 +270,46 @@ export default function CodebookRoute() {
     createPromptToastId.current = toast.loading(
       "Creating prompt from codebook...",
     );
-    fetcher.submit(
-      JSON.stringify({
-        intent: "CREATE_PROMPT_FROM_CODEBOOK",
-        entityId: codebookId,
-        payload: options,
-      }),
-      { method: "POST", encType: "application/json" },
+    codebook.mutate(
+      {
+        api: `/api/codebooks/${codebookId}/prompts`,
+        method: "POST",
+        query: teamQuery,
+        data: options,
+      },
+      {
+        onSuccess: (response) => {
+          toast.dismiss(createPromptToastId.current);
+          toast.success("Prompt created from codebook");
+          addDialog(null);
+          navigate(
+            promptsUrl(
+              teamId,
+              response.data._id,
+              response.data.productionVersion,
+            ),
+          );
+        },
+        onError: (error) => {
+          toast.dismiss(createPromptToastId.current);
+          toast.error(error.message);
+        },
+      },
     );
   };
 
+  const breadcrumbs = [
+    { text: "Codebooks", link: codebooksUrl(teamId) },
+    { text: codebook.data.name },
+  ];
+
   return (
     <Codebook
-      codebook={codebook}
-      codebookVersions={codebookVersions}
+      codebook={codebook.data}
+      codebookVersions={codebookVersions.data}
       version={Number(version)}
       breadcrumbs={breadcrumbs}
-      canDelete={canDelete}
+      canDelete={CodebookAuthorization.canDelete(user, codebook.data)}
       onCreateCodebookVersionClicked={submitCreateCodebookVersion}
       onEditCodebookButtonClicked={openEditCodebookDialog}
       onDeleteCodebookButtonClicked={openDeleteCodebookDialog}

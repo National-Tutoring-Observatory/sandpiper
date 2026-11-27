@@ -28,6 +28,7 @@ export interface RouteItemConfig {
 
 export interface ControllerMethodArgs {
   param?: string;
+  params: Record<string, string>;
   body: Record<string, unknown>;
   query: Record<string, unknown>;
   files: Record<string, unknown>;

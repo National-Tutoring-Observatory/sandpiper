@@ -54,6 +54,14 @@ describe("handleApi", () => {
     expect(context.activeTeam).toBe(teamId);
   });
 
+  it("passes all path params to the controller", async () => {
+    const method = vi.fn().mockResolvedValue({ data: "ok" });
+    const middleware = handleApi({ method });
+    const { req, res, next } = makeReqRes({}, { id: "abc", version: ["2"] });
+    await middleware(req, res, next);
+    expect(method.mock.calls[0][0].params).toEqual({ id: "abc", version: "2" });
+  });
+
   it("extracts a named path param", async () => {
     const method = vi.fn().mockResolvedValue({ data: "ok" });
     const middleware = handleApi({ param: "id", method });
