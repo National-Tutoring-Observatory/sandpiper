@@ -151,4 +151,14 @@ describe("prompts api", () => {
     });
     expect(response.status).toBe(400);
   });
+
+  it("requires an annotation type for saved prompts", async () => {
+    const response = await request("GET", "/prompts/saved");
+    expect(response.status).toBe(400);
+  });
+
+  it("returns 401 without a session", async () => {
+    const response = await fetch(`${baseUrl}/prompts?teamId=${teamId}`);
+    expect(response.status).toBe(401);
+  });
 });

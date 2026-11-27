@@ -1,5 +1,5 @@
 import { useContext } from "react";
-import { data, redirect, useNavigate, useParams } from "react-router";
+import { redirect, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
@@ -7,15 +7,11 @@ import useCache from "~/modules/cache/hooks/useCache";
 import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "~/modules/prompts/authorization";
 import PromptLibraryAuthorization from "~/modules/prompts/promptLibraryAuthorization";
-import { RunService } from "~/modules/runs/run";
 import DeletePromptDialog from "../components/deletePromptDialog";
 import EditPromptDialog from "../components/editPromptDialog";
 import Prompt from "../components/prompt";
 import PublishPromptDialog from "../components/publishPromptDialog";
 import UnpublishPromptDialog from "../components/unpublishPromptDialog";
-import { PromptPublishedError } from "../errors/promptPublishedError";
-import { PublishError } from "../errors/publishError";
-import { cleanAuthors, cleanPaperRefs } from "../helpers/cleanLibraryMetadata";
 import { promptsUrl } from "../helpers/promptUrls";
 import { PromptService } from "../prompt";
 import type {
@@ -23,7 +19,6 @@ import type {
   PromptPaperRef,
   Prompt as PromptType,
 } from "../prompts.types";
-import { PromptVersionService } from "../promptVersion";
 import type { Route } from "./+types/prompt.route";
 
 export async function loader({ request, params }: Route.LoaderArgs) {
@@ -39,172 +34,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     throw new Error("You do not have permission to view this prompt.");
   }
   return {};
-}
-
-export async function action({ request, params }: Route.ActionArgs) {
-  const { intent, entityId, payload = {} } = await request.json();
-
-  const { version } = payload;
-
-  const user = await requireAuth({ request });
-  const prompt = await PromptService.findOne({
-    _id: entityId,
-    team: params.teamId,
-  });
-  if (!prompt) {
-    throw new Error("Prompt not found");
-  }
-  if (!PromptAuthorization.canUpdate(user, prompt)) {
-    throw new Error("You do not have permission to update this prompt.");
-  }
-
-  switch (intent) {
-    case "CREATE_PROMPT_VERSION": {
-      const previousVersionDocs = await PromptVersionService.find({
-        match: { prompt: entityId, version: Number(version) },
-      });
-
-      if (previousVersionDocs.length === 0) {
-        return data(
-          { errors: { general: "Previous prompt version not found" } },
-          { status: 400 },
-        );
-      }
-
-      const promptVersion = await PromptVersionService.createNextVersion(
-        entityId,
-        previousVersionDocs[0],
-      );
-
-      return data({
-        success: true,
-        intent: "CREATE_PROMPT_VERSION",
-        data: promptVersion,
-      });
-    }
-    case "UPDATE_PROMPT": {
-      const { name } = payload;
-      if (typeof name !== "string" || !name.trim()) {
-        return data(
-          { errors: { general: "Prompt name is required" } },
-          { status: 400 },
-        );
-      }
-
-      const updated = await PromptService.updateById(entityId, {
-        name: name.trim(),
-      });
-      return data({
-        success: true,
-        intent: "UPDATE_PROMPT",
-        data: updated,
-      });
-    }
-    case "PUBLISH_PROMPT": {
-      if (!PromptLibraryAuthorization.canPublish(user)) {
-        return data(
-          {
-            errors: {
-              general: "You do not have permission to publish prompts.",
-            },
-          },
-          { status: 403 },
-        );
-      }
-
-      const { description, authors, paperRefs } = payload;
-
-      if (typeof description !== "string" || !description.trim()) {
-        return data(
-          { errors: { general: "Description is required" } },
-          { status: 400 },
-        );
-      }
-
-      try {
-        const published = await PromptService.publish(entityId, {
-          description: description.trim(),
-          authors: cleanAuthors(authors),
-          paperRefs: cleanPaperRefs(paperRefs),
-        });
-
-        return data({
-          success: true,
-          intent: "PUBLISH_PROMPT",
-          data: published,
-        });
-      } catch (error) {
-        if (error instanceof PublishError) {
-          return data({ errors: { general: error.message } }, { status: 400 });
-        }
-        throw error;
-      }
-    }
-    case "UNPUBLISH_PROMPT": {
-      if (!PromptLibraryAuthorization.canPublish(user)) {
-        return data(
-          {
-            errors: {
-              general: "You do not have permission to unpublish prompts.",
-            },
-          },
-          { status: 403 },
-        );
-      }
-
-      const unpublished = await PromptService.unpublish(entityId);
-      return data({
-        success: true,
-        intent: "UNPUBLISH_PROMPT",
-        data: unpublished,
-      });
-    }
-    case "DELETE_PROMPT": {
-      if (!PromptAuthorization.canDelete(user, prompt)) {
-        return data(
-          {
-            errors: {
-              general: "You do not have permission to delete this prompt.",
-            },
-          },
-          { status: 403 },
-        );
-      }
-
-      const runsUsingPromptCount = await RunService.count({
-        prompt: entityId,
-        isComplete: false,
-        isHuman: { $ne: true },
-      });
-
-      if (runsUsingPromptCount > 0) {
-        return data(
-          {
-            errors: {
-              general: `Cannot delete prompt: ${runsUsingPromptCount} active run(s) reference it. Wait for runs to complete or create a new prompt for future runs.`,
-            },
-          },
-          { status: 400 },
-        );
-      }
-
-      try {
-        await PromptService.softDelete(entityId);
-      } catch (error) {
-        if (error instanceof PromptPublishedError) {
-          return data({ errors: { general: error.message } }, { status: 400 });
-        }
-        throw error;
-      }
-
-      return data({
-        success: true,
-        intent: "DELETE_PROMPT",
-      });
-    }
-    default:
-      return data({ errors: { general: "Invalid intent" } }, { status: 400 });
-  }
 }
 
 export default function PromptRoute({ params }: Route.ComponentProps) {

@@ -8,12 +8,10 @@ import {
   useSearchParams,
 } from "react-router";
 import { toast } from "sonner";
-import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import useCache from "~/modules/cache/hooks/useCache";
 import addDialog, { closeDialog } from "~/modules/dialogs/addDialog";
-import PromptAuthorization from "~/modules/prompts/authorization";
 import CreatePromptDialog from "~/modules/prompts/components/createPromptDialog";
 import DeletePromptDialog from "~/modules/prompts/components/deletePromptDialog";
 import EditPromptDialog from "~/modules/prompts/components/editPromptDialog";
@@ -21,10 +19,7 @@ import {
   PROMPTS_CREATE_PARAM,
   promptsUrl,
 } from "~/modules/prompts/helpers/promptUrls";
-import { PromptService } from "~/modules/prompts/prompt";
 import type { Prompt } from "~/modules/prompts/prompts.types";
-import { PromptVersionService } from "~/modules/prompts/promptVersion";
-import createGeneralJob from "~/modules/queues/helpers/createGeneralJob";
 import TeamAuthorization from "../authorization";
 import TeamPrompts from "../components/teamPrompts";
 import type { Team } from "../teams.types";
@@ -34,67 +29,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
   if (!TeamAuthorization.canView(user, params.teamId)) {
     return redirect("/");
-  }
-
-  return {};
-}
-
-export async function action({ request, params }: Route.ActionArgs) {
-  const { intent, payload = {} } = await request.json();
-  const { name, annotationType } = payload;
-
-  const user = await requireAuth({ request });
-
-  if (!PromptAuthorization.canCreate(user, params.teamId)) {
-    throw new Error(
-      "You do not have permission to create a prompt in this team.",
-    );
-  }
-
-  if (intent === "CREATE_PROMPT") {
-    if (typeof name !== "string")
-      throw new Error("Prompt name is required and must be a string.");
-
-    const prompt = await PromptService.create({
-      name,
-      annotationType,
-      team: params.teamId,
-      productionVersion: 1,
-      createdBy: user._id,
-    });
-    await PromptVersionService.create({
-      name: "initial",
-      prompt: prompt._id,
-      version: 1,
-      annotationSchema: [
-        {
-          isSystem: true,
-          fieldKey: "_id",
-          fieldType: "string",
-          value: "",
-        },
-        {
-          isSystem: true,
-          fieldKey: "identifiedBy",
-          fieldType: "string",
-          value: "AI",
-        },
-        {
-          isSystem: true,
-          fieldKey: "reasoning",
-          fieldType: "string",
-          value: "",
-        },
-      ],
-    });
-
-    trackServerEvent({ name: "prompt_created", userId: user._id });
-    await createGeneralJob("TRACK_FIRST_PROMPT", { userId: user._id });
-
-    return {
-      intent: "CREATE_PROMPT",
-      data: prompt,
-    };
   }
 
   return {};
