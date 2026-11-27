@@ -3,29 +3,23 @@ import find from "lodash/find";
 import { useEffect } from "react";
 import {
   redirect,
-  useFetcher,
-  useLoaderData,
   useNavigate,
   useOutletContext,
-  useParams,
   useSearchParams,
 } from "react-router";
-import trackServerEvent from "~/modules/analytics/helpers/trackServerEvent.server";
-import buildQueryFromParams from "~/modules/app/helpers/buildQueryFromParams";
-import getQueryParamsFromRequest from "~/modules/app/helpers/getQueryParamsFromRequest.server";
+import { toast } from "sonner";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import useCache from "~/modules/cache/hooks/useCache";
 import addDialog, { closeDialog } from "~/modules/dialogs/addDialog";
-import PromptAuthorization from "~/modules/prompts/authorization";
 import CreatePromptDialog from "~/modules/prompts/components/createPromptDialog";
+import DeletePromptDialog from "~/modules/prompts/components/deletePromptDialog";
+import EditPromptDialog from "~/modules/prompts/components/editPromptDialog";
 import {
   PROMPTS_CREATE_PARAM,
   promptsUrl,
 } from "~/modules/prompts/helpers/promptUrls";
-import { usePromptActions } from "~/modules/prompts/hooks/usePromptActions";
-import { PromptService } from "~/modules/prompts/prompt";
-import { PromptVersionService } from "~/modules/prompts/promptVersion";
-import createGeneralJob from "~/modules/queues/helpers/createGeneralJob";
+import type { Prompt } from "~/modules/prompts/prompts.types";
 import TeamAuthorization from "../authorization";
 import TeamPrompts from "../components/teamPrompts";
 import type { Team } from "../teams.types";
@@ -37,97 +31,14 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     return redirect("/");
   }
 
-  const queryParams = getQueryParamsFromRequest(request, {
-    searchValue: "",
-    currentPage: 1,
-    sort: "name",
-    filters: {},
-  });
-
-  const query = buildQueryFromParams({
-    match: { team: params.teamId, deletedAt: { $exists: false } },
-    queryParams,
-    searchableFields: ["name"],
-    sortableFields: ["name", "createdAt"],
-    filterableFields: ["annotationType"],
-  });
-
-  const prompts = await PromptService.paginate(query);
-
-  return { prompts };
-}
-
-export async function action({ request, params }: Route.ActionArgs) {
-  const { intent, payload = {} } = await request.json();
-  const { name, annotationType } = payload;
-
-  const user = await requireAuth({ request });
-
-  if (!PromptAuthorization.canCreate(user, params.teamId)) {
-    throw new Error(
-      "You do not have permission to create a prompt in this team.",
-    );
-  }
-
-  if (intent === "CREATE_PROMPT") {
-    if (typeof name !== "string")
-      throw new Error("Prompt name is required and must be a string.");
-
-    const prompt = await PromptService.create({
-      name,
-      annotationType,
-      team: params.teamId,
-      productionVersion: 1,
-      createdBy: user._id,
-    });
-    await PromptVersionService.create({
-      name: "initial",
-      prompt: prompt._id,
-      version: 1,
-      annotationSchema: [
-        {
-          isSystem: true,
-          fieldKey: "_id",
-          fieldType: "string",
-          value: "",
-        },
-        {
-          isSystem: true,
-          fieldKey: "identifiedBy",
-          fieldType: "string",
-          value: "AI",
-        },
-        {
-          isSystem: true,
-          fieldKey: "reasoning",
-          fieldType: "string",
-          value: "",
-        },
-      ],
-    });
-
-    trackServerEvent({ name: "prompt_created", userId: user._id });
-    await createGeneralJob("TRACK_FIRST_PROMPT", { userId: user._id });
-
-    return {
-      intent: "CREATE_PROMPT",
-      data: prompt,
-    };
-  }
-
   return {};
 }
 
-export default function TeamPromptsRoute() {
-  const data = useLoaderData<typeof loader>();
+export default function TeamPromptsRoute({ params }: Route.ComponentProps) {
+  const { teamId } = params;
   const ctx = useOutletContext<{ team: Team }>();
-  const fetcher = useFetcher();
   const navigate = useNavigate();
-  const params = useParams();
-  const teamId = params.teamId;
   const [searchParams, setSearchParams] = useSearchParams();
-
-  const { openEditPromptDialog, openDeletePromptDialog } = usePromptActions();
 
   const {
     searchValue,
@@ -146,25 +57,22 @@ export default function TeamPromptsRoute() {
     filters: {},
   });
 
-  useEffect(() => {
-    if (fetcher.state !== "idle" || !fetcher.data) return;
-    if (fetcher.data.intent === "CREATE_PROMPT" && fetcher.data.data) {
-      closeDialog();
-      navigate(
-        promptsUrl(
-          teamId!,
-          fetcher.data.data._id,
-          fetcher.data.data.productionVersion,
-        ),
-      );
-    }
-  }, [fetcher.state, fetcher.data, navigate, teamId]);
+  const teamQuery = { teamId };
+
+  const prompts = useCache({
+    api: "/api/prompts",
+    query: {
+      ...teamQuery,
+      currentPage,
+      searchValue: searchParams.get("searchValue") || undefined,
+      sort: sortValue || undefined,
+      annotationType: searchParams.get("filter_annotationType") || undefined,
+    },
+  });
 
   const onCreatePromptButtonClicked = () => {
     addDialog(
-      <CreatePromptDialog
-        onCreateNewPromptClicked={onCreateNewPromptClicked}
-      />,
+      <CreatePromptDialog onCreateNewPromptClicked={submitCreatePrompt} />,
     );
   };
 
@@ -181,22 +89,80 @@ export default function TeamPromptsRoute() {
     );
   }, [searchParams, setSearchParams]);
 
-  const onCreateNewPromptClicked = ({
+  const submitCreatePrompt = ({
     name,
     annotationType,
   }: {
     name: string;
     annotationType: string;
   }) => {
-    fetcher.submit(
-      JSON.stringify({
-        intent: "CREATE_PROMPT",
-        payload: { name, annotationType },
-      }),
+    prompts.mutate(
+      { method: "POST", query: teamQuery, data: { name, annotationType } },
       {
-        method: "POST",
-        action: promptsUrl(teamId!),
-        encType: "application/json",
+        onSuccess: (response) => {
+          closeDialog();
+          navigate(
+            promptsUrl(
+              teamId,
+              response.data._id,
+              response.data.productionVersion,
+            ),
+          );
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
+  const openEditPromptDialog = (prompt: Prompt) => {
+    addDialog(
+      <EditPromptDialog
+        prompt={prompt}
+        onEditPromptClicked={submitEditPrompt}
+      />,
+    );
+  };
+
+  const submitEditPrompt = (prompt: Prompt) => {
+    prompts.mutate(
+      {
+        api: `/api/prompts/${prompt._id}`,
+        method: "PUT",
+        query: teamQuery,
+        data: { name: prompt.name },
+      },
+      {
+        onSuccess: () => {
+          toast.success("Prompt updated");
+          addDialog(null);
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
+  const openDeletePromptDialog = (prompt: Prompt) => {
+    addDialog(
+      <DeletePromptDialog
+        prompt={prompt}
+        onDeletePromptClicked={() => submitDeletePrompt(prompt)}
+      />,
+    );
+  };
+
+  const submitDeletePrompt = (prompt: Prompt) => {
+    prompts.mutate(
+      {
+        api: `/api/prompts/${prompt._id}`,
+        method: "DELETE",
+        query: teamQuery,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Prompt deleted");
+          addDialog(null);
+        },
+        onError: (error) => toast.error(error.message),
       },
     );
   };
@@ -207,6 +173,8 @@ export default function TeamPromptsRoute() {
     }
   };
 
+  const promptItems: Prompt[] = prompts.data ?? [];
+
   const onItemActionClicked = ({
     id,
     action,
@@ -214,7 +182,7 @@ export default function TeamPromptsRoute() {
     id: string;
     action: string;
   }) => {
-    const prompt = find(data.prompts.data, { _id: id });
+    const prompt = find(promptItems, { _id: id });
     if (!prompt) return null;
     switch (action) {
       case "EDIT":
@@ -242,18 +210,16 @@ export default function TeamPromptsRoute() {
     setSortValue(sortValue);
   };
 
-  const prompts = data.prompts.data ?? [];
-
   return (
     <TeamPrompts
-      prompts={prompts}
+      prompts={promptItems}
       team={ctx.team}
       searchValue={searchValue}
       currentPage={currentPage}
-      totalPages={data.prompts.totalPages}
+      totalPages={prompts.totalPages ?? 1}
       filtersValues={filtersValues}
       sortValue={sortValue}
-      isSyncing={isSyncing}
+      isSyncing={isSyncing || prompts.isFetching}
       onActionClicked={onActionClicked}
       onItemActionClicked={onItemActionClicked}
       onSearchValueChanged={onSearchValueChanged}

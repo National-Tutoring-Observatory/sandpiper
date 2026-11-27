@@ -1,7 +1,6 @@
 import find from "lodash/find";
 import { useEffect } from "react";
 import {
-  data,
   redirect,
   useNavigate,
   useOutletContext,
@@ -11,10 +10,7 @@ import { toast } from "sonner";
 import { useSearchQueryParams } from "~/modules/app/hooks/useSearchQueryParams";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import useCache from "~/modules/cache/hooks/useCache";
-import CodebookAuthorization from "~/modules/codebooks/authorization";
-import { CodebookService } from "~/modules/codebooks/codebook";
 import type { Codebook } from "~/modules/codebooks/codebooks.types";
-import { CodebookVersionService } from "~/modules/codebooks/codebookVersion";
 import CreateCodebookDialog from "~/modules/codebooks/components/createCodebookDialog";
 import DeleteCodebookDialog from "~/modules/codebooks/components/deleteCodebookDialog";
 import EditCodebookDialog from "~/modules/codebooks/components/editCodebookDialog";
@@ -32,63 +28,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   const user = await requireAuth({ request });
   if (!TeamAuthorization.canView(user, params.teamId)) {
     return redirect("/");
-  }
-
-  return {};
-}
-
-export async function action({ request, params }: Route.ActionArgs) {
-  const { intent, payload = {} } = await request.json();
-  const { name, description } = payload;
-
-  const user = await requireAuth({ request });
-
-  if (!CodebookAuthorization.canCreate(user, params.teamId)) {
-    return data(
-      {
-        errors: {
-          general:
-            "You do not have permission to create codebooks in this team.",
-        },
-      },
-      { status: 403 },
-    );
-  }
-
-  if (intent === "CREATE_CODEBOOK") {
-    if (typeof name !== "string") {
-      return data(
-        {
-          errors: {
-            general: "Codebook name is required and must be a string.",
-          },
-        },
-        { status: 400 },
-      );
-    }
-
-    const codebook = await CodebookService.create({
-      name,
-      description: description || "",
-      team: params.teamId,
-      productionVersion: 1,
-      createdBy: user._id,
-    });
-
-    await CodebookVersionService.create({
-      name: "initial",
-      codebook: codebook._id,
-      version: 1,
-      categories: [
-        { name: "New category", description: "", codes: [] },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ] as any,
-    });
-
-    return {
-      intent: "CREATE_CODEBOOK",
-      data: codebook,
-    };
   }
 
   return {};

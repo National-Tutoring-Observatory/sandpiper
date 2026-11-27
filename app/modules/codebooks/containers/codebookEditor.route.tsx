@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { redirect } from "react-router";
 import { toast } from "sonner";
-import getReferenceId from "~/helpers/getReferenceId";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
 import useCache from "~/modules/cache/hooks/useCache";
 import addDialog from "~/modules/dialogs/addDialog";
@@ -39,52 +38,6 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   }
 
   return {};
-}
-
-export async function action({ request, params }: Route.ActionArgs) {
-  const { intent, entityId, payload = {} } = await request.json();
-
-  const { name, categories } = payload;
-
-  const user = await requireAuth({ request });
-
-  const codebookVersion = await CodebookVersionService.findById(entityId);
-
-  if (!codebookVersion) {
-    throw new Error("Codebook version not found");
-  }
-
-  const codebookId = getReferenceId(codebookVersion.codebook);
-  const codebook = await CodebookService.findOne({
-    _id: codebookId,
-    team: params.teamId,
-  });
-
-  if (!codebook) {
-    throw new Error("Codebook not found");
-  }
-
-  if (!CodebookAuthorization.canUpdate(user, codebook)) {
-    throw new Error("Access denied");
-  }
-
-  switch (intent) {
-    case "UPDATE_CODEBOOK_VERSION":
-      await CodebookVersionService.updateById(entityId, {
-        name,
-        categories,
-        hasBeenSaved: true,
-        updatedAt: new Date().toISOString(),
-      });
-      return {};
-    case "MAKE_CODEBOOK_VERSION_PRODUCTION":
-      await CodebookService.updateById(codebookId, {
-        productionVersion: Number(params.version),
-      });
-      return {};
-    default:
-      return {};
-  }
 }
 
 export default function CodebookEditorRoute({ params }: Route.ComponentProps) {

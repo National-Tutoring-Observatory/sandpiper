@@ -48,7 +48,7 @@ export default function PromptSelector({
   promptVersions: PromptVersion[];
   selectedPrompt: string | null;
   selectedPromptVersion: number | null;
-  productionVersion: number;
+  productionVersion: number | null;
   isLoadingPrompts: boolean;
   isLoadingPromptVersions: boolean;
   onPromptsPopoverOpened: () => void;

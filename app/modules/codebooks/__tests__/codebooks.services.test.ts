@@ -284,6 +284,26 @@ describe("codebook versions", () => {
     expect(data?.productionVersion).toBe(2);
   });
 
+  it("rejects creating a prompt from a version in another codebook", async () => {
+    const other = await createCodebookInTeam(teamId, admin._id);
+    const otherVersion = await CodebookVersionService.create({
+      codebook: other._id,
+      version: 2,
+      categories: [] as any,
+    });
+
+    await expect(
+      createPromptFromCodebook(
+        {
+          codebookId: codebook._id,
+          codebookVersionId: otherVersion._id,
+          annotationType: "PER_UTTERANCE",
+        },
+        makeContext(),
+      ),
+    ).rejects.toThrow("Codebook version not found");
+  });
+
   it("rejects making a missing version production with 404", async () => {
     await expect(
       makeCodebookVersionProduction(

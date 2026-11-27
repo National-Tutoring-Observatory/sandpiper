@@ -237,15 +237,6 @@ export default [
     "modules/datasets/containers/downloadMtmDataset.route.tsx",
   ),
   route("api/events", "modules/events/containers/events.route.tsx"),
-  route(
-    "api/promptVersionAlignment",
-    "modules/prompts/containers/promptVersionAlignment.route.tsx",
-  ),
-  route(
-    "api/promptVersionsList",
-    "modules/prompts/containers/promptVersionsList.route.tsx",
-  ),
-  route("api/promptsList", "modules/prompts/containers/promptsList.route.tsx"),
   route("api/runsList", "modules/runs/containers/runsList.route.tsx"),
   route(
     "api/sessionsList",

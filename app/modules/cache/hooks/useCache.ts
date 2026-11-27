@@ -26,10 +26,12 @@ export default function useCache({
   api,
   query,
   initialData,
+  enabled = true,
 }: {
   api: string;
   query?: ApiQuery;
   initialData?: ApiResponse["data"];
+  enabled?: boolean;
 }) {
   const queryClient = useQueryClient();
 
@@ -38,6 +40,7 @@ export default function useCache({
     queryFn: () => requestApi<ApiResponse>({ api, query }),
     initialData: initialData === undefined ? undefined : { data: initialData },
     placeholderData: keepPreviousData,
+    enabled,
   });
 
   const mutation = useMutation({
