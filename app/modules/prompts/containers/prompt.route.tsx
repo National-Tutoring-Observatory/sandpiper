@@ -1,26 +1,28 @@
-import { useContext, useEffect } from "react";
-import {
-  data,
-  redirect,
-  useFetcher,
-  useLoaderData,
-  useNavigate,
-  useParams,
-} from "react-router";
+import { useContext } from "react";
+import { data, redirect, useNavigate, useParams } from "react-router";
 import { toast } from "sonner";
-import getReferenceId from "~/helpers/getReferenceId";
 import { AuthenticationContext } from "~/modules/authentication/authentication.context";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
+import useCache from "~/modules/cache/hooks/useCache";
+import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "~/modules/prompts/authorization";
-import { usePromptActions } from "~/modules/prompts/hooks/usePromptActions";
 import PromptLibraryAuthorization from "~/modules/prompts/promptLibraryAuthorization";
 import { RunService } from "~/modules/runs/run";
+import DeletePromptDialog from "../components/deletePromptDialog";
+import EditPromptDialog from "../components/editPromptDialog";
 import Prompt from "../components/prompt";
+import PublishPromptDialog from "../components/publishPromptDialog";
+import UnpublishPromptDialog from "../components/unpublishPromptDialog";
 import { PromptPublishedError } from "../errors/promptPublishedError";
 import { PublishError } from "../errors/publishError";
 import { cleanAuthors, cleanPaperRefs } from "../helpers/cleanLibraryMetadata";
 import { promptsUrl } from "../helpers/promptUrls";
 import { PromptService } from "../prompt";
+import type {
+  PromptAuthor,
+  PromptPaperRef,
+  Prompt as PromptType,
+} from "../prompts.types";
 import { PromptVersionService } from "../promptVersion";
 import type { Route } from "./+types/prompt.route";
 
@@ -36,11 +38,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
   if (!PromptAuthorization.canView(user, prompt)) {
     throw new Error("You do not have permission to view this prompt.");
   }
-  const promptVersions = await PromptVersionService.find({
-    match: { prompt: params.promptId },
-    sort: { version: -1 },
-  });
-  return { prompt, promptVersions };
+  return {};
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -209,76 +207,150 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export default function PromptRoute() {
-  const loaderData = useLoaderData<typeof loader>();
+export default function PromptRoute({ params }: Route.ComponentProps) {
+  const { teamId, promptId } = params;
+  const { version } = useParams();
   const navigate = useNavigate();
-
-  const { teamId, promptId, version } = useParams();
-
-  const fetcher = useFetcher();
-
-  const { prompt, promptVersions } = loaderData;
   const user = useContext(AuthenticationContext);
-  const canDelete = PromptAuthorization.canDelete(user, prompt);
-  const canPublish = PromptLibraryAuthorization.canPublish(user);
 
-  const {
-    openEditPromptDialog,
-    openDeletePromptDialog,
-    openPublishPromptDialog,
-    openUnpublishPromptDialog,
-  } = usePromptActions({
-    onDeleteSuccess: () => navigate(promptsUrl(teamId!)),
+  const teamQuery = { teamId };
+  const prompt = useCache({
+    api: `/api/prompts/${promptId}`,
+    query: teamQuery,
+  });
+  const promptVersions = useCache({
+    api: `/api/prompts/${promptId}/versions`,
+    query: teamQuery,
   });
 
+  if (!prompt.data || !promptVersions.data) return null;
+
   const submitCreatePromptVersion = () => {
-    fetcher.submit(
-      JSON.stringify({
-        intent: "CREATE_PROMPT_VERSION",
-        entityId: promptId,
-        payload: { version },
-      }),
-      { method: "POST", encType: "application/json" },
+    promptVersions.mutate(
+      { method: "POST", query: teamQuery, data: { version: Number(version) } },
+      {
+        onSuccess: (response) =>
+          navigate(promptsUrl(teamId, promptId, response.data.version)),
+        onError: (error) => toast.error(error.message),
+      },
     );
   };
 
-  useEffect(() => {
-    if (fetcher.state === "idle" && fetcher.data) {
-      if (
-        fetcher.data.success &&
-        fetcher.data.intent === "CREATE_PROMPT_VERSION"
-      ) {
-        navigate(
-          promptsUrl(
-            teamId!,
-            fetcher.data.data.prompt,
-            fetcher.data.data.version,
-          ),
-        );
-      } else if (fetcher.data.errors) {
-        toast.error(fetcher.data.errors.general || "An error occurred");
-      }
-    }
-  }, [fetcher.state, fetcher.data, navigate, teamId]);
+  const openEditPromptDialog = (prompt: PromptType) => {
+    addDialog(
+      <EditPromptDialog
+        prompt={prompt}
+        onEditPromptClicked={submitEditPrompt}
+      />,
+    );
+  };
+
+  const submitEditPrompt = ({ name }: PromptType) => {
+    prompt.mutate(
+      { method: "PUT", query: teamQuery, data: { name } },
+      {
+        onSuccess: () => {
+          toast.success("Prompt updated");
+          addDialog(null);
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
+  const openDeletePromptDialog = (prompt: PromptType) => {
+    addDialog(
+      <DeletePromptDialog
+        prompt={prompt}
+        onDeletePromptClicked={submitDeletePrompt}
+      />,
+    );
+  };
+
+  const submitDeletePrompt = () => {
+    prompt.mutate(
+      { method: "DELETE", query: teamQuery },
+      {
+        onSuccess: () => {
+          toast.success("Prompt deleted");
+          addDialog(null);
+          navigate(promptsUrl(teamId));
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
+  const openPublishPromptDialog = (prompt: PromptType) => {
+    addDialog(
+      <PublishPromptDialog
+        prompt={prompt}
+        onPublishPromptClicked={submitPublishPrompt}
+      />,
+    );
+  };
+
+  const submitPublishPrompt = (data: {
+    description: string;
+    authors: PromptAuthor[];
+    paperRefs: PromptPaperRef[];
+  }) => {
+    prompt.mutate(
+      {
+        api: `/api/prompts/${promptId}/publish`,
+        method: "POST",
+        query: teamQuery,
+        data,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Prompt published to library");
+          addDialog(null);
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
+
+  const openUnpublishPromptDialog = (prompt: PromptType) => {
+    addDialog(
+      <UnpublishPromptDialog
+        prompt={prompt}
+        onUnpublishPromptClicked={submitUnpublishPrompt}
+      />,
+    );
+  };
+
+  const submitUnpublishPrompt = () => {
+    prompt.mutate(
+      {
+        api: `/api/prompts/${promptId}/unpublish`,
+        method: "POST",
+        query: teamQuery,
+      },
+      {
+        onSuccess: () => {
+          toast.success("Prompt unpublished");
+          addDialog(null);
+        },
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
 
   const breadcrumbs = [
-    {
-      text: "Prompts",
-      link: promptsUrl(getReferenceId(prompt.team)),
-    },
-    {
-      text: prompt.name,
-    },
+    { text: "Prompts", link: promptsUrl(teamId) },
+    { text: prompt.data.name },
   ];
 
   return (
     <Prompt
-      prompt={prompt}
-      promptVersions={promptVersions}
+      prompt={prompt.data}
+      promptVersions={promptVersions.data}
       version={Number(version)}
       breadcrumbs={breadcrumbs}
-      canDelete={canDelete}
-      canPublish={canPublish}
+      canDelete={PromptAuthorization.canDelete(user, prompt.data)}
+      canPublish={PromptLibraryAuthorization.canPublish(user)}
       onCreatePromptVersionClicked={submitCreatePromptVersion}
       onEditPromptButtonClicked={openEditPromptDialog}
       onDeletePromptButtonClicked={openDeletePromptDialog}

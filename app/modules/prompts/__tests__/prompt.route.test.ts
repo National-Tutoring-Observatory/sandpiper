@@ -793,7 +793,7 @@ describe("prompt.route loader", () => {
     await clearDocumentDB();
   });
 
-  it("returns the prompt when teamId and promptId match", async () => {
+  it("allows access when teamId and promptId match", async () => {
     const team = await TeamService.create({ name: "team A" });
     const user = await UserService.create({
       username: "owner",
@@ -817,8 +817,7 @@ describe("prompt.route loader", () => {
       unstable_pattern: "",
     } as any)) as any;
 
-    expect(result.prompt?._id).toBe(prompt._id);
-    expect(Array.isArray(result.promptVersions)).toBe(true);
+    expect(result).toEqual({});
   });
 
   it("redirects to the team's prompts list when the prompt belongs to a different team (IDOR)", async () => {

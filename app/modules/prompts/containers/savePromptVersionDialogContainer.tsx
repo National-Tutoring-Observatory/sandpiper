@@ -1,11 +1,23 @@
 import { useEffect, useRef, useState } from "react";
-import { useFetcher } from "react-router";
+import useCache from "~/modules/cache/hooks/useCache";
 import SavePromptVersionDialog from "../components/savePromptVersionDialog";
+
+type AlignmentResult = {
+  alignmentScore: number;
+  reasoning: string;
+  hasInjectionError?: boolean;
+  injectionReasoning?: string;
+};
+
+type SuggestionsResult = {
+  prompt: string;
+  annotationSchema: [];
+};
 
 export default function SavePromptVersionDialogContainer({
   userPrompt,
   annotationSchema,
-  team,
+  teamId,
   promptId,
   onSaveClicked,
   onAcceptChangesClicked,
@@ -13,7 +25,7 @@ export default function SavePromptVersionDialogContainer({
   userPrompt: string;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   annotationSchema: any[];
-  team: string;
+  teamId: string;
   promptId: string;
   onSaveClicked: () => void;
   onAcceptChangesClicked: (changes: {
@@ -24,74 +36,72 @@ export default function SavePromptVersionDialogContainer({
   const hasInitialized = useRef(false);
 
   const [hasRequestedSuggestions, setHasRequestedSuggestions] = useState(false);
+  const [alignment, setAlignment] = useState<AlignmentResult | null>(null);
+  const [suggestions, setSuggestions] = useState<SuggestionsResult | null>(
+    null,
+  );
+  const [error, setError] = useState("");
 
-  const alignmentFetcher = useFetcher();
-  const suggestionsFetcher = useFetcher();
+  const teamQuery = { teamId };
+  const prompt = useCache({
+    api: `/api/prompts/${promptId}`,
+    query: teamQuery,
+  });
 
   useEffect(() => {
-    if (!hasInitialized.current) {
-      hasInitialized.current = true;
-      alignmentFetcher.submit(
-        {
-          intent: "ALIGNMENT_CHECK",
-          userPrompt,
-          annotationSchema,
-          team,
-          promptId,
-        },
-        {
-          action: "/api/promptVersionAlignment",
-          method: "post",
-          encType: "application/json",
-        },
-      );
-    }
+    if (hasInitialized.current) return;
+    hasInitialized.current = true;
+    prompt.mutate(
+      {
+        api: `/api/prompts/${promptId}/alignment-check`,
+        method: "POST",
+        query: teamQuery,
+        data: { userPrompt, annotationSchema },
+      },
+      {
+        onSuccess: (response) => setAlignment(response.data),
+        onError: (error) => setError(error.message),
+      },
+    );
   }, []);
 
   const onGetSuggestionsClicked = () => {
     setHasRequestedSuggestions(true);
-    suggestionsFetcher.submit(
+    prompt.mutate(
       {
-        intent: "SUGGEST_CHANGES",
-        userPrompt,
-        annotationSchema,
-        team,
-        promptId,
-        alignmentScore: alignmentFetcher.data?.alignmentScore,
-        reasoning: alignmentFetcher.data?.reasoning,
+        api: `/api/prompts/${promptId}/alignment-suggestions`,
+        method: "POST",
+        query: teamQuery,
+        data: {
+          userPrompt,
+          annotationSchema,
+          alignmentScore: alignment?.alignmentScore,
+          reasoning: alignment?.reasoning,
+        },
       },
       {
-        action: "/api/promptVersionAlignment",
-        method: "post",
-        encType: "application/json",
+        onSuccess: (response) => setSuggestions(response.data),
+        onError: (error) => setError(error.message),
       },
     );
   };
 
-  const error =
-    alignmentFetcher.data?.errors?.general ??
-    suggestionsFetcher.data?.errors?.general ??
-    "";
-  const isFetchingAlignment = !alignmentFetcher.data;
+  const isFetchingAlignment = !alignment && !error;
   const isFetchingSuggestions =
-    hasRequestedSuggestions && !suggestionsFetcher.data;
-  const isMatching = alignmentFetcher.data?.alignmentScore >= 0.8;
-  const hasInjectionError = alignmentFetcher.data?.hasInjectionError === true;
-  const injectionReasoning = alignmentFetcher.data?.injectionReasoning ?? "";
+    hasRequestedSuggestions && !suggestions && !error;
+  const isMatching = (alignment?.alignmentScore ?? 0) >= 0.8;
+  const hasInjectionError = alignment?.hasInjectionError === true;
+  const injectionReasoning = alignment?.injectionReasoning ?? "";
   const isSubmitButtonDisabled = !isMatching || hasInjectionError || !!error;
-  const reasoning = alignmentFetcher.data?.reasoning ?? "";
-
-  const suggestedPrompt = suggestionsFetcher.data?.prompt ?? "";
-  const suggestedAnnotationSchema =
-    suggestionsFetcher.data?.annotationSchema ?? [];
+  const reasoning = alignment?.reasoning ?? "";
 
   return (
     <SavePromptVersionDialog
       error={error}
       reasoning={reasoning}
       injectionReasoning={injectionReasoning}
-      suggestedPrompt={suggestedPrompt}
-      suggestedAnnotationSchema={suggestedAnnotationSchema}
+      suggestedPrompt={suggestions?.prompt ?? ""}
+      suggestedAnnotationSchema={suggestions?.annotationSchema ?? []}
       isSubmitButtonDisabled={isSubmitButtonDisabled}
       isFetchingAlignment={isFetchingAlignment}
       isFetchingSuggestions={isFetchingSuggestions}

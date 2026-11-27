@@ -1,21 +1,15 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import {
-  redirect,
-  useLoaderData,
-  useNavigation,
-  useSubmit,
-  type ShouldRevalidateFunctionArgs,
-} from "react-router";
+import { redirect } from "react-router";
+import { toast } from "sonner";
 import getReferenceId from "~/helpers/getReferenceId";
 import requireAuth from "~/modules/authentication/helpers/requireAuth";
-import { CodebookService } from "~/modules/codebooks/codebook";
-import { CodebookVersionService } from "~/modules/codebooks/codebookVersion";
+import useCache from "~/modules/cache/hooks/useCache";
 import addDialog from "~/modules/dialogs/addDialog";
 import PromptAuthorization from "../authorization";
 import PromoteProductionVersionDialog from "../components/promoteProductionVersionDialog";
 import PromptEditor from "../components/promptEditor";
 import { SYSTEM_FIELDS } from "../helpers/defaultPrompts";
-import getSystemPrompt from "../helpers/getSystemPrompt.server";
 import tokenizePromptVersion from "../helpers/tokenizePromptVersion";
 import { PromptService } from "../prompt";
 import type { AnnotationSchemaItem } from "../prompts.types";
@@ -48,36 +42,7 @@ export async function loader({ request, params }: Route.LoaderArgs) {
     return redirect("/");
   }
 
-  let codebookData: {
-    _id: string;
-    name: string;
-    version: number;
-    teamId: string;
-  } | null = null;
-
-  if (promptVersion.codebook) {
-    const [codebook, codebookVersion] = await Promise.all([
-      CodebookService.findById(promptVersion.codebook),
-      CodebookVersionService.findById(promptVersion.codebookVersion),
-    ]);
-    if (codebook && codebookVersion) {
-      codebookData = {
-        _id: codebook._id,
-        name: codebook.name,
-        version: codebookVersion.version,
-        teamId: getReferenceId(codebook.team),
-      };
-    }
-  }
-
-  const systemPrompt = getSystemPrompt("annotation", prompt.annotationType);
-
-  return {
-    prompt: { data: prompt },
-    promptVersion: { data: promptVersion },
-    codebook: codebookData,
-    systemPrompt,
-  };
+  return {};
 }
 
 export async function action({ request, params }: Route.ActionArgs) {
@@ -141,24 +106,38 @@ export async function action({ request, params }: Route.ActionArgs) {
   }
 }
 
-export function shouldRevalidate({
-  formMethod,
-  formAction,
-  defaultShouldRevalidate,
-}: ShouldRevalidateFunctionArgs) {
-  if (formMethod === "POST" && formAction === "/api/promptVersionAlignment") {
-    return false;
-  }
-  return defaultShouldRevalidate;
-}
-
-export default function PromptEditorRoute() {
-  const data = useLoaderData<typeof loader>();
-  const navigation = useNavigation();
-  const submit = useSubmit();
+export default function PromptEditorRoute({ params }: Route.ComponentProps) {
+  const { teamId, promptId, version } = params;
+  const queryClient = useQueryClient();
   const [isSystemPromptVisible, setIsSystemPromptVisible] = useState(false);
 
-  const { prompt, promptVersion, codebook, systemPrompt } = data;
+  const teamQuery = { teamId };
+  const promptVersionsApi = `/api/prompts/${promptId}/versions`;
+  const prompt = useCache({
+    api: `/api/prompts/${promptId}`,
+    query: teamQuery,
+  });
+  const promptVersion = useCache({
+    api: `${promptVersionsApi}/${version}`,
+    query: teamQuery,
+  });
+
+  if (!prompt.data || !promptVersion.data) return null;
+
+  const submitSavePromptVersion = (data: {
+    name: string;
+    userPrompt: string;
+    annotationSchema: AnnotationSchemaItem[];
+  }) => {
+    promptVersion.mutate(
+      { method: "PUT", query: teamQuery, data },
+      {
+        onSuccess: () =>
+          queryClient.invalidateQueries({ queryKey: [promptVersionsApi] }),
+        onError: (error) => toast.error(error.message),
+      },
+    );
+  };
 
   const onSavePromptVersion = ({
     name,
@@ -173,47 +152,33 @@ export default function PromptEditorRoute() {
       <SavePromptVersionDialogContainer
         userPrompt={userPrompt}
         annotationSchema={annotationSchema}
-        team={prompt.data.team as string}
-        promptId={prompt.data._id}
-        onSaveClicked={() => {
-          submit(
-            JSON.stringify({
-              intent: "UPDATE_PROMPT_VERSION",
-              entityId: promptVersion.data._id,
-              payload: { name, userPrompt, annotationSchema },
-            }),
-            { method: "PUT", encType: "application/json" },
-          );
-        }}
+        teamId={teamId}
+        promptId={promptId}
+        onSaveClicked={() =>
+          submitSavePromptVersion({ name, userPrompt, annotationSchema })
+        }
         onAcceptChangesClicked={({
           suggestedPrompt,
           suggestedAnnotationSchema,
-        }) => {
-          submit(
-            JSON.stringify({
-              intent: "UPDATE_PROMPT_VERSION",
-              entityId: promptVersion.data._id,
-              payload: {
-                name,
-                userPrompt: suggestedPrompt,
-                annotationSchema: suggestedAnnotationSchema,
-              },
-            }),
-            { method: "PUT", encType: "application/json" },
-          );
-        }}
+        }) =>
+          submitSavePromptVersion({
+            name,
+            userPrompt: suggestedPrompt,
+            annotationSchema: suggestedAnnotationSchema,
+          })
+        }
       />,
     );
   };
 
   const submitMakePromptVersionProduction = () => {
-    submit(
-      JSON.stringify({
-        intent: "MAKE_PROMPT_VERSION_PRODUCTION",
-        entityId: promptVersion.data._id,
-        payload: {},
-      }),
-      { method: "POST", encType: "application/json" },
+    prompt.mutate(
+      {
+        api: `${promptVersionsApi}/${version}/production`,
+        method: "POST",
+        query: teamQuery,
+      },
+      { onError: (error) => toast.error(error.message) },
     );
   };
 
@@ -231,17 +196,18 @@ export default function PromptEditorRoute() {
     setIsSystemPromptVisible(!isSystemPromptVisible);
   };
 
+  const { linkedCodebook, systemPrompt, ...promptVersionData } =
+    promptVersion.data;
+
   return (
     <PromptEditor
-      key={`${promptVersion.data._id}-${promptVersion.data.updatedAt}`}
-      promptVersion={promptVersion.data}
+      key={`${promptVersionData._id}-${promptVersionData.updatedAt}`}
+      promptVersion={promptVersionData}
       systemPrompt={systemPrompt}
-      codebook={codebook}
-      isLoading={navigation.state === "loading"}
+      codebook={linkedCodebook}
+      isLoading={promptVersion.isFetching || promptVersion.isMutating}
       onSavePromptVersion={onSavePromptVersion}
-      isProduction={
-        prompt.data.productionVersion === promptVersion.data.version
-      }
+      isProduction={prompt.data.productionVersion === promptVersionData.version}
       isSystemPromptVisible={isSystemPromptVisible}
       onMakePromptVersionProduction={onMakePromptVersionProduction}
       onToggleSystemPromptClicked={onToggleSystemPromptClicked}

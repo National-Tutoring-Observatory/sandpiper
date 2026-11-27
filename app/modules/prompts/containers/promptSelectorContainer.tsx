@@ -1,10 +1,9 @@
 import find from "lodash/find";
-import get from "lodash/get";
 import { useEffect, useState } from "react";
-import { useFetcher } from "react-router";
+import useCache from "~/modules/cache/hooks/useCache";
 import type { PromptReference } from "~/modules/runSets/runSets.types";
 import PromptSelector from "../components/promptSelector";
-import type { PromptVersion } from "../prompts.types";
+import type { Prompt, PromptVersion } from "../prompts.types";
 
 export default function PromptSelectorContainer({
   teamId,
@@ -33,41 +32,24 @@ export default function PromptSelectorContainer({
     Record<string, PromptVersion[]>
   >({});
 
-  const promptsFetcher = useFetcher();
-  const promptVersionsFetcher = useFetcher();
-
-  const buildPromptsListUrl = () => {
-    const params = new URLSearchParams();
-    params.set("annotationType", annotationType);
-    params.set("team", teamId);
-    return `/api/promptsList?${params.toString()}`;
-  };
+  const teamQuery = { teamId };
+  const promptsCache = useCache({
+    api: "/api/prompts/saved",
+    query: { ...teamQuery, annotationType },
+  });
+  const promptVersionsCache = useCache({
+    api: `/api/prompts/${selectedPrompt}/versions`,
+    query: { ...teamQuery, hasBeenSaved: true },
+    enabled: !!selectedPrompt,
+  });
 
   const onPromptsPopoverOpened = () => {
-    promptsFetcher.load(buildPromptsListUrl());
+    promptsCache.fetch();
   };
 
-  useEffect(() => {
-    promptsFetcher.load(buildPromptsListUrl());
-
-    if (selectedPrompt) {
-      const versionParams = new URLSearchParams();
-      versionParams.set("annotationType", annotationType);
-      versionParams.set("prompt", selectedPrompt);
-      promptVersionsFetcher.load(
-        `/api/promptVersionsList?${versionParams.toString()}`,
-      );
-    }
-  }, [selectedPrompt]);
-
   const onSelectedPromptChange = (selectedPrompt: string) => {
-    const selectedPromptItem = find(promptsFetcher.data.prompts.data, {
-      _id: selectedPrompt,
-    });
+    const selectedPromptItem = find(prompts, { _id: selectedPrompt });
     onSelectedPromptChanged(selectedPrompt, selectedPromptItem?.name);
-    const params = new URLSearchParams();
-    params.set("prompt", selectedPrompt);
-    promptVersionsFetcher.load(`/api/promptVersionsList?${params.toString()}`);
     if (selectedPromptItem?.productionVersion != null) {
       onSelectedPromptVersionChanged(selectedPromptItem.productionVersion);
     }
@@ -80,13 +62,11 @@ export default function PromptSelectorContainer({
     onSelectedPromptVersionChanged(selectedPromptVersion, version?.inputTokens);
   };
 
-  const prompts = get(promptsFetcher, "data.prompts.data", []);
+  const prompts: Prompt[] = promptsCache.data ?? [];
 
-  const promptVersions: PromptVersion[] = get(
-    promptVersionsFetcher,
-    "data.promptVersions.data",
-    [],
-  );
+  const promptVersions: PromptVersion[] = selectedPrompt
+    ? (promptVersionsCache.data ?? [])
+    : [];
 
   useEffect(() => {
     if (selectedPrompt && promptVersions.length > 0) {
@@ -116,9 +96,7 @@ export default function PromptSelectorContainer({
 
   let productionVersion = null;
   if (selectedPrompt) {
-    const selectedPromptItem = find(promptsFetcher.data?.prompts?.data, {
-      _id: selectedPrompt,
-    });
+    const selectedPromptItem = find(prompts, { _id: selectedPrompt });
     if (selectedPromptItem) {
       productionVersion = selectedPromptItem.productionVersion;
     }
@@ -131,8 +109,8 @@ export default function PromptSelectorContainer({
       selectedPrompt={selectedPrompt}
       selectedPromptVersion={selectedPromptVersion}
       productionVersion={productionVersion}
-      isLoadingPrompts={promptsFetcher.state === "loading"}
-      isLoadingPromptVersions={promptVersionsFetcher.state === "loading"}
+      isLoadingPrompts={promptsCache.isFetching}
+      isLoadingPromptVersions={promptVersionsCache.isFetching}
       onPromptsPopoverOpened={onPromptsPopoverOpened}
       onSelectedPromptChange={onSelectedPromptChange}
       onSelectedPromptVersionChange={onSelectedPromptVersionChange}
