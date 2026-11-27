@@ -73,3 +73,64 @@ export interface AnnotationSchemaItem {
   fieldType?: string;
   codes?: string[];
 }
+
+export type GetPromptsByActiveTeamInput = {
+  currentPage?: number;
+  searchValue?: string;
+  sort?: string;
+  annotationType?: AnnotationTypeOptions;
+};
+
+export type GetSavedPromptsInput = {
+  annotationType: AnnotationTypeOptions;
+};
+
+export type CreatePromptInput = {
+  name: string;
+  annotationType: AnnotationTypeOptions;
+};
+
+export type PromptIdInput = {
+  promptId: string;
+};
+
+export type UpdatePromptInput = {
+  promptId: string;
+  name: string;
+};
+
+export type GetPromptVersionsInput = {
+  promptId: string;
+  hasBeenSaved?: boolean;
+};
+
+export type PromptVersionInput = {
+  promptId: string;
+  version: number;
+};
+
+export type UpdatePromptVersionInput = {
+  promptId: string;
+  version: number;
+  name: string;
+  userPrompt: string;
+  annotationSchema: AnnotationSchemaItem[];
+};
+
+export type PublishPromptInput = {
+  promptId: string;
+  description: string;
+  authors?: PromptAuthor[];
+  paperRefs?: PromptPaperRef[];
+};
+
+export type CheckPromptAlignmentInput = {
+  promptId: string;
+  userPrompt: string;
+  annotationSchema: AnnotationSchemaItem[];
+};
+
+export type SuggestPromptChangesInput = CheckPromptAlignmentInput & {
+  alignmentScore: number;
+  reasoning: string;
+};
